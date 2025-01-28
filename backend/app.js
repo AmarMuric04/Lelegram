@@ -11,10 +11,9 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// use any client url
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: "http://localhost:5173",
     methods: "GET, POST, PUT, PATCH, DELETE",
     allowedHeaders: "Content-Type, Authorization",
   })
@@ -22,10 +21,9 @@ app.use(
 
 const server = createServer(app);
 
-// use any client url
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: "http://localhost:5173",
     methods: ["GET", "POST"],
   },
 });
