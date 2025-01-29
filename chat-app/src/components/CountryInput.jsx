@@ -1,13 +1,22 @@
-import { useState, useRef } from "react";
-import PropTypes from "prop-types";
+import { useState, useRef, useEffect } from "react";
 import { countries } from "../assets/countryCodes";
+import { useDispatch, useSelector } from "react-redux";
+import { setSelected, setValue } from "../store/authSlice";
 
-export default function CountryInput({ setSelected }) {
+export default function CountryInput() {
   const [isFocused, setIsFocused] = useState(false);
-  const [value, setValue] = useState("");
   const [filteredCountries, setFilteredCountries] = useState(countries);
+  const [showUl, setShowUl] = useState(false);
+  const dispatch = useDispatch();
+  const { value } = useSelector((state) => state.auth);
 
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setShowUl(isFocused);
+    }, 100);
+  }, [isFocused]);
 
   const handleFilterCountries = (value) => {
     const filtered = countries.filter((country) =>
@@ -22,17 +31,17 @@ export default function CountryInput({ setSelected }) {
   };
 
   const handleChange = (value) => {
-    setValue(value);
-    setSelected({});
+    dispatch(setSelected({}));
+    dispatch(setValue(value));
   };
 
   const handleCountrySelect = (country) => {
-    setSelected(country);
-    setValue(country.label);
+    dispatch(setSelected(country));
+    dispatch(setValue(country.label));
   };
 
   return (
-    <div className="relative h-[3rem]">
+    <div className="relative h-[3.5rem]">
       <input
         ref={inputRef}
         value={value}
@@ -43,7 +52,7 @@ export default function CountryInput({ setSelected }) {
           handleFilterCountries(e.target.value);
         }}
         type="text"
-        className={`h-full w-full border-[1px] duration-400 outline-none rounded-lg px-3 ${
+        className={`h-full w-full border-[2px] duration-400 outline-none rounded-xl px-5 ${
           isFocused ? "border-[#8675DC]" : "border-[#282828]"
         }`}
       />
@@ -78,19 +87,14 @@ export default function CountryInput({ setSelected }) {
         Country
       </p>
       <ul
-        className={`absolute top-[110%] w-full rounded-lg bg-[#202021] shadow-lg py-4 max-h-[20rem] overflow-auto transition-all duration-100 ${
-          isFocused
-            ? "opacity-100 pointer-events-auto z-50"
-            : "opacity-0 scale-90 pointer-events-none z-0"
+        className={`absolute top-[110%] w-full rounded-lg bg-[#202021] shadow-lg max-h-[20rem] overflow-auto transition-all ${
+          showUl ? "opacity-100 z-50 h-auto" : "opacity-100 scale-90 z-0 h-0"
         }`}
       >
         {filteredCountries.map((option) => (
           <li
             key={option.code}
-            onClick={() => {
-              handleCountrySelect(option);
-              console.log(option);
-            }}
+            onMouseDown={() => handleCountrySelect(option)}
             className="p-2 hover:bg-[#242424] transition-all cursor-pointer"
           >
             <div className="flex w-full items-center justify-between py-2">
@@ -115,8 +119,3 @@ export default function CountryInput({ setSelected }) {
     </div>
   );
 }
-
-CountryInput.propTypes = {
-  selected: PropTypes.object.isRequired,
-  setSelected: PropTypes.func.isRequired,
-};
