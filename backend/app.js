@@ -6,6 +6,7 @@ import Message from "./message.js";
 import cors from "cors";
 import dotenv from "dotenv";
 
+// Load environment variables from .env file
 dotenv.config();
 
 const app = express();
@@ -13,7 +14,7 @@ const port = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     methods: "GET, POST, PUT, PATCH, DELETE",
     allowedHeaders: "Content-Type, Authorization",
   })
@@ -23,7 +24,7 @@ const server = createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     methods: ["GET", "POST"],
   },
 });
@@ -38,7 +39,6 @@ app.get("/api/messages", async (req, res) => {
   }
 });
 
-// connect to any mongodb database, doesn't matter
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
@@ -56,8 +56,8 @@ mongoose
         };
 
         const userColor = getRandomColor();
-        socket.emit("setUsername", userName);
-        socket.emit("setColor", userColor);
+        socket.emit("setUsername", userName); // Send username to the client
+        socket.emit("setColor", userColor); // Send username to the client
 
         io.emit("userJoined", {
           userName,
@@ -78,7 +78,7 @@ mongoose
             socket.broadcast.emit("receiveMessage", {
               ...data,
               userName: userName,
-              color: userColor,
+              color: userColor, // Include color when broadcasting
             });
           } catch (err) {
             console.error("Error saving message:", err);
