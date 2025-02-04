@@ -1,5 +1,5 @@
 import Image from "../assets/tg-bg.png";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Input from "./Input";
 
 export default function Main() {
@@ -16,6 +16,41 @@ export default function Main() {
     setDesc(value);
   };
 
+  const handleCreateChat = () => {
+    fetch("http://localhost:3000/chat/create-chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        description: desc,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => console.log(data))
+      .catch((err) => console.log(err));
+  };
+
+  useEffect(() => {
+    const unsetOpen = () => setOpen(false);
+
+    if (open) {
+      const timeout = setTimeout(() => {
+        document.body.addEventListener("click", unsetOpen);
+      }, 10);
+
+      return () => {
+        clearTimeout(timeout);
+        document.body.removeEventListener("click", unsetOpen);
+      };
+    }
+
+    return () => {
+      document.body.removeEventListener("click", unsetOpen);
+    };
+  }, [open]);
+
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center">
       <div className="w-[85%] flex justify-between">
@@ -27,31 +62,52 @@ export default function Main() {
               addChannel ? "-left-full" : "left-0"
             }`}
           >
-            <div className="min-w-full h-full">
+            <div className="min-w-full h-full bg-[#242424]">
               <div className="absolute right-5 bottom-5">
                 <div className="relative">
                   <button
                     onClick={() => setOpen(!open)}
                     className="bg-[#8675DC] cursor-pointer hover:bg-[#8765DC] transition-all p-4 text-white rounded-full"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        fill="currentColor"
-                        d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"
-                      />
-                    </svg>
+                    {open && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          fill="none"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeWidth="2"
+                          d="M20 20L4 4m16 0L4 20"
+                        />
+                      </svg>
+                    )}
+                    {!open && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"
+                        />
+                      </svg>
+                    )}
                   </button>
                   <div
                     className={`absolute w-[140px] bottom-[120%] right-0 bg-[#252525] p-2 text-xs text-white rounded-md  ${
                       open ? "opacity-100 scale-100" : "opacity-0 scale-50"
-                    } transition-all`}
+                    } transition-all shadow-md`}
                   >
-                    <div className="w-full cursor-pointer flex justify-between gap-5 items-center hover:bg-[#303030] transition-all p-2 rounded-md shadow-md">
+                    <button
+                      onClick={() => setAddChannel(true)}
+                      className="w-full cursor-pointer flex justify-between gap-5 items-center hover:bg-[#303030] transition-all p-2 rounded-md"
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="16"
@@ -65,13 +121,8 @@ export default function Main() {
                           d="M14 14V6m0 8l6.102 3.487a.6.6 0 0 0 .898-.52V3.033a.6.6 0 0 0-.898-.521L14 6m0 8H7a4 4 0 1 1 0-8h7M7.757 19.3L7 14h4l.677 4.74a1.98 1.98 0 0 1-3.92.56Z"
                         />
                       </svg>
-                      <p
-                        onClick={() => setAddChannel(true)}
-                        className="font-semibold flex-shrink-0"
-                      >
-                        New Channel
-                      </p>
-                    </div>
+                      <p className="font-semibold flex-shrink-0">New Channel</p>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -113,8 +164,31 @@ export default function Main() {
                 </div>
               </div>
             </div>
-            <div className="min-w-full h-full">
-              <div className="bg-[#303030] px-8 py-4">
+            <div className="min-w-full h-full relative text-white">
+              <div
+                className={`absolute right-5 transition-all ${
+                  name !== "" ? "bottom-5" : "-bottom-20"
+                }`}
+              >
+                <button
+                  onClick={handleCreateChat}
+                  className="bg-[#8675DC] cursor-pointer hover:bg-[#8765DC] transition-all p-4 text-white rounded-full"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    className="text-[#ccc]"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="m16.172 11l-5.364-5.364l1.414-1.414L20 12l-7.778 7.778l-1.414-1.414L16.172 13H4v-2z"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div className="bg-[#242424] px-8 py-4">
                 <div className="flex items-center text-white text-xl font-semibold gap-8">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -152,7 +226,7 @@ export default function Main() {
                   </div>
                   <div className="flex flex-col gap-4 w-full">
                     <Input
-                      textClass={"bg-[#303030]"}
+                      textClass={"bg-[#242424]"}
                       inputValue={name}
                       onChange={(e) => handleSetName(e.target.value)}
                       type="text"
@@ -161,7 +235,7 @@ export default function Main() {
                     </Input>
 
                     <Input
-                      textClass={"bg-[#303030]"}
+                      textClass={"bg-[#242424]"}
                       inputValue={desc}
                       onChange={(e) => handleSetDesc(e.target.value)}
                       type="text"

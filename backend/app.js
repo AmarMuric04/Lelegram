@@ -5,20 +5,22 @@ import mongoose from "mongoose";
 import Message from "./message.js";
 import cors from "cors";
 import dotenv from "dotenv";
+import ChatRoutes from "./routes/chat.js";
 
-// Load environment variables from .env file
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL,
-    methods: "GET, POST, PUT, PATCH, DELETE",
-    allowedHeaders: "Content-Type, Authorization",
-  })
-);
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE"
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
+});
 
 const server = createServer(app);
 
@@ -39,6 +41,8 @@ app.get("/api/messages", async (req, res) => {
   }
 });
 
+app.use("/chat", ChatRoutes);
+
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
@@ -56,8 +60,8 @@ mongoose
         };
 
         const userColor = getRandomColor();
-        socket.emit("setUsername", userName); // Send username to the client
-        socket.emit("setColor", userColor); // Send username to the client
+        socket.emit("setUsername", userName);
+        socket.emit("setColor", userColor);
 
         io.emit("userJoined", {
           userName,
@@ -78,7 +82,7 @@ mongoose
             socket.broadcast.emit("receiveMessage", {
               ...data,
               userName: userName,
-              color: userColor, // Include color when broadcasting
+              color: userColor,
             });
           } catch (err) {
             console.error("Error saving message:", err);
