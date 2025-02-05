@@ -8,7 +8,7 @@ export const router = createBrowserRouter([
     element: <Main />,
   },
   {
-    path: "/app",
+    path: "/auth",
     element: <App />,
   },
 ]);

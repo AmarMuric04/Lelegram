@@ -1,12 +1,16 @@
 import Image from "../assets/tg-bg.png";
 import { useEffect, useState } from "react";
 import Input from "./Input";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function Main() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [addChannel, setAddChannel] = useState(false);
+  const [activeChat, setActiveChat] = useState(null);
+
+  const queryClient = useQueryClient();
 
   const handleSetName = (value) => {
     setName(value);
@@ -15,6 +19,17 @@ export default function Main() {
   const handleSetDesc = (value) => {
     setDesc(value);
   };
+
+  const handleGetChats = async () => {
+    const response = await fetch("http://localhost:3000/chat/get-chats");
+
+    return response.json();
+  };
+
+  const { data: chats, isLoading } = useQuery({
+    queryFn: handleGetChats,
+    queryKey: ["chats"],
+  });
 
   const handleCreateChat = () => {
     fetch("http://localhost:3000/chat/create-chat", {
@@ -28,7 +43,10 @@ export default function Main() {
       }),
     })
       .then((res) => res.json())
-      .then((data) => console.log(data))
+      .then(() => {
+        setAddChannel(false);
+        queryClient.invalidateQueries(["chats"]);
+      })
       .catch((err) => console.log(err));
   };
 
@@ -51,10 +69,12 @@ export default function Main() {
     };
   }, [open]);
 
+  if (isLoading) return;
+
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center">
       <div className="w-[85%] flex justify-between">
-        <sidebar
+        <aside
           className={`border-l-2 transition overflow-hidden border-[#151515] w-[25%] relative flex`}
         >
           <div
@@ -163,6 +183,29 @@ export default function Main() {
                   />
                 </div>
               </div>
+              {chats?.data?.length > 0 && (
+                <ul className="flex flex-col px-2">
+                  {chats.data.map((chat) => (
+                    <li
+                      onClick={() => setActiveChat(chat)}
+                      className={`flex items-center gap-5 text-white p-2 rounded-xl transition-all cursor-pointer ${
+                        activeChat?._id === chat?._id
+                          ? "bg-[#8675DC] hover:bg-[#8765DC]"
+                          : "hover:bg-[#353535]"
+                      }`}
+                      key={chat._id}
+                    >
+                      <div className="bg-orange-300 h-16 w-16 rounded-full grid place-items-center font-semibold">
+                        {chat.name.slice(0, 3)}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-lg">{chat.name}</p>
+                        <p className="text-[#ccc]">Channel created</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             <div className="min-w-full h-full relative text-white">
               <div
@@ -250,8 +293,45 @@ export default function Main() {
               </p>
             </div>
           </div>
-        </sidebar>
-        <img className="w-[75%] h-screen object-cover" src={Image} />
+        </aside>
+        <div className="w-[75%] h-screen relative">
+          <img
+            className="absolute h-full z-0 left-0 top-0 object-cover"
+            src={Image}
+          />
+          {activeChat && (
+            <div className="relative h-screen w-full text-white">
+              <header className="border-l-2 border-[#151515] bg-[#252525] w-full px-5 py-1 flex items-center gap-5">
+                <div className="bg-orange-300 h-10 w-10 rounded-full grid place-items-center font-semibold">
+                  {activeChat?.name.slice(0, 3)}
+                </div>
+                <div>
+                  <p className="font-semibold text-lg">{activeChat.name}</p>
+                  <p className="text-[#ccc] text-sm -mt-1">1 subscriber</p>
+                </div>
+              </header>
+              <div className="flex gap-2 absolute w-[55%] bottom-5 left-1/2 -translate-x-1/2">
+                <input
+                  placeholder="Broadcast"
+                  className="bg-[#252525] w-full py-2 rounded-2xl rounded-br-none px-4"
+                />
+                <button className="p-4 rounded-full bg-[#8675DC] hover:bg-[#8765DC] transition-all cursor-pointer">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3m7 9c0 3.53-2.61 6.44-6 6.93V21h-2v-3.07c-3.39-.49-6-3.4-6-6.93h2a5 5 0 0 0 5 5a5 5 0 0 0 5-5z"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );

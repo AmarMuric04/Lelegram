@@ -3,10 +3,12 @@ import PropTypes from "prop-types";
 import Image from "../../assets/mnky.png";
 import { useSelector } from "react-redux";
 import Input from "../Input";
+import { useNavigate } from "react-router-dom";
 
 export default function CodeAuth({ setActivePage }) {
   const [code, setCode] = useState("");
-  const { phoneNumber } = useSelector((state) => state.auth);
+  const { phoneNumber, isSigningIn } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
   const handleChange = (value) => {
     setCode(value);
@@ -44,6 +46,17 @@ export default function CodeAuth({ setActivePage }) {
             Code
           </Input>
         </div>
+        {code !== "" && (
+          <button
+            onClick={() => {
+              if (isSigningIn) navigate("/");
+              else setActivePage("addInfo");
+            }}
+            className="bg-[#8675DC] w-full rounded-lg cursor-pointer hover:bg-[#8765DC] py-4"
+          >
+            Next
+          </button>
+        )}
       </div>
     </div>
   );

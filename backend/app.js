@@ -3,9 +3,9 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import mongoose from "mongoose";
 import Message from "./message.js";
-import cors from "cors";
 import dotenv from "dotenv";
 import ChatRoutes from "./routes/chat.js";
+import UserRoutes from "./routes/user.js";
 
 dotenv.config();
 
@@ -42,6 +42,15 @@ app.get("/api/messages", async (req, res) => {
 });
 
 app.use("/chat", ChatRoutes);
+app.use("/user", UserRoutes);
+
+app.use((error, req, res, next) => {
+  console.log(error);
+  const status = error.statusCode || 500;
+  const message = error.message;
+  const data = error.data;
+  res.status(status).json({ message, data });
+});
 
 mongoose
   .connect(process.env.MONGODB_URI)
