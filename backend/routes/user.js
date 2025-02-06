@@ -1,8 +1,13 @@
 import express from "express";
 import * as UserController from "../controllers/user.js";
 import { body } from "express-validator";
+import isAuth from "../middleware/is-auth.js";
 
 const router = express.Router();
+
+router.get("/get-user", isAuth, UserController.getUser);
+
+router.post("/signin", UserController.signIn);
 
 router.post(
   "/create-user",

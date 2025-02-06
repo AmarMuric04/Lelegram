@@ -1,8 +1,9 @@
 import Input from "../Input";
 import Image from "../../assets/mnky.png";
 import { useState } from "react";
-import { useSelector } from "react-redux";
-import { useMutation } from "@tanstack/react-query";
+import { useDispatch, useSelector } from "react-redux";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { setUser } from "../../store/authSlice";
 import { useNavigate } from "react-router-dom";
 
 export default function AddInfoAuth() {
@@ -10,7 +11,8 @@ export default function AddInfoAuth() {
   const [fname, setFname] = useState("");
   const [lname, setLname] = useState("");
   const [error, setError] = useState({});
-  const { phoneNumber } = useSelector((state) => state.auth);
+  const { phoneNumber, user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const auth = async () => {
@@ -43,9 +45,39 @@ export default function AddInfoAuth() {
     }
   };
 
+  const fetchUserData = async () => {
+    console.log("Fetching user data...");
+    const token = localStorage.getItem("token");
+
+    const response = await fetch("http://localhost:3000/user/get-user", {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    });
+    const data = await response.json();
+    dispatch(setUser(data.data));
+
+    return data;
+  };
+
+  console.log(user);
+
+  const { refetch } = useQuery({
+    queryFn: fetchUserData,
+    queryKey: ["userData"],
+    enabled: false,
+  });
+
   const { mutate: handleAuth, isPending } = useMutation({
     mutationFn: auth,
-    onSuccess: () => navigate("/"),
+    onSuccess: (data) => {
+      localStorage.setItem("token", data.data.token);
+      localStorage.setItem("userId", data.data.userId);
+
+      refetch();
+      navigate("/");
+    },
   });
 
   return (

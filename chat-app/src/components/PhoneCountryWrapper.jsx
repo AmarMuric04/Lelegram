@@ -16,5 +16,5 @@ export default function PhoneCountryWrapper({ error, setError }) {
 }
 PhoneCountryWrapper.propTypes = {
   error: PropTypes.object,
-  setError: PropTypes.func.object,
+  setError: PropTypes.func,
 };

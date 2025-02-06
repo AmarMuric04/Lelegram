@@ -7,6 +7,7 @@ const authSlice = createSlice({
     selected: {},
     phoneNumber: "",
     isSigningIn: false,
+    user: {},
   },
   reducers: {
     setSelected: (state, action) => {
@@ -19,12 +20,19 @@ const authSlice = createSlice({
       state.phoneNumber = action.payload;
     },
     setIsSigningIn: (state, action) => {
-      console.log(action.payload);
       state.isSigningIn = action.payload;
+    },
+    setUser: (state, action) => {
+      state.user = action.payload;
     },
   },
 });
 
-export const { setPhoneNumber, setIsSigningIn, setSelected, setValue } =
-  authSlice.actions;
+export const {
+  setPhoneNumber,
+  setIsSigningIn,
+  setUser,
+  setSelected,
+  setValue,
+} = authSlice.actions;
 export default authSlice.reducer;

@@ -6,6 +6,7 @@ import Message from "./message.js";
 import dotenv from "dotenv";
 import ChatRoutes from "./routes/chat.js";
 import UserRoutes from "./routes/user.js";
+import MessageRoutes from "./routes/message.js";
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.get("/api/messages", async (req, res) => {
 
 app.use("/chat", ChatRoutes);
 app.use("/user", UserRoutes);
+app.use("/message", MessageRoutes);
 
 app.use((error, req, res, next) => {
   console.log(error);

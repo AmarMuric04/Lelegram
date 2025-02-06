@@ -1,18 +1,22 @@
 import mongoose from "mongoose";
+delete mongoose.models.Message;
+const messageSchema = new mongoose.Schema(
+  {
+    message: {
+      type: String,
+      required: true,
+    },
+    sender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    chat: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Chat",
+    },
+  },
+  { timestamps: true }
+);
 
-const messageSchema = new mongoose.Schema({
-  message: {
-    type: String,
-    required: true,
-  },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-  chat: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Chat",
-  },
-});
-
-export default mongoose.model("Message", messageSchema);
+export default mongoose.models.Message ||
+  mongoose.model("ChatMessage", messageSchema);

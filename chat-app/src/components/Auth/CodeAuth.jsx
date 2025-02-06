@@ -1,18 +1,77 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
 import Image from "../../assets/mnky.png";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Input from "../Input";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { setUser } from "../../store/authSlice";
 
 export default function CodeAuth({ setActivePage }) {
   const [code, setCode] = useState("");
   const { phoneNumber, isSigningIn } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleChange = (value) => {
     setCode(value);
   };
+
+  const handleSignIn = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/user/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ phoneNumber }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error("Validation failed.");
+      }
+
+      return data;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const fetchUserData = async () => {
+    console.log("Fetching user data...");
+    const token = localStorage.getItem("token");
+
+    const response = await fetch("http://localhost:3000/user/get-user", {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    });
+    const data = await response.json();
+    dispatch(setUser(data.data));
+
+    return data;
+  };
+
+  const { refetch } = useQuery({
+    queryFn: fetchUserData,
+    queryKey: ["userData"],
+    enabled: false,
+  });
+
+  const { mutate: signIn, isPending } = useMutation({
+    mutationFn: handleSignIn,
+    onSuccess: (data) => {
+      localStorage.setItem("token", data.data.token);
+      localStorage.setItem("userId", data.data.userId);
+
+      navigate("/");
+      refetch();
+    },
+  });
 
   return (
     <div className="min-w-[500px] flex justify-center mt-28 h-screen">
@@ -49,12 +108,12 @@ export default function CodeAuth({ setActivePage }) {
         {code !== "" && (
           <button
             onClick={() => {
-              if (isSigningIn) navigate("/");
+              if (isSigningIn) signIn();
               else setActivePage("addInfo");
             }}
             className="bg-[#8675DC] w-full rounded-lg cursor-pointer hover:bg-[#8765DC] py-4"
           >
-            Next
+            {isPending ? "PLEASE WAIT..." : "NEXT"}
           </button>
         )}
       </div>

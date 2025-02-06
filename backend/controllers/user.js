@@ -1,5 +1,27 @@
 import User from "../models/user.js";
 import { validationResult } from "express-validator";
+import jwt from "jsonwebtoken";
+import { createJWT } from "../utility/jwt.js";
+
+export const getUser = async (req, res, next) => {
+  try {
+    console.log(1, req.userId);
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      const error = new Error("User doesn't exist.");
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    console.log(user);
+
+    res.status(200).json({ message: "User successfully fetched.", data: user });
+  } catch (err) {
+    next(err);
+  }
+};
 
 export const createUser = async (req, res, next) => {
   try {
@@ -34,9 +56,38 @@ export const createUser = async (req, res, next) => {
 
     await user.save();
 
+    const token = createJWT(user);
+
     res.status(201).json({
       message: "User created successfully",
-      user: { phoneNumber, email, firstName, lastName },
+      data: {
+        userId: user._id.toString(),
+        token,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const signIn = async (req, res, next) => {
+  try {
+    const { phoneNumber } = req.body;
+
+    const user = await User.findOne({ phoneNumber });
+
+    if (!user) {
+      const error = new Error("User not found.");
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    const token = createJWT(user);
+
+    res.status(200).json({
+      message: "Successfully signed in.",
+      data: { userId: user._id, token },
     });
   } catch (err) {
     next(err);
@@ -49,7 +100,7 @@ export const checkPhoneNumber = async (req, res, next) => {
     const user = await User.findOne({ phoneNumber });
 
     if (user) {
-      res
+      return res
         .status(200)
         .json({ message: "Phone number in database.", data: true });
     }

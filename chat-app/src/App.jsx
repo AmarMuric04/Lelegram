@@ -1,12 +1,20 @@
 // import Chat from "./Chat";
 import LandingAuth from "./components/Auth/LandingAuth";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import QRAuth from "./components/Auth/QRAuth";
 import CodeAuth from "./components/Auth/CodeAuth";
 import AddInfoAuth from "./components/Auth/AddInfoAuth";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 function App() {
   const [activePage, setActivePage] = useState("landing");
+  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // if (user) navigate("/");
+  }, [user, navigate]);
 
   let move;
 

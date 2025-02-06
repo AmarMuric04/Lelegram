@@ -1,7 +1,9 @@
 import Image from "../assets/tg-bg.png";
 import { useEffect, useState } from "react";
 import Input from "./Input";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 export default function Main() {
   const [open, setOpen] = useState(false);
@@ -9,8 +11,18 @@ export default function Main() {
   const [desc, setDesc] = useState("");
   const [addChannel, setAddChannel] = useState(false);
   const [activeChat, setActiveChat] = useState(null);
+  const [message, setMessage] = useState("");
 
   const queryClient = useQueryClient();
+  const token = localStorage.getItem("token");
+
+  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  console.log(user);
+
+  useEffect(() => {
+    if (!user) navigate("/auth");
+  }, [user, navigate]);
 
   const handleSetName = (value) => {
     setName(value);
@@ -21,7 +33,12 @@ export default function Main() {
   };
 
   const handleGetChats = async () => {
-    const response = await fetch("http://localhost:3000/chat/get-chats");
+    const response = await fetch("http://localhost:3000/chat/get-chats", {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    });
 
     return response.json();
   };
@@ -31,11 +48,35 @@ export default function Main() {
     queryKey: ["chats"],
   });
 
+  const handleGetMessages = async () => {
+    console.log("Fetching messages");
+    const response = await fetch(
+      "http://localhost:3000/message/get-messages/" + activeChat?._id,
+      {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    console.log(data);
+    return data;
+  };
+  const { data: messages, msgIsLoading } = useQuery({
+    queryFn: handleGetMessages,
+    queryKey: ["messages", activeChat?._id],
+    enabled: !!activeChat,
+  });
+
   const handleCreateChat = () => {
     fetch("http://localhost:3000/chat/create-chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
       },
       body: JSON.stringify({
         name,
@@ -45,10 +86,43 @@ export default function Main() {
       .then((res) => res.json())
       .then(() => {
         setAddChannel(false);
-        queryClient.invalidateQueries(["chats"]);
+        queryClient.invalidateQueries(["userData"]);
       })
       .catch((err) => console.log(err));
   };
+
+  const handleSendMessage = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/message/send-message",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify({
+            message,
+            chatId: activeChat._id,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error("Sending a message failed.");
+      }
+
+      return data;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const { mutate: sendMessage, isPending } = useMutation({
+    mutationFn: handleSendMessage,
+  });
 
   useEffect(() => {
     const unsetOpen = () => setOpen(false);
@@ -301,32 +375,144 @@ export default function Main() {
           />
           {activeChat && (
             <div className="relative h-screen w-full text-white">
-              <header className="border-l-2 border-[#151515] bg-[#252525] w-full px-5 py-1 flex items-center gap-5">
+              <header className="border-l-2 border-[#151515] bg-[#252525] w-full px-5 py-2 flex items-center gap-5">
                 <div className="bg-orange-300 h-10 w-10 rounded-full grid place-items-center font-semibold">
                   {activeChat?.name.slice(0, 3)}
                 </div>
                 <div>
-                  <p className="font-semibold text-lg">{activeChat.name}</p>
-                  <p className="text-[#ccc] text-sm -mt-1">1 subscriber</p>
+                  <p className="font-semibold">{activeChat.name}</p>
+                  <p className="text-[#ccc] text-sm -mt-1">
+                    {activeChat.users.length} subscriber
+                  </p>
                 </div>
               </header>
+              <div className="flex h-[80%] flex-col items-center justify-end">
+                <ul className="w-[55%] flex flex-col gap-2">
+                  {msgIsLoading && (
+                    <div className="w-full grid place-items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z"
+                        >
+                          <animateTransform
+                            attributeName="transform"
+                            dur="0.75s"
+                            repeatCount="indefinite"
+                            type="rotate"
+                            values="0 12 12;360 12 12"
+                          />
+                        </path>
+                      </svg>
+                    </div>
+                  )}
+
+                  {!msgIsLoading &&
+                    messages &&
+                    messages.data.map((message) => {
+                      const isMe = user._id === message.sender._id;
+                      return (
+                        <li
+                          key={message._id}
+                          className={`p-2 rounded-xl max-w-[80%] ${
+                            isMe
+                              ? "bg-[#8675DC] ml-auto self-end"
+                              : "bg-[#151515] mr-auto self-start"
+                          }`}
+                        >
+                          <div>
+                            <p
+                              className={`text-sm ${
+                                isMe ? "text-orange-500" : "text-[#8675DC]"
+                              }`}
+                            >
+                              {message.sender.firstName},{" "}
+                              {message.sender.lastName[0]}
+                            </p>
+                            <p>{message.message}</p>
+                            <p className="text-[#ccc] text-xs float-right">
+                              {new Date(message.createdAt).toLocaleString(
+                                "en-US",
+                                {
+                                  weekday: "short",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: false,
+                                }
+                              )}
+                            </p>
+                          </div>
+                        </li>
+                      );
+                    })}
+                </ul>
+              </div>
               <div className="flex gap-2 absolute w-[55%] bottom-5 left-1/2 -translate-x-1/2">
                 <input
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
                   placeholder="Broadcast"
                   className="bg-[#252525] w-full py-2 rounded-2xl rounded-br-none px-4"
                 />
-                <button className="p-4 rounded-full bg-[#8675DC] hover:bg-[#8765DC] transition-all cursor-pointer">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3m7 9c0 3.53-2.61 6.44-6 6.93V21h-2v-3.07c-3.39-.49-6-3.4-6-6.93h2a5 5 0 0 0 5 5a5 5 0 0 0 5-5z"
-                    />
-                  </svg>
+                <button
+                  onClick={() => {
+                    if (message !== "") sendMessage();
+                    else console.log("Voice message.");
+                  }}
+                  className="p-4 rounded-full bg-[#8675DC] hover:bg-[#8765DC] transition-all cursor-pointer"
+                >
+                  {message === "" && (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3m7 9c0 3.53-2.61 6.44-6 6.93V21h-2v-3.07c-3.39-.49-6-3.4-6-6.93h2a5 5 0 0 0 5 5a5 5 0 0 0 5-5z"
+                      />
+                    </svg>
+                  )}
+                  {!isPending && message !== "" && (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M21.243 12.437a.5.5 0 0 0 0-.874l-2.282-1.268A75.5 75.5 0 0 0 4.813 4.231l-.665-.208A.5.5 0 0 0 3.5 4.5v5.75a.5.5 0 0 0 .474.5l1.01.053a44.4 44.4 0 0 1 7.314.998l.238.053c.053.011.076.033.089.05a.16.16 0 0 1 .029.096c0 .04-.013.074-.029.096c-.013.017-.036.039-.089.05l-.238.053a44.5 44.5 0 0 1-7.315.999l-1.01.053a.5.5 0 0 0-.473.499v5.75a.5.5 0 0 0 .65.477l.664-.208a75.5 75.5 0 0 0 14.147-6.064z"
+                      />
+                    </svg>
+                  )}
+                  {isPending && (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z"
+                      >
+                        <animateTransform
+                          attributeName="transform"
+                          dur="0.75s"
+                          repeatCount="indefinite"
+                          type="rotate"
+                          values="0 12 12;360 12 12"
+                        />
+                      </path>
+                    </svg>
+                  )}
                 </button>
               </div>
             </div>
