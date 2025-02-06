@@ -24,14 +24,6 @@ export default function Main() {
     if (!user) navigate("/auth");
   }, [user, navigate]);
 
-  const handleSetName = (value) => {
-    setName(value);
-  };
-
-  const handleSetDesc = (value) => {
-    setDesc(value);
-  };
-
   const handleGetChats = async () => {
     const response = await fetch("http://localhost:3000/chat/get-chats", {
       method: "GET",
@@ -113,6 +105,9 @@ export default function Main() {
       if (!response.ok) {
         throw new Error("Sending a message failed.");
       }
+
+      queryClient.invalidateQueries(["messages", activeChat?._id]);
+      setMessage("");
 
       return data;
     } catch (error) {
@@ -345,7 +340,7 @@ export default function Main() {
                     <Input
                       textClass={"bg-[#242424]"}
                       inputValue={name}
-                      onChange={(e) => handleSetName(e.target.value)}
+                      onChange={(e) => setName(e.target.value)}
                       type="text"
                     >
                       Channel name
@@ -354,7 +349,7 @@ export default function Main() {
                     <Input
                       textClass={"bg-[#242424]"}
                       inputValue={desc}
-                      onChange={(e) => handleSetDesc(e.target.value)}
+                      onChange={(e) => setDesc(e.target.value)}
                       type="text"
                     >
                       Description (optional)

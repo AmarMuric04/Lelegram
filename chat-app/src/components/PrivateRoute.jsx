@@ -1,35 +1,40 @@
-import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { setUser } from "../store/authSlice";
+import { useQuery } from "@tanstack/react-query";
 
 const PrivateRoute = ({ children }) => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
 
-    const fetchUserData = async () => {
+  const fetchUserData = async () => {
+    try {
+      console.log("Fetching");
       const response = await fetch("http://localhost:3000/user/get-user", {
         method: "GET",
         headers: {
           Authorization: "Bearer " + token,
         },
       });
+      if (!response.ok) {
+        throw new Error("Failed to fetch the user.");
+      }
+
       const data = await response.json();
       dispatch(setUser(data.data));
 
       return data;
-    };
-
-    if (token && userId) {
-      fetchUserData();
-    } else {
-      navigate("/auth");
+    } catch (err) {
+      console.error(err);
+      throw err;
     }
-  }, [dispatch, navigate]);
+  };
+
+  useQuery({
+    queryFn: fetchUserData,
+    queryKey: ["userData"],
+    enabled: !!token,
+  });
 
   return children;
 };
