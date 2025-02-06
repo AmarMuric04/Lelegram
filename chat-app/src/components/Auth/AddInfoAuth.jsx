@@ -52,6 +52,7 @@ export default function AddInfoAuth() {
 
       navigate("/");
       queryClient.invalidateQueries(["userData"]);
+      queryClient.invalidateQueries(["chats"]);
     },
   });
 

@@ -39,7 +39,6 @@ export const getMessages = async (req, res, next) => {
 
       throw error;
     }
-    console.log(messages);
 
     res
       .status(200)

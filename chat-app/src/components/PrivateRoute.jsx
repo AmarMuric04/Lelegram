@@ -9,7 +9,6 @@ const PrivateRoute = ({ children }) => {
 
   const fetchUserData = async () => {
     try {
-      console.log("Fetching");
       const response = await fetch("http://localhost:3000/user/get-user", {
         method: "GET",
         headers: {

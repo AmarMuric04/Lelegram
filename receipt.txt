@@ -1,0 +1,22 @@
+
+SuperMart
+123 Main Street, Cityville
+Phone: (555) 123-4567
+
+Receipt #: 871855
+Date: 2025-02-06 13:10:46
+
+Items Purchased:
+Rice            $4.49
+Cheese          $5.49
+Apple Juice     $2.99
+Bananas         $0.69
+Kifla           $5.99
+Chocolate Bar   $1.49
+
+----------------------
+Subtotal:       $21.14
+Tax (8%):       $1.69
+Total:          $22.83
+----------------------
+Thank you for shopping with us!

@@ -5,7 +5,6 @@ import { createJWT } from "../utility/jwt.js";
 
 export const getUser = async (req, res, next) => {
   try {
-    console.log(1, req.userId);
     const user = await User.findById(req.userId);
 
     if (!user) {
@@ -14,8 +13,6 @@ export const getUser = async (req, res, next) => {
 
       throw error;
     }
-
-    console.log(user);
 
     res.status(200).json({ message: "User successfully fetched.", data: user });
   } catch (err) {

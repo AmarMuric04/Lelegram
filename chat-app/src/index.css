@@ -142,3 +142,18 @@ select:-webkit-autofill:focus {
   -webkit-text-fill-color: #fff !important; /* Set text color */
   transition: background-color 5000s ease-in-out 0s !important; /* Keep original background */
 }
+
+@keyframes popIn {
+  0% {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0px);
+    opacity: 1;
+  }
+}
+
+.popInAnimation {
+  animation: popIn 0.2s ease-out;
+}
