@@ -1,10 +1,10 @@
 import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
 
-export default function Modal({ children }) {
+export default function Modal({ children, id }) {
   const isOpen = useSelector((state) => state.modal.isOpen);
 
-  if (!isOpen) return null;
+  if (isOpen !== id) return null;
 
   return (
     <div className="fixed z-50 inset-0 bg-black/50 flex items-center justify-center text-white">
@@ -17,4 +17,5 @@ export default function Modal({ children }) {
 
 Modal.propTypes = {
   children: PropTypes.node.isRequired,
+  id: PropTypes.string.isRequired,
 };

@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-delete mongoose.models.Message;
 const messageSchema = new mongoose.Schema(
   {
     message: {
@@ -18,5 +17,4 @@ const messageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.Message ||
-  mongoose.model("ChatMessage", messageSchema);
+export default mongoose.model("ChatMessage", messageSchema);

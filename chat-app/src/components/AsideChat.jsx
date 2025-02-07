@@ -6,6 +6,7 @@ export default function AsideChat({ chat }) {
   const dispatch = useDispatch();
   const { activeChat } = useSelector((state) => state.chat);
 
+  console.log(chat);
   let condition;
 
   if (chat?.more) {
@@ -21,15 +22,15 @@ export default function AsideChat({ chat }) {
         condition ? "bg-[#8675DC] hover:bg-[#8765DC]" : "hover:bg-[#353535]"
       }`}
     >
-      {chat.image?.url ? (
+      {chat.imageUrl ? (
         <img
-          src={chat.image.url}
+          src={`http://localhost:3000/${chat.imageUrl}`}
           alt={chat.name}
-          className="min-h-14 min-w-14 rounded-full object-cover"
+          className="min-h-14 max-h-14 min-w-14 max-w-14 rounded-full object-cover"
         />
       ) : (
         <div
-          className="min-h-14 min-w-14 rounded-full grid place-items-center font-semibold text-white"
+          className="min-h-14 max-h-14 min-w-14 max-w-14 rounded-full grid place-items-center font-semibold text-white"
           style={{
             background: `linear-gradient(${
               chat.gradient.direction

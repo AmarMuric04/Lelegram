@@ -20,6 +20,16 @@ export const getUserChats = async (req, res, next) => {
       })
     );
 
+    chatsWithLastMessage.sort((a, b) => {
+      const dateA = a.lastMessage
+        ? new Date(a.lastMessage.createdAt)
+        : new Date(a.createdAt);
+      const dateB = b.lastMessage
+        ? new Date(b.lastMessage.createdAt)
+        : new Date(b.createdAt);
+      return dateA - dateB;
+    });
+
     res.status(200).json({
       message: "Successfully fetched chats.",
       data: chatsWithLastMessage,
@@ -85,6 +95,12 @@ export const createChat = async (req, res, next) => {
 
     const gradient = gradients[name.length % gradients.length];
 
+    let imageUrl;
+    if (req.file) imageUrl = req.file.path.replace("\\", "/");
+    else console.log("Image not found");
+
+    console.log(name, description, imageUrl);
+
     const chat = new Chat({
       name,
       description,
@@ -92,8 +108,10 @@ export const createChat = async (req, res, next) => {
       admins: [creator],
       users: [creator],
       gradient,
+      imageUrl,
     });
 
+    console.log(chat);
     await chat.save();
     res.json(chat);
   } catch (err) {

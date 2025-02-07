@@ -166,13 +166,13 @@ export default function Main() {
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center">
       {activeChat && (
-        <Modal>
+        <Modal id="leave-channel">
           <header className="flex items-center gap-5">
-            {activeChat?.image?.url ? (
+            {activeChat?.imageUrl ? (
               <img
-                src={activeChat?.image.url}
-                alt={activeChat?.name}
-                className="h-8 w-8 rounded-full object-cover"
+                src={`http://localhost:3000/${activeChat.imageUrl}`}
+                alt={activeChat.name}
+                className="min-h-8 max-h-8 min-w-8 max-w-8 rounded-full object-cover"
               />
             ) : (
               <div
@@ -253,11 +253,11 @@ export default function Main() {
             <div className="relative h-screen w-full text-white flex flex-col items-center overflow-hidden">
               <header className="relative border-l-2 border-[#151515] bg-[#252525] w-full px-5 py-2 flex justify-between items-center gap-5 h-[5%]">
                 <div className="flex gap-5 items-center">
-                  {activeChat?.image?.url ? (
+                  {activeChat?.imageUrl ? (
                     <img
-                      src={activeChat?.image.url}
-                      alt={activeChat?.name}
-                      className="h-10 w-10 rounded-full object-cover"
+                      src={`http://localhost:3000/${activeChat.imageUrl}`}
+                      alt={activeChat.name}
+                      className="min-h-10 max-h-10 min-w-10 max-w-10 rounded-full object-cover"
                     />
                   ) : (
                     <div
@@ -304,7 +304,7 @@ export default function Main() {
                 >
                   <PopUpMenuItem
                     itemClasses={"text-red-500 hover:bg-red-500/20"}
-                    action={() => dispatch(openModal())}
+                    action={() => dispatch(openModal("leave-channel"))}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

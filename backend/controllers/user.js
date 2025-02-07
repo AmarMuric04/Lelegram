@@ -46,11 +46,15 @@ export const createUser = async (req, res, next) => {
       throw error;
     }
 
+    let imageUrl;
+    if (req.file) imageUrl = req.file.path.replace("\\", "/");
+
     const user = new User({
       phoneNumber,
       email,
       firstName,
       lastName,
+      imageUrl,
     });
 
     await user.save();

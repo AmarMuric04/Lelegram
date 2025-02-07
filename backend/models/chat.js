@@ -25,9 +25,8 @@ const chatSchema = new mongoose.Schema(
     description: {
       type: String,
     },
-    image: {
-      url: { type: String },
-      public_id: { type: String },
+    imageUrl: {
+      type: String,
     },
     gradient: {
       colors: [{ type: String }],
@@ -36,7 +35,5 @@ const chatSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-chatSchema.index({ name: "text", description: "text" });
 
 export default mongoose.model("Chat", chatSchema);
