@@ -8,19 +8,26 @@ const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem("token");
 
   const fetchUserData = async () => {
+    const userId = localStorage.getItem("userId");
+
     try {
-      const response = await fetch("http://localhost:3000/user/get-user", {
-        method: "GET",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      });
+      const response = await fetch(
+        "http://localhost:3000/user/get-user/" + userId,
+        {
+          method: "GET",
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+        }
+      );
       if (!response.ok) {
         throw new Error("Failed to fetch the user.");
       }
 
       const data = await response.json();
       dispatch(setUser(data.data));
+
+      console.log(data.data);
 
       return data;
     } catch (err) {

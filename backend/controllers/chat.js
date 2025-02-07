@@ -1,5 +1,6 @@
 import Chat from "../models/chat.js";
 import User from "../models/user.js";
+import mongoose from "mongoose";
 
 export const getUserChats = async (req, res, next) => {
   try {
@@ -25,7 +26,7 @@ export const getSearchedChats = async (req, res, next) => {
       throw error;
     }
 
-    const chats = await Chat.find({
+    let chats = await Chat.find({
       name: { $regex: input, $options: "i" },
     });
 
@@ -35,6 +36,11 @@ export const getSearchedChats = async (req, res, next) => {
 
       throw error;
     }
+
+    chats = chats.map((chat) => ({
+      ...chat._doc,
+      message: "Channel created!",
+    }));
 
     res.status(200).json({ data: chats });
   } catch (err) {
@@ -93,8 +99,6 @@ export const removeUserFromChat = async (req, res, next) => {
     next(err);
   }
 };
-
-import mongoose from "mongoose";
 
 export const addUserToChat = async (req, res, next) => {
   try {

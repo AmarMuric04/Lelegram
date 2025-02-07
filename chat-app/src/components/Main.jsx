@@ -10,6 +10,8 @@ import Modal from "./Modal";
 import { Button } from "@mui/material";
 import { setActiveChat } from "../store/chatSlice";
 import Aside from "./Aside";
+import { setIsFocused } from "../store/searchSlice";
+import MessagesList from "./MessagesList";
 
 export default function Main() {
   const [message, setMessage] = useState("");
@@ -103,8 +105,7 @@ export default function Main() {
       const data = await response.json();
 
       dispatch(setActiveChat(data.data));
-
-      console.log(data);
+      dispatch(setIsFocused(false));
 
       if (!response.ok) {
         throw new Error("Couldn't add user to the chat.");
@@ -158,6 +159,8 @@ export default function Main() {
     onSuccess: () => dispatch(closeModal()),
   });
 
+  const isAdmin = activeChat?.admins?.some((u) => u.toString() === user._id);
+
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center">
       {activeChat && (
@@ -171,25 +174,27 @@ export default function Main() {
           <p className="mt-4 font-semibold">
             Do you want to delete and leave the <br /> channel?
           </p>
-          <div className="checkbox-wrapper-4 w-full h-[4rem] flex items-center">
-            <input className="inp-cbx" id="morning" type="checkbox" />
-            <label
-              className="cbx w-full h-full flex gap-8 items-center"
-              htmlFor="morning"
-            >
-              <span>
-                <svg width="12px" height="10px">
-                  <use xlinkHref="#check-4"></use>
-                </svg>
-              </span>
-              <span className="font-normal">Delete for all subscribers</span>
-            </label>
-            <svg className="inline-svg">
-              <symbol id="check-4" viewBox="0 0 12 10">
-                <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
-              </symbol>
-            </svg>
-          </div>
+          {isAdmin && (
+            <div className="checkbox-wrapper-4 w-full h-[4rem] flex items-center">
+              <input className="inp-cbx" id="morning" type="checkbox" />
+              <label
+                className="cbx w-full h-full flex gap-8 items-center"
+                htmlFor="morning"
+              >
+                <span>
+                  <svg width="12px" height="10px">
+                    <use xlinkHref="#check-4"></use>
+                  </svg>
+                </span>
+                <span className="font-normal">Delete for all subscribers</span>
+              </label>
+              <svg className="inline-svg">
+                <symbol id="check-4" viewBox="0 0 12 10">
+                  <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+                </symbol>
+              </svg>
+            </div>
+          )}
           <div className="flex">
             <Button
               onClick={() => dispatch(closeModal())}
@@ -281,7 +286,7 @@ export default function Main() {
                       />
                     </svg>
                     <p className="font-semibold flex-shrink-0">
-                      Delete Channel
+                      {isAdmin ? "Delete Channel" : "Leave Channel"}
                     </p>
                   </PopUpMenuItem>
                 </PopUpMenu>
@@ -312,45 +317,7 @@ export default function Main() {
                         </svg>
                       </div>
                     )}
-
-                    {!msgIsLoading &&
-                      messages &&
-                      messages.data.map((message) => {
-                        const isMe = user._id === message.sender._id;
-                        return (
-                          <li
-                            key={message._id}
-                            className={`p-2 rounded-xl max-w-[80%] ${
-                              isMe
-                                ? "bg-[#8675DC] ml-auto self-end rounded-br-none"
-                                : "bg-[#151515] mr-auto self-start rounded-bl-none"
-                            }`}
-                          >
-                            <div>
-                              <p
-                                className={`text-sm font-semibold ${
-                                  isMe ? "text-[#151515]" : "text-[#8675DC]"
-                                }`}
-                              >
-                                {message.sender.firstName},{" "}
-                                {message.sender.lastName[0]}
-                              </p>
-                              <p id={message._id}>{message.message}</p>
-                              <p className="text-[#ccc] text-xs float-right">
-                                {new Date(message.createdAt).toLocaleString(
-                                  "en-US",
-                                  {
-                                    weekday: "short",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    hour12: false,
-                                  }
-                                )}
-                              </p>
-                            </div>
-                          </li>
-                        );
-                      })}
+                    {messages && <MessagesList messages={messages} />}
                   </ul>
                 </div>
                 <div className="flex gap-2 w-full">

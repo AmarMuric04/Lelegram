@@ -5,7 +5,9 @@ import { createJWT } from "../utility/jwt.js";
 
 export const getUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.userId);
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
 
     if (!user) {
       const error = new Error("User doesn't exist.");

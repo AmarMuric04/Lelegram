@@ -1,37 +1,37 @@
-import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { setSearch } from "../store/searchSlice";
-import { setIsFocused } from "../store/searchSlice";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setSearch, setIsFocused, setValue } from "../store/searchSlice";
+import PropTypes from "prop-types";
 
-export default function Search() {
-  const [value, setValue] = useState("");
-
-  const CONDITION = value.length < 1;
+export default function Search({ select }) {
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
 
-  const handleSearch = async () => {
+  const { value } = useSelector((state) => state.search);
+
+  const performSearch = async (searchInput) => {
+    if (value === "") return;
     try {
-      const response = await fetch(
-        "http://localhost:3000/chat/get-searched-chats",
-        {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + token,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ input: value }),
-        }
-      );
+      let url = "http://localhost:3000";
+      if (select === "chats") url += "/chat/get-searched-chats";
+      else if (select === "messages") url += "/message/get-searched-messages";
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ input: searchInput }),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error("Searching failed.");
       }
-
       dispatch(setSearch(data.data));
-      setValue("");
+      dispatch(setValue(""));
 
       return data;
     } catch (err) {
@@ -39,6 +39,16 @@ export default function Search() {
       throw err;
     }
   };
+
+  useEffect(() => {
+    performSearch(value);
+  }, [select]);
+
+  const handleSearch = () => {
+    performSearch(value);
+  };
+
+  const CONDITION = value.length < 1;
 
   return (
     <div className="relative flex gap-5 items-center w-[88%] h-full transition-all">
@@ -57,7 +67,7 @@ export default function Search() {
       <input
         value={value}
         onFocus={() => dispatch(setIsFocused(true))}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => dispatch(setValue(e.target.value))}
         placeholder="Search"
         type="text"
         className={`border-2 transition-all border-[#202021] focus:border-[#8675DC] pl-[40px] bg-[#202021] text-white h-full rounded-full focus:outline-none ${
@@ -86,3 +96,7 @@ export default function Search() {
     </div>
   );
 }
+
+Search.propTypes = {
+  select: PropTypes.string,
+};

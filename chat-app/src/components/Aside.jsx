@@ -56,7 +56,11 @@ export default function Aside() {
         }`}
       >
         <div className="min-w-full h-full bg-[#242424]">
-          <div className="absolute right-5 bottom-5">
+          <div
+            className={`absolute right-5 transition-all ${
+              isFocused ? "-bottom-20" : "bottom-5"
+            }`}
+          >
             <PopUpMenu
               tl={true}
               icon={
@@ -152,7 +156,7 @@ export default function Aside() {
                 </svg>
               )}
             </button>
-            <Search />
+            <Search select={activeSelect} />
           </div>
           {!isFocused && <AsideChatWrapper />}
           {isFocused && (
@@ -181,9 +185,10 @@ export default function Aside() {
                 {data?.length > 0 ? "Closest results" : "Search for something"}{" "}
               </p>
               <ul className="flex flex-col">
-                {data?.map((chat) => (
-                  <AsideChat chat={chat} key={chat._id} />
-                ))}
+                {data?.map((chat, index) => {
+                  const uniqueKey = chat._id + "-" + index;
+                  return <AsideChat key={uniqueKey} chat={chat} />;
+                })}
               </ul>
             </div>
           )}
