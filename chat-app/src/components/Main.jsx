@@ -1,5 +1,5 @@
 import Image from "../assets/tg-bg.png";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -19,6 +19,7 @@ export default function Main() {
   const queryClient = useQueryClient();
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
+  const messagesListRef = useRef(null);
 
   const { user } = useSelector((state) => state.auth);
   const { activeChat } = useSelector((state) => state.chat);
@@ -77,6 +78,7 @@ export default function Main() {
 
       queryClient.invalidateQueries(["messages", activeChat?._id]);
       setMessage("");
+      messagesListRef.current?.scrollToBottom();
 
       return data;
     } catch (error) {
@@ -166,9 +168,24 @@ export default function Main() {
       {activeChat && (
         <Modal>
           <header className="flex items-center gap-5">
-            <div className="bg-orange-300 h-8 w-8 text-xs rounded-full grid place-items-center font-semibold">
-              {activeChat.name.slice(0, 3)}
-            </div>
+            {activeChat?.image?.url ? (
+              <img
+                src={activeChat?.image.url}
+                alt={activeChat?.name}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            ) : (
+              <div
+                className="h-8 w-8 rounded-full text-xs grid place-items-center font-semibold text-white"
+                style={{
+                  background: `linear-gradient(${
+                    activeChat?.gradient.direction
+                  }, ${activeChat?.gradient.colors.join(", ")})`,
+                }}
+              >
+                {activeChat?.name.slice(0, 3)}
+              </div>
+            )}
             <p className="font-semibold text-xl">Delete channel</p>
           </header>
           <p className="mt-4 font-semibold">
@@ -236,9 +253,24 @@ export default function Main() {
             <div className="relative h-screen w-full text-white flex flex-col items-center overflow-hidden">
               <header className="relative border-l-2 border-[#151515] bg-[#252525] w-full px-5 py-2 flex justify-between items-center gap-5 h-[5%]">
                 <div className="flex gap-5 items-center">
-                  <div className="bg-orange-300 h-10 w-10 rounded-full grid place-items-center font-semibold">
-                    {activeChat?.name.slice(0, 3)}
-                  </div>
+                  {activeChat?.image?.url ? (
+                    <img
+                      src={activeChat?.image.url}
+                      alt={activeChat?.name}
+                      className="h-10 w-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="h-10 w-10 rounded-full text-xs grid place-items-center font-semibold text-white"
+                      style={{
+                        background: `linear-gradient(${
+                          activeChat?.gradient.direction
+                        }, ${activeChat?.gradient.colors.join(", ")})`,
+                      }}
+                    >
+                      {activeChat?.name.slice(0, 3)}
+                    </div>
+                  )}
                   <div>
                     <p className="font-semibold">{activeChat.name}</p>
                     <p className="text-[#ccc] text-sm -mt-1">
@@ -317,7 +349,9 @@ export default function Main() {
                         </svg>
                       </div>
                     )}
-                    {messages && <MessagesList messages={messages} />}
+                    {messages && (
+                      <MessagesList ref={messagesListRef} messages={messages} />
+                    )}
                   </ul>
                 </div>
                 <div className="flex gap-2 w-full">

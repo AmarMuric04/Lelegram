@@ -21,14 +21,41 @@ export default function AsideChat({ chat }) {
         condition ? "bg-[#8675DC] hover:bg-[#8765DC]" : "hover:bg-[#353535]"
       }`}
     >
-      <div className="bg-orange-300 h-16 w-16 rounded-full grid place-items-center font-semibold">
-        {chat.name.slice(0, 3)}
-      </div>
+      {chat.image?.url ? (
+        <img
+          src={chat.image.url}
+          alt={chat.name}
+          className="min-h-14 min-w-14 rounded-full object-cover"
+        />
+      ) : (
+        <div
+          className="min-h-14 min-w-14 rounded-full grid place-items-center font-semibold text-white"
+          style={{
+            background: `linear-gradient(${
+              chat.gradient.direction
+            }, ${chat.gradient.colors.join(", ")})`,
+          }}
+        >
+          {chat.name.slice(0, 3)}
+        </div>
+      )}
+
       <div>
         <p className="font-semibold text-lg">{chat.name}</p>
-        <p className="text-[#ccc]">
-          {chat.message ? chat.message : "Channel created!"}
-        </p>
+        <div className="text-[#ccc] line-clamp-1">
+          {chat.message ? (
+            <p>{chat.message}</p>
+          ) : chat.lastMessage ? (
+            <p>
+              <span className="font-semibold text-white">
+                {chat.lastMessage.sender.firstName}
+              </span>
+              : {chat.lastMessage.message}
+            </p>
+          ) : (
+            "Channel created!"
+          )}
+        </div>
       </div>
     </li>
   );

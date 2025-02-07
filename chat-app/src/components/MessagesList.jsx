@@ -1,14 +1,30 @@
 import PropTypes from "prop-types";
-import React from "react";
+import React, {
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+  useEffect,
+} from "react";
 import { useSelector } from "react-redux";
 
-export default function MessagesList({ messages }) {
+const MessagesList = forwardRef(function MessagesList({ messages }, ref) {
   const { user } = useSelector((state) => state.auth);
   const { activeChat } = useSelector((state) => state.chat);
+  const bottomRef = useRef(null);
+
+  useImperativeHandle(ref, () => ({
+    scrollToBottom: () => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    },
+  }));
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const groupedMessages = messages.data.reduce((groups, message) => {
     const messageDate = new Date(message.createdAt);
-    const dateKey = messageDate.toDateString(); // e.g., "Fri Feb 07 2025"
+    const dateKey = messageDate.toDateString();
     if (!groups[dateKey]) {
       groups[dateKey] = [];
     }
@@ -16,7 +32,6 @@ export default function MessagesList({ messages }) {
     return groups;
   }, {});
 
-  // Sort the date keys in ascending order (oldest first)
   const sortedDates = Object.keys(groupedMessages).sort(
     (a, b) => new Date(a) - new Date(b)
   );
@@ -28,7 +43,10 @@ export default function MessagesList({ messages }) {
   yesterday.setDate(today.getDate() - 1);
 
   return (
-    <div>
+    <div
+      className="messages-list-container"
+      style={{ overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}
+    >
       <div className="text-center my-2 flex flex-col items-center gap-2">
         {activeChat?.createdAt && (
           <>
@@ -76,15 +94,26 @@ export default function MessagesList({ messages }) {
             <ul className="flex flex-col px-2 gap-2">
               {groupedMessages[dateKey].map((message, index) => {
                 const isMe = user._id === message.sender._id;
-                const showSenderInfo =
-                  index === 0 ||
-                  groupedMessages[dateKey][index - 1].sender._id !==
-                    message.sender._id;
+
+                let showSenderInfo = true;
+
+                if (index !== 0) {
+                  const previousMessage = groupedMessages[dateKey][index - 1];
+                  if (previousMessage.sender._id === message.sender._id) {
+                    const prevTime = new Date(previousMessage.createdAt);
+                    const currTime = new Date(message.createdAt);
+                    const timeDifference = currTime - prevTime;
+
+                    if (timeDifference <= 2 * 60 * 1000) {
+                      showSenderInfo = false;
+                    }
+                  }
+                }
 
                 return (
                   <li
                     key={message._id}
-                    className={`p-2 rounded-xl max-w-[80%] ${
+                    className={`appearAnimation  p-2 rounded-xl max-w-[80%] ${
                       isMe
                         ? "bg-[#8675DC] ml-auto self-end rounded-br-none"
                         : "bg-[#151515] mr-auto self-start rounded-bl-none"
@@ -118,11 +147,14 @@ export default function MessagesList({ messages }) {
           </React.Fragment>
         );
       })}
+
+      <div ref={bottomRef} />
     </div>
   );
-}
+});
 
 MessagesList.propTypes = {
   messages: PropTypes.object,
-  isLoading: PropTypes.bool,
 };
+
+export default MessagesList;

@@ -25,6 +25,14 @@ const chatSchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    image: {
+      url: { type: String },
+      public_id: { type: String },
+    },
+    gradient: {
+      colors: [{ type: String }],
+      direction: { type: String, default: "to right" },
+    },
   },
   { timestamps: true }
 );
