@@ -4,8 +4,10 @@ import React, {
   useImperativeHandle,
   forwardRef,
   useEffect,
+  useState,
 } from "react";
 import { useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 
 const MessagesList = forwardRef(function MessagesList(
   { messages, viewInfo },
@@ -14,6 +16,27 @@ const MessagesList = forwardRef(function MessagesList(
   const { user } = useSelector((state) => state.auth);
   const { activeChat } = useSelector((state) => state.chat);
   const bottomRef = useRef(null);
+  const messagesRef = useRef(null);
+  const [messageId, setMessageId] = useState(null);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    const messageIdFromUrl = location.hash.replace("#", "");
+    setMessageId(messageIdFromUrl);
+  }, [location]);
+
+  useEffect(() => {
+    if (messageId) {
+      const targetMessageElement = document.getElementById(messageId);
+      if (targetMessageElement) {
+        targetMessageElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    }
+  }, [messageId, messages]);
 
   useImperativeHandle(ref, () => ({
     scrollToBottom: () => {
@@ -22,8 +45,9 @@ const MessagesList = forwardRef(function MessagesList(
   }));
 
   useEffect(() => {
+    if (messageId) return;
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, messageId]);
 
   const groupedMessages = messages.data.reduce((groups, message) => {
     const messageDate = new Date(message.createdAt);
@@ -47,7 +71,7 @@ const MessagesList = forwardRef(function MessagesList(
 
   return (
     <div
-      className={`messages-list-container transition-all overflow-auto ${
+      className={`messages-list-container transition-all overflow-y-auto ${
         viewInfo ? "w-full" : "w-[90%]"
       }`}
     >
@@ -95,7 +119,10 @@ const MessagesList = forwardRef(function MessagesList(
                 {header}
               </span>
             </div>
-            <ul className="flex flex-col px-2 gap-1 overflow-auto">
+            <ul
+              ref={messagesRef}
+              className="flex flex-col px-2 gap-1 overflow-y-auto overflow-x-hidden"
+            >
               {groupedMessages[dateKey].map((message, index) => {
                 const isMe = user._id === message.sender._id;
 
@@ -129,59 +156,73 @@ const MessagesList = forwardRef(function MessagesList(
                 );
 
                 return (
-                  <li
-                    key={message._id}
-                    className={`appearAnimation flex max-w-[30rem] gap-4 ${
+                  <div
+                    className={`relative ${
                       isMe ? "self-end flex-row" : "self-start flex-row-reverse"
-                    }  ${!showImage && !isMe && "ml-12"} ${
-                      showImage && "mb-1"
                     }`}
+                    key={message._id}
                   >
-                    <div
-                      className={`px-2 py-1 rounded-[1.25rem] ${
+                    <li
+                      id={message._id}
+                      className={`relative z-50 appearAnimation flex max-w-[30rem] gap-4 ${
                         isMe
-                          ? "bg-[#8675DC] ml-auto rounded-br-none"
-                          : "bg-[#151515] mr-auto rounded-bl-none"
+                          ? "self-end flex-row"
+                          : "self-start flex-row-reverse"
+                      }  ${!showImage && !isMe && "ml-12"} ${
+                        showImage && "mb-1"
                       }`}
                     >
-                      <div>
-                        {showSenderInfo && !isMe && (
-                          <div className="flex justify-between items-center gap-4">
-                            <p className="text-sm font-semibold text-[#8675DC]">
-                              {message.sender.firstName},{" "}
-                              {message.sender.lastName[0]}
+                      <div
+                        className={`px-2 py-1 rounded-[1.25rem] ${
+                          isMe
+                            ? "bg-[#8675DC] ml-auto rounded-br-none"
+                            : "bg-[#151515] mr-auto rounded-bl-none"
+                        }`}
+                      >
+                        <div>
+                          {showSenderInfo && !isMe && (
+                            <div className="flex justify-between items-center gap-4">
+                              <p className="text-sm font-semibold text-[#8675DC]">
+                                {message.sender.firstName},{" "}
+                                {message.sender.lastName[0]}
+                              </p>
+                              {isAdmin && (
+                                <p className="text-[#ccc] text-xs">admin</p>
+                              )}
+                            </div>
+                          )}
+                          <div className="flex flex-wrap items-baseline justify-end">
+                            <p className="flex-grow break-words">
+                              {message.message}
                             </p>
-                            {isAdmin && (
-                              <p className="text-[#ccc] text-xs">admin</p>
-                            )}
+                            <p className="flex-shrink-0 whitespace-nowrap text-xs text-[#ccc] ml-2">
+                              {new Date(message.createdAt).toLocaleString(
+                                "en-US",
+                                {
+                                  weekday: "short",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: false,
+                                }
+                              )}
+                            </p>
                           </div>
-                        )}
-                        <div className="flex flex-wrap items-baseline justify-end">
-                          <p className="flex-grow break-words">
-                            {message.message}
-                          </p>
-                          <p className="flex-shrink-0 whitespace-nowrap text-xs text-[#ccc] ml-2">
-                            {new Date(message.createdAt).toLocaleString(
-                              "en-US",
-                              {
-                                weekday: "short",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: false,
-                              }
-                            )}
-                          </p>
                         </div>
                       </div>
-                    </div>
-                    {showImage && !isMe && (
-                      <img
-                        src={`http://localhost:3000/${message.sender.imageUrl}`}
-                        alt={`${message.sender.firstName} ${message.sender.lastName}`}
-                        className="w-8 h-8 rounded-full mt-1"
-                      />
+                      {showImage && !isMe && (
+                        <img
+                          src={`http://localhost:3000/${message.sender.imageUrl}`}
+                          alt={`${message.sender.firstName} ${message.sender.lastName}`}
+                          className="w-8 h-8 rounded-full mt-1"
+                        />
+                      )}
+                    </li>
+                    {message._id === messageId && (
+                      <div
+                        className={`showAnimation absolute top-0 -left-[100rem] bg-[#8675DC50] min-w-[300rem] h-full`}
+                      ></div>
                     )}
-                  </li>
+                  </div>
                 );
               })}
             </ul>

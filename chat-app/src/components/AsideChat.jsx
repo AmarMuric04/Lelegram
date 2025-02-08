@@ -13,11 +13,15 @@ export default function AsideChat({ chat }) {
       activeChat?.more?.createdAt === chat?.more?.createdAt;
   } else condition = activeChat?._id === chat?._id;
 
-  if (chat.message === "1234442") console.log(chat, activeChat);
+  let link = chat._id;
+  if (chat?.more) {
+    link += "#" + chat.more._id;
+    console.log(chat.more);
+  }
 
   return (
     <Link
-      to={`/${chat._id}`}
+      to={`/${link}`}
       className={`flex items-center gap-5 text-white p-2 rounded-xl transition-all cursor-pointer ${
         condition ? "bg-[#8675DC] hover:bg-[#8765DC]" : "hover:bg-[#353535]"
       }`}

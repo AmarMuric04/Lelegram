@@ -519,7 +519,7 @@ export default function Main() {
           </div>
         </div>
         <aside
-          className={`border-r-2 transition-all bg-[#252525] h-screen overflow-hidden border-[#151515] min-w-[21.5vw] relative flex flex-col items-center text-white px-2 ${
+          className={`border-r-2 transition-all bg-[#252525] h-screen overflow-y-hidden border-[#151515] min-w-[21.5vw] relative flex flex-col items-center text-white px-2 ${
             viewInfo ? "right-[21.5vw]" : "right-0"
           }`}
         >

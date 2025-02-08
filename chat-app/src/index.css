@@ -176,3 +176,19 @@ select:-webkit-autofill:focus {
 .appearAnimation {
   animation: appear 0.2s ease-out;
 }
+
+@keyframes show {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.showAnimation {
+  animation: show 1s ease-out forwards;
+}

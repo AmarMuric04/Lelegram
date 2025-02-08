@@ -20,15 +20,12 @@ export const getChat = async (req, res, next) => {
 export const getUserChats = async (req, res, next) => {
   try {
     const chats = await Chat.find({ users: req.userId }).populate({
-      path: "lastMessage", // Populate the 'message' field inside 'lastMessage'
+      path: "lastMessage",
       populate: {
-        path: "sender", // Populate the 'sender' field inside the message
+        path: "sender",
       },
     });
 
-    console.log(chats);
-
-    // Sort chats by last message date
     chats.sort((a, b) => {
       const dateA = a.lastMessage
         ? new Date(a.lastMessage.createdAt)
@@ -39,7 +36,6 @@ export const getUserChats = async (req, res, next) => {
       return dateB - dateA;
     });
 
-    console.log(chats);
     res.status(200).json({
       message: "Successfully fetched chats.",
       data: chats,
@@ -63,6 +59,11 @@ export const getSearchedChats = async (req, res, next) => {
 
     let chats = await Chat.find({
       name: { $regex: input, $options: "i" },
+    }).populate({
+      path: "lastMessage",
+      populate: {
+        path: "sender",
+      },
     });
 
     if (chats.length === 0) {
@@ -71,21 +72,7 @@ export const getSearchedChats = async (req, res, next) => {
       throw error;
     }
 
-    const chatsWithLastMessage = await Promise.all(
-      chats.map(async (chat) => {
-        const lastMessage = await Message.findOne({ chat: chat._id })
-          .sort({ createdAt: -1 })
-          .select("message createdAt sender")
-          .populate("sender");
-
-        return {
-          ...chat.toObject(),
-          lastMessage: lastMessage || null,
-        };
-      })
-    );
-
-    res.status(200).json({ data: chatsWithLastMessage });
+    res.status(200).json({ data: chats });
   } catch (err) {
     next(err);
   }
