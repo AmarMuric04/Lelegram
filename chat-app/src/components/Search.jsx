@@ -1,16 +1,15 @@
-import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setSearch, setIsFocused, setValue } from "../store/searchSlice";
 import PropTypes from "prop-types";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Search({ select }) {
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
-
   const { value } = useSelector((state) => state.search);
 
-  const performSearch = async (searchInput) => {
-    if (value === "") return;
+  const fetchSearchResults = async () => {
+    if (value === "") return null;
     try {
       let url = "http://localhost:3000";
       if (select === "chats") url += "/chat/get-searched-chats";
@@ -22,16 +21,16 @@ export default function Search({ select }) {
           Authorization: "Bearer " + token,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ input: searchInput }),
+        body: JSON.stringify({ input: value }),
       });
-
-      const data = await response.json();
 
       if (!response.ok) {
         throw new Error("Searching failed.");
       }
+
+      const data = await response.json();
+
       dispatch(setSearch(data.data));
-      dispatch(setValue(""));
 
       return data;
     } catch (err) {
@@ -40,12 +39,15 @@ export default function Search({ select }) {
     }
   };
 
-  useEffect(() => {
-    performSearch(value);
-  }, [select]);
+  const { refetch } = useQuery({
+    queryKey: ["search", select],
+    queryFn: fetchSearchResults,
+    enabled: true,
+  });
 
   const handleSearch = () => {
-    performSearch(value);
+    console.log("Refetching...");
+    refetch();
   };
 
   const CONDITION = value.length < 1;
@@ -64,6 +66,7 @@ export default function Search({ select }) {
           d="m19.6 21l-6.3-6.3q-.75.6-1.725.95T9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l6.3 6.3zM9.5 14q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"
         />
       </svg>
+
       <input
         value={value}
         onFocus={() => dispatch(setIsFocused(true))}
@@ -75,7 +78,10 @@ export default function Search({ select }) {
         }`}
       />
       <button
-        onClick={handleSearch}
+        onClick={() => {
+          if (value === "") return;
+          handleSearch();
+        }}
         className={`absolute transition-all h-full bg-[#8675DC] w-[45px] grid place-items-center rounded-full hover:bg-[#8765DC] cursor-pointer ${
           CONDITION ? "-right-[200px]" : "-right-0"
         }`}

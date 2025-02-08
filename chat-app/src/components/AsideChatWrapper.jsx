@@ -38,7 +38,7 @@ export default function AsideChatWrapper() {
   if (isLoading) return <p>Loading...</p>;
 
   return (
-    <ul className="flex flex-col-reverse px-2 overflow-scroll h-[95%]">
+    <ul className="flex flex-col px-2 overflow-scroll h-[95%]">
       {chats?.data?.map((chat, index) => {
         const uniqueKey = chat._id + "-" + index;
         return <AsideChat key={uniqueKey} chat={chat} />;

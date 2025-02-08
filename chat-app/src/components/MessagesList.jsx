@@ -91,7 +91,7 @@ const MessagesList = forwardRef(function MessagesList({ messages }, ref) {
                 {header}
               </span>
             </div>
-            <ul className="flex flex-col px-2 gap-2">
+            <ul className="flex flex-col px-2 gap-1">
               {groupedMessages[dateKey].map((message, index) => {
                 const isMe = user._id === message.sender._id;
 
@@ -125,8 +125,8 @@ const MessagesList = forwardRef(function MessagesList({ messages }, ref) {
                     key={message._id}
                     className={`appearAnimation flex max-w-[80%] gap-4 ${
                       isMe ? "self-end flex-row" : "self-start flex-row-reverse"
-                    } ${!showImage && isMe && "mr-12"} ${
-                      !showImage && !isMe && "ml-12"
+                    }  ${!showImage && !isMe && "ml-12"} ${
+                      showImage && "mb-1"
                     }`}
                   >
                     <div
@@ -137,12 +137,8 @@ const MessagesList = forwardRef(function MessagesList({ messages }, ref) {
                       }`}
                     >
                       <div>
-                        {showSenderInfo && (
-                          <p
-                            className={`text-sm font-semibold ${
-                              isMe ? "text-[#151515]" : "text-[#8675DC]"
-                            }`}
-                          >
+                        {showSenderInfo && !isMe && (
+                          <p className="text-sm font-semibold text-[#8675DC]">
                             {message.sender.firstName},{" "}
                             {message.sender.lastName[0]}
                           </p>
@@ -165,7 +161,7 @@ const MessagesList = forwardRef(function MessagesList({ messages }, ref) {
                         </div>
                       </div>
                     </div>
-                    {showImage && (
+                    {showImage && !isMe && (
                       <img
                         src={`http://localhost:3000/${message.sender.imageUrl}`}
                         alt={`${message.sender.firstName} ${message.sender.lastName}`}

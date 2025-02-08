@@ -27,7 +27,7 @@ export const getUserChats = async (req, res, next) => {
       const dateB = b.lastMessage
         ? new Date(b.lastMessage.createdAt)
         : new Date(b.createdAt);
-      return dateA - dateB;
+      return dateB - dateA;
     });
 
     res.status(200).json({

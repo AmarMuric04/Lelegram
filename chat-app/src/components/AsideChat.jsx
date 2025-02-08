@@ -6,7 +6,6 @@ export default function AsideChat({ chat }) {
   const dispatch = useDispatch();
   const { activeChat } = useSelector((state) => state.chat);
 
-  console.log(chat);
   let condition;
 
   if (chat?.more) {
