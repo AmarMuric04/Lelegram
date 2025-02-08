@@ -1,11 +1,29 @@
 import { useDispatch } from "react-redux";
 import { setUser } from "../store/authSlice";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { connectSocket, socket, disconnectSocket } from "../socket";
 
 const PrivateRoute = ({ children }) => {
   const dispatch = useDispatch();
 
   const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    connectSocket();
+    console.log(123);
+    socket.on("connect", () => {
+      console.log("Connected to Socket.IO with ID:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Disconnected from Socket.IO");
+    });
+
+    return () => {
+      disconnectSocket();
+    };
+  }, []);
 
   const fetchUserData = async () => {
     const userId = localStorage.getItem("userId");

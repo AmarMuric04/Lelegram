@@ -54,7 +54,10 @@ export default function PopUpMenu({
     <div ref={modalRef} role="menu" className="relative">
       <button
         aria-expanded={open}
-        onClick={() => setOpen(!open)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(!open);
+        }}
         className={buttonClasses}
       >
         {iconWhenClicked && open && iconWhenClicked}

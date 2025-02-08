@@ -7,7 +7,10 @@ import React, {
 } from "react";
 import { useSelector } from "react-redux";
 
-const MessagesList = forwardRef(function MessagesList({ messages }, ref) {
+const MessagesList = forwardRef(function MessagesList(
+  { messages, viewInfo },
+  ref
+) {
   const { user } = useSelector((state) => state.auth);
   const { activeChat } = useSelector((state) => state.chat);
   const bottomRef = useRef(null);
@@ -44,8 +47,9 @@ const MessagesList = forwardRef(function MessagesList({ messages }, ref) {
 
   return (
     <div
-      className="messages-list-container"
-      style={{ overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}
+      className={`messages-list-container transition-all overflow-auto ${
+        viewInfo ? "w-full" : "w-[90%]"
+      }`}
     >
       <div className="text-center my-2 flex flex-col items-center gap-2">
         {activeChat?.createdAt && (
@@ -91,7 +95,7 @@ const MessagesList = forwardRef(function MessagesList({ messages }, ref) {
                 {header}
               </span>
             </div>
-            <ul className="flex flex-col px-2 gap-1">
+            <ul className="flex flex-col px-2 gap-1 overflow-auto">
               {groupedMessages[dateKey].map((message, index) => {
                 const isMe = user._id === message.sender._id;
 
@@ -120,17 +124,21 @@ const MessagesList = forwardRef(function MessagesList({ messages }, ref) {
                   }
                 }
 
+                const isAdmin = activeChat?.admins?.some(
+                  (u) => u.toString() === message?.sender?._id
+                );
+
                 return (
                   <li
                     key={message._id}
-                    className={`appearAnimation flex max-w-[80%] gap-4 ${
+                    className={`appearAnimation flex max-w-[30rem] gap-4 ${
                       isMe ? "self-end flex-row" : "self-start flex-row-reverse"
                     }  ${!showImage && !isMe && "ml-12"} ${
                       showImage && "mb-1"
                     }`}
                   >
                     <div
-                      className={`p-2 rounded-xl ${
+                      className={`px-2 py-1 rounded-[1.25rem] ${
                         isMe
                           ? "bg-[#8675DC] ml-auto rounded-br-none"
                           : "bg-[#151515] mr-auto rounded-bl-none"
@@ -138,10 +146,15 @@ const MessagesList = forwardRef(function MessagesList({ messages }, ref) {
                     >
                       <div>
                         {showSenderInfo && !isMe && (
-                          <p className="text-sm font-semibold text-[#8675DC]">
-                            {message.sender.firstName},{" "}
-                            {message.sender.lastName[0]}
-                          </p>
+                          <div className="flex justify-between items-center gap-4">
+                            <p className="text-sm font-semibold text-[#8675DC]">
+                              {message.sender.firstName},{" "}
+                              {message.sender.lastName[0]}
+                            </p>
+                            {isAdmin && (
+                              <p className="text-[#ccc] text-xs">admin</p>
+                            )}
+                          </div>
                         )}
                         <div className="flex flex-wrap items-baseline justify-end">
                           <p className="flex-grow break-words">
@@ -183,6 +196,7 @@ const MessagesList = forwardRef(function MessagesList({ messages }, ref) {
 
 MessagesList.propTypes = {
   messages: PropTypes.object,
+  viewInfo: PropTypes.bool,
 };
 
 export default MessagesList;

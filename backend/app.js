@@ -1,5 +1,4 @@
 import express from "express";
-import { createServer } from "http";
 import { Server } from "socket.io";
 import mongoose from "mongoose";
 import Message from "./message.js";
@@ -11,6 +10,8 @@ import multer from "multer";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import { fileURLToPath } from "url";
+import { initSocket, getSocket } from "./socket.js";
+import { createServer } from "http";
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -18,6 +19,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3000;
+const server = createServer(app);
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -55,14 +57,6 @@ app.use(multer({ storage, fileFilter }).single("imageUrl"));
 
 app.use("/images", express.static(path.join(__dirname, "images")));
 
-const server = createServer(app);
-
-const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL,
-    methods: ["GET", "POST"],
-  },
-});
 app.use(express.json());
 
 app.get("/api/messages", async (req, res) => {
@@ -87,60 +81,32 @@ app.use((error, req, res, next) => {
 });
 
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     console.log("MongoDB connected");
-    server.listen(port, () => {
-      console.log(`Server running at http://localhost:${port}`);
-      io.on("connection", (socket) => {
-        const userName = `User-${Math.floor(Math.random() * 10000)}`;
 
-        const getRandomColor = () => {
-          const randomColor = `#${Math.floor(Math.random() * 16777215).toString(
-            16
-          )}`;
-          return randomColor;
-        };
+    server.listen(port, () => console.log("Server running on port 3000"));
+    const io = initSocket(server);
 
-        const userColor = getRandomColor();
-        socket.emit("setUsername", userName);
-        socket.emit("setColor", userColor);
+    io.on("connection", (socket) => {
+      console.log("A user connected:", socket.id);
 
-        io.emit("userJoined", {
-          userName,
-          userId: socket.id,
-          color: userColor,
-        });
-
-        socket.on("sendMessage", async (data) => {
-          console.log(`${userName} is sending a message...`);
-          try {
-            const newMessage = new Message({
-              ...data,
-              userName: userName,
-              color: userColor,
-            });
-            await newMessage.save();
-
-            socket.broadcast.emit("receiveMessage", {
-              ...data,
-              userName: userName,
-              color: userColor,
-            });
-          } catch (err) {
-            console.error("Error saving message:", err);
-          }
-        });
-
-        socket.on("disconnect", () => {
-          console.log(`${userName} disconnected:`, socket.id);
-          io.emit("userLeft", {
-            userName,
-            userId: socket.id,
-            color: userColor,
-          });
-        });
+      socket.on("disconnect", () => {
+        console.log("User disconnected:", socket.id);
       });
     });
   })
-  .catch((err) => console.log(err));
+  .catch((err) => {
+    console.error("MongoDB Connection Error:", err);
+    process.exit(1);
+  });
+
+mongoose.connection.on("error", (err) => {
+  console.error("MongoDB Error:", err);
+});
+mongoose.connection.on("disconnected", () => {
+  console.warn("MongoDB disconnected");
+});

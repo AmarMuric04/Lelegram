@@ -24,7 +24,7 @@ function App() {
   if (activePage === "addInfo") move = "right-[2100px]";
 
   return (
-    <main className="monsterrat bg-[#202021] min-h-screen w-screen flex flex-col items-center text-white">
+    <main className="monsterrat bg-[#202021] min-h-screen max-h-screen w-screen flex flex-col items-center text-white">
       <div className={`transition-all w-[500px] overflow-hidden`}>
         <div
           className={`flex relative gap-[200px] justify-between transition-all duration-400 ${move}`}

@@ -55,6 +55,9 @@ export default function CountryInput() {
         className={`h-full w-full border-[2px] duration-400 outline-none rounded-xl px-5 ${
           isFocused ? "border-[#8675DC]" : "border-[#282828]"
         }`}
+        autoComplete="new-password"
+        name="not-a-phone"
+        inputMode="text"
       />
       <svg
         onClick={() => {

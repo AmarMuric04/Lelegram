@@ -4,6 +4,8 @@ import isAuth from "../middleware/is-auth.js";
 
 const router = express.Router();
 
+router.get("/get-chat/:chatId", isAuth, ChatController.getChat);
+
 router.get("/get-all-chats", isAuth, ChatController.getAllChats);
 
 router.get("/get-user-chats", isAuth, ChatController.getUserChats);

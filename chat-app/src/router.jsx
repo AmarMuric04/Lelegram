@@ -13,6 +13,14 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: "/:chatId",
+    element: (
+      <PrivateRoute>
+        <Main />
+      </PrivateRoute>
+    ),
+  },
+  {
     path: "/auth",
     element: (
       <PrivateRoute isAuthPage={true}>

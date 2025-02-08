@@ -2,7 +2,7 @@ import Image from "../assets/tg-bg.png";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import PopUpMenu from "./PopUpMenu";
 import PopUpMenuItem from "./PopUpMenuItem";
 import { closeModal, openModal } from "../store/modalSlice";
@@ -12,10 +12,15 @@ import { setActiveChat } from "../store/chatSlice";
 import Aside from "./Aside";
 import { setIsFocused } from "../store/searchSlice";
 import MessagesList from "./MessagesList";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:3000");
 
 export default function Main() {
   const [message, setMessage] = useState("");
   const [viewInfo, setViewInfo] = useState(false);
+
+  const { chatId } = useParams();
 
   const queryClient = useQueryClient();
   const token = localStorage.getItem("token");
@@ -33,9 +38,51 @@ export default function Main() {
     if (!user) navigate("/auth");
   }, [user, navigate]);
 
+  useEffect(() => {
+    if (!chatId) {
+      dispatch(setActiveChat(null));
+    }
+  }, [dispatch, chatId]);
+
+  useEffect(() => {
+    socket.on("messageSent", (message) => {
+      console.log("New message:", message);
+      queryClient.invalidateQueries(["messages", message.data]);
+    });
+
+    return () => {
+      socket.off("messageSent");
+    };
+  }, [queryClient]);
+
+  const handleGetChat = async () => {
+    const response = await fetch(
+      "http://localhost:3000/chat/get-chat/" + chatId,
+      {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      }
+    );
+
+    const data = await response.json();
+    dispatch(setActiveChat(data.data));
+
+    console.log(data);
+
+    return data;
+  };
+
+  useQuery({
+    queryFn: handleGetChat,
+    queryKey: ["chat", chatId],
+    enabled: !!chatId,
+  });
+
   const handleGetMessages = async () => {
     const response = await fetch(
-      "http://localhost:3000/message/get-messages/" + activeChat?._id,
+      "http://localhost:3000/message/get-messages/" + chatId,
       {
         method: "GET",
         headers: {
@@ -166,6 +213,7 @@ export default function Main() {
   });
 
   const isAdmin = activeChat?.admins?.some((u) => u.toString() === user._id);
+  const isInChat = activeChat?.users?.some((u) => u.toString() === user._id);
 
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center ">
@@ -183,11 +231,11 @@ export default function Main() {
                 className="h-8 w-8 rounded-full text-xs grid place-items-center font-semibold text-white"
                 style={{
                   background: `linear-gradient(${
-                    activeChat?.gradient.direction
-                  }, ${activeChat?.gradient.colors.join(", ")})`,
+                    activeChat?.gradient?.direction
+                  }, ${activeChat?.gradient?.colors.join(", ")})`,
                 }}
               >
-                {activeChat?.name.slice(0, 3)}
+                {activeChat?.name?.slice(0, 3)}
               </div>
             )}
             <p className="font-semibold text-xl">Delete channel</p>
@@ -261,10 +309,10 @@ export default function Main() {
             className={`transition-all ${viewInfo ? "w-[42vw]" : "w-[63.5vw]"}`}
           >
             {activeChat && (
-              <div className="relative h-screen w-full text-white flex flex-col items-center overflow-hidden">
+              <div className="relative h-screen w-full text-white flex flex-col items-center">
                 <header
                   onClick={() => setViewInfo(true)}
-                  className="relative border-x-2 border-[#151515] bg-[#252525] w-full px-5 py-2 flex justify-between items-center gap-5 h-[5%]"
+                  className="relative border-x-2 border-[#151515] bg-[#252525] w-full px-5 py-2 flex justify-between items-center gap-5 h-[5%] cursor-pointer"
                 >
                   <div className="flex gap-5 items-center">
                     {activeChat?.imageUrl ? (
@@ -318,7 +366,10 @@ export default function Main() {
                   >
                     <PopUpMenuItem
                       itemClasses={"text-red-500 hover:bg-red-500/20"}
-                      action={() => dispatch(openModal("leave-channel"))}
+                      action={(e) => {
+                        e.stopPropagation();
+                        dispatch(openModal("leave-channel"));
+                      }}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -338,12 +389,14 @@ export default function Main() {
                   </PopUpMenu>
                 </header>
                 <div
-                  className={`flex flex-col gap-2 items-center transition-all h-[92%] ${
-                    viewInfo ? "w-[80%]" : "w-[55%]"
-                  }`}
+                  className={`flex flex-col justify-end gap-2 transition-all h-[92%] w-full`}
                 >
-                  <div className="flex flex-col w-full items-center justify-end h-[95%] overflow-scroll">
-                    <ul className=" bottom-32 flex w-full flex-col gap-2 overflow-scroll">
+                  <div className="flex flex-col w-full items-center justify-end max-h-[100%]">
+                    <ul
+                      className={`bottom-32 transition-all flex h-full ${
+                        viewInfo ? "w-[80%]" : "w-[55%]"
+                      } flex-col gap-2`}
+                    >
                       {msgIsLoading && (
                         <div className="w-full grid place-items-center">
                           <svg
@@ -369,99 +422,96 @@ export default function Main() {
                       )}
                       {messages && (
                         <MessagesList
+                          viewInfo={viewInfo}
                           ref={messagesListRef}
                           messages={messages}
                         />
                       )}
-                    </ul>
-                  </div>
-                  <div className="flex gap-2 w-full">
-                    {activeChat.users.some(
-                      (u) => u.toString() === user._id
-                    ) && (
-                      <>
-                        <input
-                          value={message}
-                          onChange={(e) => setMessage(e.target.value)}
-                          placeholder="Broadcast"
-                          className="bg-[#252525] w-full py-2 rounded-2xl rounded-br-none px-4"
-                        />
-                        <button
-                          onClick={() => {
-                            if (message !== "") sendMessage();
-                            else console.log("Voice message.");
-                          }}
-                          className="p-4 rounded-full bg-[#8675DC] hover:bg-[#8765DC] transition-all cursor-pointer"
-                        >
-                          {message === "" && (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
+                      <div className={`flex gap-2 w-full`}>
+                        {isInChat && (
+                          <>
+                            <input
+                              value={message}
+                              onChange={(e) => setMessage(e.target.value)}
+                              placeholder="Broadcast"
+                              className={`bg-[#252525] py-2 rounded-2xl rounded-br-none px-4 w-[89%]`}
+                            />
+                            <button
+                              onClick={() => {
+                                if (message !== "") sendMessage();
+                                else console.log("Voice message.");
+                              }}
+                              className="p-4 rounded-full bg-[#8675DC] hover:bg-[#8765DC] transition-all cursor-pointer"
                             >
-                              <path
-                                fill="currentColor"
-                                d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3m7 9c0 3.53-2.61 6.44-6 6.93V21h-2v-3.07c-3.39-.49-6-3.4-6-6.93h2a5 5 0 0 0 5 5a5 5 0 0 0 5-5z"
-                              />
-                            </svg>
-                          )}
-                          {!isPending && message !== "" && (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
+                              {message === "" && (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    fill="currentColor"
+                                    d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3m7 9c0 3.53-2.61 6.44-6 6.93V21h-2v-3.07c-3.39-.49-6-3.4-6-6.93h2a5 5 0 0 0 5 5a5 5 0 0 0 5-5z"
+                                  />
+                                </svg>
+                              )}
+                              {!isPending && message !== "" && (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    fill="currentColor"
+                                    d="M21.243 12.437a.5.5 0 0 0 0-.874l-2.282-1.268A75.5 75.5 0 0 0 4.813 4.231l-.665-.208A.5.5 0 0 0 3.5 4.5v5.75a.5.5 0 0 0 .474.5l1.01.053a44.4 44.4 0 0 1 7.314.998l.238.053c.053.011.076.033.089.05a.16.16 0 0 1 .029.096c0 .04-.013.074-.029.096c-.013.017-.036.039-.089.05l-.238.053a44.5 44.5 0 0 1-7.315.999l-1.01.053a.5.5 0 0 0-.473.499v5.75a.5.5 0 0 0 .65.477l.664-.208a75.5 75.5 0 0 0 14.147-6.064z"
+                                  />
+                                </svg>
+                              )}
+                              {isPending && (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    fill="currentColor"
+                                    d="M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z"
+                                  >
+                                    <animateTransform
+                                      attributeName="transform"
+                                      dur="0.75s"
+                                      repeatCount="indefinite"
+                                      type="rotate"
+                                      values="0 12 12;360 12 12"
+                                    />
+                                  </path>
+                                </svg>
+                              )}
+                            </button>
+                          </>
+                        )}
+                        {!isInChat && (
+                          <div className="w-full grid place-items-center">
+                            <Button
+                              onClick={() => addUser({ userId: userId })}
+                              sx={{
+                                backgroundColor: "#202021",
+                                color: "white",
+                                padding: "16px",
+                                borderRadius: "12px",
+                                width: "20%",
+                              }}
+                              variant="contained"
                             >
-                              <path
-                                fill="currentColor"
-                                d="M21.243 12.437a.5.5 0 0 0 0-.874l-2.282-1.268A75.5 75.5 0 0 0 4.813 4.231l-.665-.208A.5.5 0 0 0 3.5 4.5v5.75a.5.5 0 0 0 .474.5l1.01.053a44.4 44.4 0 0 1 7.314.998l.238.053c.053.011.076.033.089.05a.16.16 0 0 1 .029.096c0 .04-.013.074-.029.096c-.013.017-.036.039-.089.05l-.238.053a44.5 44.5 0 0 1-7.315.999l-1.01.053a.5.5 0 0 0-.473.499v5.75a.5.5 0 0 0 .65.477l.664-.208a75.5 75.5 0 0 0 14.147-6.064z"
-                              />
-                            </svg>
-                          )}
-                          {isPending && (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="24"
-                              height="24"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                fill="currentColor"
-                                d="M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z"
-                              >
-                                <animateTransform
-                                  attributeName="transform"
-                                  dur="0.75s"
-                                  repeatCount="indefinite"
-                                  type="rotate"
-                                  values="0 12 12;360 12 12"
-                                />
-                              </path>
-                            </svg>
-                          )}
-                        </button>
-                      </>
-                    )}
-                    {!activeChat.users.some(
-                      (u) => u.toString() === user._id
-                    ) && (
-                      <div className="w-full grid place-items-center">
-                        <Button
-                          onClick={() => addUser({ userId: userId })}
-                          sx={{
-                            backgroundColor: "#202021",
-                            color: "white",
-                            padding: "16px",
-                            borderRadius: "12px",
-                            width: "20%",
-                          }}
-                          variant="contained"
-                        >
-                          {addUserIsPending ? "PLEASE WAIT..." : "JOIN"}
-                        </Button>
+                              {addUserIsPending ? "PLEASE WAIT..." : "JOIN"}
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -526,17 +576,17 @@ export default function Main() {
                   width="24"
                   height="24"
                   viewBox="0 0 24 24"
-                  className="min-w-[20%] text-[#ccc]"
+                  className="min-w-[10%] text-[#ccc]"
                 >
                   <path
                     fill="currentColor"
                     d="M11 17h2v-6h-2zm1-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12t-2.325-5.675T12 4T6.325 6.325T4 12t2.325 5.675T12 20m0-8"
                   />
                 </svg>
-                <div className="flex flex-col">
-                  <p className="max-w-[80%]">
-                    {activeChat?.desc
-                      ? activeChat?.desc
+                <div className="flex flex-col max-w-[90%]">
+                  <p>
+                    {activeChat?.description
+                      ? activeChat?.description
                       : "No description given."}
                   </p>
                   <span className="text-[#ccc] text-sm mt-2">Info</span>
@@ -548,7 +598,7 @@ export default function Main() {
                   width="24"
                   height="24"
                   viewBox="0 0 24 24"
-                  className="min-w-[20%] text-[#ccc]"
+                  className="min-w-[10%] text-[#ccc]"
                 >
                   <path
                     fill="none"
@@ -560,7 +610,7 @@ export default function Main() {
                   />
                 </svg>
                 <div className="flex flex-col">
-                  <p className="max-w-[80%] overflow-clip truncate">
+                  <p className="max-w-[90%] overflow-clip truncate">
                     http://localhost:5173/
                     {activeChat?._id}
                   </p>

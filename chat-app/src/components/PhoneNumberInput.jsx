@@ -26,8 +26,9 @@ export default function PhoneNumberInput({ error, setError }) {
       onChange={(e) => handleChange(e.target.value)}
       value={phoneNumber}
       type="text"
-      name="phoneNumber"
-      id="phoneNumber"
+      autoComplete="new-password"
+      name="not-a-phone"
+      inputMode="text"
     >
       Phone Number
     </Input>

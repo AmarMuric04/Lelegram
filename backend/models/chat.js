@@ -32,6 +32,10 @@ const chatSchema = new mongoose.Schema(
       colors: [{ type: String }],
       direction: { type: String, default: "to right" },
     },
+    lastMessage: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ChatMessage",
+    },
   },
   { timestamps: true }
 );

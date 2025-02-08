@@ -3,24 +3,33 @@ import User from "../models/user.js";
 import Message from "../models/message.js";
 import mongoose from "mongoose";
 
+export const getChat = async (req, res, next) => {
+  try {
+    const { chatId } = req.params;
+    const chats = await Chat.findById(chatId);
+
+    res.status(200).json({
+      message: "Successfully fetched chats.",
+      data: chats,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getUserChats = async (req, res, next) => {
   try {
-    const chats = await Chat.find({ users: req.userId });
+    const chats = await Chat.find({ users: req.userId }).populate({
+      path: "lastMessage", // Populate the 'message' field inside 'lastMessage'
+      populate: {
+        path: "sender", // Populate the 'sender' field inside the message
+      },
+    });
 
-    const chatsWithLastMessage = await Promise.all(
-      chats.map(async (chat) => {
-        const lastMessage = await Message.findOne({ chat: chat._id })
-          .sort({ createdAt: -1 })
-          .select("message createdAt sender")
-          .populate("sender");
-        return {
-          ...chat.toObject(),
-          lastMessage: lastMessage || null,
-        };
-      })
-    );
+    console.log(chats);
 
-    chatsWithLastMessage.sort((a, b) => {
+    // Sort chats by last message date
+    chats.sort((a, b) => {
       const dateA = a.lastMessage
         ? new Date(a.lastMessage.createdAt)
         : new Date(a.createdAt);
@@ -30,9 +39,10 @@ export const getUserChats = async (req, res, next) => {
       return dateB - dateA;
     });
 
+    console.log(chats);
     res.status(200).json({
       message: "Successfully fetched chats.",
-      data: chatsWithLastMessage,
+      data: chats,
     });
   } catch (err) {
     next(err);
@@ -109,9 +119,9 @@ export const createChat = async (req, res, next) => {
       users: [creator],
       gradient,
       imageUrl,
+      lastMessage: null,
     });
 
-    console.log(chat);
     await chat.save();
     res.json(chat);
   } catch (err) {

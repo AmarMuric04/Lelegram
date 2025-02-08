@@ -1,6 +1,7 @@
-import chat from "../models/chat.js";
 import Message from "../models/message.js";
+import Chat from "../models/chat.js";
 import mongoose from "mongoose";
+import { getSocket } from "../socket.js";
 
 export const sendMessage = async (req, res, next) => {
   try {
@@ -14,7 +15,19 @@ export const sendMessage = async (req, res, next) => {
 
     await newMessage.save();
 
-    res.status(200).json({
+    const chat = await Chat.findById(chatId);
+
+    chat.lastMessage = newMessage._id;
+
+    await chat.save();
+
+    getSocket().emit("messageSent", {
+      data: chatId,
+    });
+
+    console.log(chat);
+
+    res.status(201).json({
       message: "Message sent successfully!",
       data: {
         sender: req.userId,

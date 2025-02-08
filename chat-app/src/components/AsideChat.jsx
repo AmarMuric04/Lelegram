@@ -1,9 +1,8 @@
 import PropTypes from "prop-types";
-import { useDispatch, useSelector } from "react-redux";
-import { setActiveChat } from "../store/chatSlice";
+import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 export default function AsideChat({ chat }) {
-  const dispatch = useDispatch();
   const { activeChat } = useSelector((state) => state.chat);
 
   let condition;
@@ -14,9 +13,11 @@ export default function AsideChat({ chat }) {
       activeChat?.more?.createdAt === chat?.more?.createdAt;
   } else condition = activeChat?._id === chat?._id;
 
+  if (chat.message === "1234442") console.log(chat, activeChat);
+
   return (
-    <li
-      onClick={() => dispatch(setActiveChat(chat))}
+    <Link
+      to={`/${chat._id}`}
       className={`flex items-center gap-5 text-white p-2 rounded-xl transition-all cursor-pointer ${
         condition ? "bg-[#8675DC] hover:bg-[#8765DC]" : "hover:bg-[#353535]"
       }`}
@@ -57,7 +58,7 @@ export default function AsideChat({ chat }) {
           )}
         </div>
       </div>
-    </li>
+    </Link>
   );
 }
 
