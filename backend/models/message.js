@@ -13,6 +13,14 @@ const messageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Chat",
     },
+    type: {
+      type: String,
+      required: true,
+    },
+    referenceMessageId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ChatMessage",
+    },
   },
   { timestamps: true }
 );

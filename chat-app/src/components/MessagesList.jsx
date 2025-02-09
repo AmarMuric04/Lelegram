@@ -8,18 +8,29 @@ import React, {
 } from "react";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
+import Message from "./Message";
 
 const MessagesList = forwardRef(function MessagesList(
-  { messages, viewInfo },
+  { messages, viewInfo, setShowScrollButton },
   ref
 ) {
   const { user } = useSelector((state) => state.auth);
   const { activeChat } = useSelector((state) => state.chat);
+  const { messageType } = useSelector((state) => state.message);
+
   const bottomRef = useRef(null);
   const messagesRef = useRef(null);
   const [messageId, setMessageId] = useState(null);
-
   const location = useLocation();
+  const [activeContextMenu, setActiveContextMenu] = useState(null);
+
+  const handleContextMenu = (messageId, x, y) => {
+    setActiveContextMenu({ id: messageId, x, y });
+  };
+
+  const clearContextMenu = () => {
+    setActiveContextMenu(null);
+  };
 
   useEffect(() => {
     const messageIdFromUrl = location.hash.replace("#", "");
@@ -31,12 +42,32 @@ const MessagesList = forwardRef(function MessagesList(
       const targetMessageElement = document.getElementById(messageId);
       if (targetMessageElement) {
         targetMessageElement.scrollIntoView({
-          behavior: "smooth",
+          behavior: "instant",
           block: "center",
         });
       }
     }
   }, [messageId, messages]);
+
+  useEffect(() => {
+    const checkScroll = () => {
+      if (!messagesRef.current) return;
+      const el = messagesRef.current;
+      setShowScrollButton(
+        el.scrollHeight - el.clientHeight > el.scrollTop + 10
+      );
+    };
+
+    const el = messagesRef.current;
+    if (!el) return;
+
+    el.addEventListener("scroll", checkScroll);
+
+    checkScroll();
+    return () => {
+      if (el) el.removeEventListener("scroll", checkScroll);
+    };
+  }, [setShowScrollButton]);
 
   useImperativeHandle(ref, () => ({
     scrollToBottom: () => {
@@ -46,7 +77,7 @@ const MessagesList = forwardRef(function MessagesList(
 
   useEffect(() => {
     if (messageId) return;
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView();
   }, [messages, messageId]);
 
   const groupedMessages = messages.data.reduce((groups, message) => {
@@ -71,9 +102,12 @@ const MessagesList = forwardRef(function MessagesList(
 
   return (
     <div
-      className={`messages-list-container transition-all overflow-y-auto ${
-        viewInfo ? "w-full" : "w-[90%]"
-      }`}
+      ref={messagesRef}
+      className={`relative ${
+        messageType === "reply" && "bottom-10"
+      } bottom-0 z-10 messages-list-container transition-all ${
+        activeContextMenu ? "overflow-hidden" : "overflow-y-auto"
+      } ${viewInfo ? "w-full" : "w-[90%]"}`}
     >
       <div className="text-center my-2 flex flex-col items-center gap-2">
         {activeChat?.createdAt && (
@@ -114,15 +148,12 @@ const MessagesList = forwardRef(function MessagesList(
 
         return (
           <React.Fragment key={dateKey}>
-            <div className="text-center my-2">
+            <div className="relative z-10 text-center my-2">
               <span className="bg-[#8675DC50] text-white px-4 text-sm font-semibold rounded-full p-1">
                 {header}
               </span>
             </div>
-            <ul
-              ref={messagesRef}
-              className="flex flex-col px-2 gap-1 overflow-y-auto overflow-x-hidden"
-            >
+            <ul className="flex flex-col px-2 gap-1 overflow-y-auto overflow-x-hidden">
               {groupedMessages[dateKey].map((message, index) => {
                 const isMe = user._id === message.sender._id;
 
@@ -152,77 +183,25 @@ const MessagesList = forwardRef(function MessagesList(
                 }
 
                 const isAdmin = activeChat?.admins?.some(
-                  (u) => u.toString() === message?.sender?._id
+                  (u) => u._id.toString() === message?.sender?._id
                 );
 
                 return (
-                  <div
-                    className={`relative ${
-                      isMe ? "self-end flex-row" : "self-start flex-row-reverse"
-                    }`}
+                  <Message
                     key={message._id}
-                  >
-                    <li
-                      id={message._id}
-                      className={`relative z-50 appearAnimation flex max-w-[30rem] gap-4 ${
-                        isMe
-                          ? "self-end flex-row"
-                          : "self-start flex-row-reverse"
-                      }  ${!showImage && !isMe && "ml-12"} ${
-                        showImage && "mb-1"
-                      }`}
-                    >
-                      <div
-                        className={`px-2 py-1 rounded-[1.25rem] ${
-                          isMe
-                            ? "bg-[#8675DC] ml-auto rounded-br-none"
-                            : "bg-[#151515] mr-auto rounded-bl-none"
-                        }`}
-                      >
-                        <div>
-                          {showSenderInfo && !isMe && (
-                            <div className="flex justify-between items-center gap-4">
-                              <p className="text-sm font-semibold text-[#8675DC]">
-                                {message.sender.firstName},{" "}
-                                {message.sender.lastName[0]}
-                              </p>
-                              {isAdmin && (
-                                <p className="text-[#ccc] text-xs">admin</p>
-                              )}
-                            </div>
-                          )}
-                          <div className="flex flex-wrap items-baseline justify-end">
-                            <p className="flex-grow break-words">
-                              {message.message}
-                            </p>
-                            <p className="flex-shrink-0 whitespace-nowrap text-xs text-[#ccc] ml-2">
-                              {new Date(message.createdAt).toLocaleString(
-                                "en-US",
-                                {
-                                  weekday: "short",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: false,
-                                }
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      {showImage && !isMe && (
-                        <img
-                          src={`http://localhost:3000/${message.sender.imageUrl}`}
-                          alt={`${message.sender.firstName} ${message.sender.lastName}`}
-                          className="w-8 h-8 rounded-full mt-1"
-                        />
-                      )}
-                    </li>
-                    {message._id === messageId && (
-                      <div
-                        className={`showAnimation absolute top-0 -left-[100rem] bg-[#8675DC50] min-w-[300rem] h-full`}
-                      ></div>
-                    )}
-                  </div>
+                    message={message}
+                    isMe={isMe}
+                    isAdmin={isAdmin}
+                    showImage={showImage}
+                    showSenderInfo={showSenderInfo}
+                    messageId={messageId}
+                    isActiveContextMenu={activeContextMenu?.id === message._id}
+                    contextMenuPosition={activeContextMenu}
+                    onContextMenu={(x, y) =>
+                      handleContextMenu(message._id, x, y)
+                    }
+                    onClearContextMenu={clearContextMenu}
+                  />
                 );
               })}
             </ul>
@@ -238,6 +217,7 @@ const MessagesList = forwardRef(function MessagesList(
 MessagesList.propTypes = {
   messages: PropTypes.object,
   viewInfo: PropTypes.bool,
+  setShowScrollButton: PropTypes.func,
 };
 
 export default MessagesList;

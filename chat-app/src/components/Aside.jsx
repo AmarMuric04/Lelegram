@@ -167,39 +167,41 @@ export default function Aside() {
             <Search select={activeSelect} />
           </div>
           {!isFocused && <AsideChatWrapper />}
-          {isFocused && (
-            <div className="flex flex-col w-full h-[95%]">
-              <header className="h-[5%] flex border-b-2 border-[#151515] py-2 w-full text-[#ccc] font-semibold">
-                <p
-                  onClick={() => setActiveSelect("chats")}
-                  className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
-                    activeSelect !== "chats" ? "text-[#ccc]" : "text-[#8675DC]"
-                  }`}
-                >
-                  Chats
-                </p>
-                <p
-                  onClick={() => setActiveSelect("messages")}
-                  className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
-                    activeSelect !== "messages"
-                      ? "text-[#ccc]"
-                      : "text-[#8675DC]"
-                  }`}
-                >
-                  Messages
-                </p>
-              </header>
-              <p className="text-[#ccc] my-4 px-4 h-[5%]">
-                {data?.length > 0 ? "Closest results" : "Search for something"}{" "}
+          <div
+            className={`${
+              isFocused
+                ? "opacity-100 scale-100 pointer-events-auto"
+                : "opacity-0 scale-115 pointer-events-none"
+            } transition-all flex flex-col w-full h-[95%] absolute left-0 top-[5%] z-10 bg-[#252525]`}
+          >
+            <header className="h-[5%] flex border-b-2 border-[#151515] py-2 w-full text-[#ccc] font-semibold">
+              <p
+                onClick={() => setActiveSelect("chats")}
+                className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
+                  activeSelect !== "chats" ? "text-[#ccc]" : "text-[#8675DC]"
+                }`}
+              >
+                Chats
               </p>
-              <ul className="flex flex-col px-2 overflow-scroll h-[90%]">
-                {data?.map((chat, index) => {
-                  const uniqueKey = chat._id + "-" + index;
-                  return <AsideChat key={uniqueKey} chat={chat} />;
-                })}
-              </ul>
-            </div>
-          )}
+              <p
+                onClick={() => setActiveSelect("messages")}
+                className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
+                  activeSelect !== "messages" ? "text-[#ccc]" : "text-[#8675DC]"
+                }`}
+              >
+                Messages
+              </p>
+            </header>
+            <p className="text-[#ccc] my-4 px-4 h-[5%]">
+              {data?.length > 0 ? "Closest results" : "Search for something"}
+            </p>
+            <ul className="flex flex-col px-2 overflow-scroll h-[90%]">
+              {data?.map((chat, index) => {
+                const uniqueKey = chat._id + "-" + index;
+                return <AsideChat key={uniqueKey} chat={chat} />;
+              })}
+            </ul>
+          </div>
         </div>
         <div className="min-w-full h-full relative text-white">
           <div

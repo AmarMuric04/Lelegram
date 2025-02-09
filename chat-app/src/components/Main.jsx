@@ -13,12 +13,17 @@ import Aside from "./Aside";
 import { setIsFocused } from "../store/searchSlice";
 import MessagesList from "./MessagesList";
 import { io } from "socket.io-client";
+import Gradient from "../assets/gradient.png";
+import { setForwardedChat, setMessage, setMessageType } from "../store/messageSlice";
+import AsideChat from "./AsideChat";
 
 const socket = io("http://localhost:3000");
 
 export default function Main() {
-  const [message, setMessage] = useState("");
+  const [value, setValue] = useState("");
   const [viewInfo, setViewInfo] = useState(false);
+  const [activeSelect, setActiveSelect] = useState("members");
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   const { chatId } = useParams();
 
@@ -28,11 +33,19 @@ export default function Main() {
   const messagesListRef = useRef(null);
 
   const { user } = useSelector((state) => state.auth);
-  const { activeChat } = useSelector((state) => state.chat);
+  const { activeChat, userChats } = useSelector((state) => state.chat);
   const { select } = useSelector((state) => state.search);
+  const { message, messageType } = useSelector((state) => state.message);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (messageType === "reply" && message.chat._id !== activeChat._id) {
+      dispatch(setMessageType("normal"));
+      dispatch(setMessage(null));
+    }
+  }, [dispatch, messageType, message, activeChat]);
 
   useEffect(() => {
     if (!user) navigate("/auth");
@@ -68,8 +81,6 @@ export default function Main() {
 
     const data = await response.json();
     dispatch(setActiveChat(data.data));
-
-    console.log(data);
 
     return data;
   };
@@ -113,8 +124,10 @@ export default function Main() {
             Authorization: "Bearer " + token,
           },
           body: JSON.stringify({
-            message,
+            message: value,
             chatId: activeChat._id,
+            type: messageType,
+            referenceMessageId: message?._id || null,
           }),
         }
       );
@@ -128,8 +141,13 @@ export default function Main() {
       queryClient.invalidateQueries(["messages", activeChat?._id]);
       queryClient.invalidateQueries(["search", select]);
 
-      setMessage("");
+      setValue("");
+      dispatch(setMessage(null));
+      dispatch(setMessageType("normal"));
       messagesListRef.current?.scrollToBottom();
+      const href = window.location.href.split("#");
+
+      window.location.href = href[0];
 
       return data;
     } catch (error) {
@@ -159,6 +177,8 @@ export default function Main() {
 
       dispatch(setActiveChat(data.data));
       dispatch(setIsFocused(false));
+
+      console.log(data);
 
       if (!response.ok) {
         throw new Error("Couldn't add user to the chat.");
@@ -212,8 +232,19 @@ export default function Main() {
     onSuccess: () => dispatch(closeModal()),
   });
 
-  const isAdmin = activeChat?.admins?.some((u) => u.toString() === user._id);
-  const isInChat = activeChat?.users?.some((u) => u.toString() === user._id);
+  const isAdmin = activeChat?.admins?.some(
+    (u) => u._id.toString() === user._id
+  );
+
+  const isInChat = activeChat?.users?.some(
+    (u) => u._id.toString() === user._id
+  );
+
+  const showUsers =
+    activeSelect === "members" ? activeChat?.users : activeChat?.admins;
+
+  const isReplying =
+    messageType === "reply" && message.chat._id === activeChat._id;
 
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center ">
@@ -294,6 +325,42 @@ export default function Main() {
           </div>
         </Modal>
       )}
+      <Modal extraClasses="w-[30rem]" id="forward-to-channels">
+        <button
+          onClick={() => dispatch(closeModal())}
+          className="hover:bg-[#303030] cursor-pointer transition-all p-2 text-[#ccc] rounded-full"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+          >
+            <path
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeWidth="2"
+              d="M20 20L4 4m16 0L4 20"
+            />
+          </svg>
+        </button>
+        {userChats.map((chat) => {
+          if (chat._id === activeChat._id) return;
+          return (
+            <AsideChat
+              key={chat._id}
+              action={() => {
+                dispatch(setMessageType("forward"));
+                dispatch(setMessage(message));
+                dispatch(setForwardedChat(chat))
+                dispatch(closeModal());
+              }}
+              chat={chat}
+            />
+          );
+        })}
+      </Modal>
       <div className="w-[85vw] flex justify-between overflow-hidden">
         <Aside />
         <div
@@ -302,9 +369,14 @@ export default function Main() {
           }`}
         >
           <img
-            className="absolute h-full z-0 left-0 top-0 object-cover"
+            className={`min-w-[63.5vw] absolute z-10 pointer-events-none h-full left-0 top-0 object-cover`}
             src={Image}
           />
+          <img
+            className="min-w-[63.5vw] absolute z-0 h-screen"
+            src={Gradient}
+          />
+          <div className="absolute min-w-[63.5vw] h-screen z-10 bg-[#00000090]"></div>
           <div
             className={`transition-all ${viewInfo ? "w-[42vw]" : "w-[63.5vw]"}`}
           >
@@ -312,7 +384,7 @@ export default function Main() {
               <div className="relative h-screen w-full text-white flex flex-col items-center">
                 <header
                   onClick={() => setViewInfo(true)}
-                  className="relative border-x-2 border-[#151515] bg-[#252525] w-full px-5 py-2 flex justify-between items-center gap-5 h-[5%] cursor-pointer"
+                  className="relative z-210 border-x-2 border-[#151515] bg-[#252525] w-full px-5 py-2 flex justify-between items-center gap-5 h-[5%] cursor-pointer"
                 >
                   <div className="flex gap-5 items-center">
                     {activeChat?.imageUrl ? (
@@ -393,7 +465,7 @@ export default function Main() {
                 >
                   <div className="flex flex-col w-full items-center justify-end max-h-[100%]">
                     <ul
-                      className={`bottom-32 transition-all flex h-full ${
+                      className={`transition-all flex h-full ${
                         viewInfo ? "w-[80%]" : "w-[55%]"
                       } flex-col gap-2`}
                     >
@@ -425,17 +497,86 @@ export default function Main() {
                           viewInfo={viewInfo}
                           ref={messagesListRef}
                           messages={messages}
+                          setShowScrollButton={setShowScrollButton}
                         />
                       )}
-                      <div className={`flex gap-2 w-full`}>
+                      <div
+                        className={`relative z-10 flex justify-between gap-2 w-full`}
+                      >
                         {isInChat && (
                           <>
+                            {isReplying && (
+                              <div className="interactInputAnimation absolute bg-[#252525] flex gap-4 px-4 py-2 left-0 w-[89%] h-full rounded-2xl items-center rounded-b-none">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 32 32"
+                                  className="text-[#8675DC]"
+                                >
+                                  <path
+                                    fill="currentColor"
+                                    d="M28.88 30a1 1 0 0 1-.88-.5A15.19 15.19 0 0 0 15 22v6a1 1 0 0 1-.62.92a1 1 0 0 1-1.09-.21l-12-12a1 1 0 0 1 0-1.42l12-12a1 1 0 0 1 1.09-.21A1 1 0 0 1 15 4v6.11a17.19 17.19 0 0 1 15 17a16 16 0 0 1-.13 2a1 1 0 0 1-.79.86ZM14.5 20A17.62 17.62 0 0 1 28 26a15.31 15.31 0 0 0-14.09-14a1 1 0 0 1-.91-1V6.41L3.41 16L13 25.59V21a1 1 0 0 1 1-1h.54Z"
+                                  />
+                                </svg>
+                                <div className="bg-[#8675DC20] w-full px-2 text-sm rounded-md border-l-4 border-[#8675DC]">
+                                  <p className="text-[#8675DC]">
+                                    Reply to {message.sender.firstName}
+                                  </p>
+                                  <p className="text-[#ccc]">
+                                    {message.message}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    dispatch(setMessage(null));
+                                    dispatch(setMessageType("normal"));
+                                  }}
+                                  className="hover:bg-[#8675DC20] cursor-pointer transition-all p-2 text-[#8675DC] rounded-full"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeLinecap="round"
+                                      strokeWidth="2"
+                                      d="M20 20L4 4m16 0L4 20"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                            )}
                             <input
-                              value={message}
-                              onChange={(e) => setMessage(e.target.value)}
+                              value={value}
+                              onChange={(e) => setValue(e.target.value)}
                               placeholder="Broadcast"
-                              className={`bg-[#252525] py-2 rounded-2xl rounded-br-none px-4 w-[89%]`}
+                              className={`bg-[#252525] focus:outline-none py-2 rounded-2xl rounded-br-none px-4 w-[89%]`}
                             />
+                            {showScrollButton && (
+                              <button
+                                onClick={() =>
+                                  messagesListRef.current?.scrollToBottom()
+                                }
+                                className={`appearAnimation absolute right-0 bottom-[120%] p-4 rounded-full bg-[#202021] hover:bg-[#303030] transition-all cursor-pointer`}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    fill="currentColor"
+                                    d="M11 4h2v12l5.5-5.5l1.42 1.42L12 19.84l-7.92-7.92L5.5 10.5L11 16z"
+                                  />
+                                </svg>
+                              </button>
+                            )}
                             <button
                               onClick={() => {
                                 if (message !== "") sendMessage();
@@ -494,7 +635,11 @@ export default function Main() {
                           </>
                         )}
                         {!isInChat && (
-                          <div className="w-full grid place-items-center">
+                          <div
+                            className={`w-full transition-all grid place-items-center ${
+                              viewInfo ? "mr-0" : "mr-16"
+                            }`}
+                          >
                             <Button
                               onClick={() => addUser({ userId: userId })}
                               sx={{
@@ -519,33 +664,53 @@ export default function Main() {
           </div>
         </div>
         <aside
-          className={`border-r-2 transition-all bg-[#252525] h-screen overflow-y-hidden border-[#151515] min-w-[21.5vw] relative flex flex-col items-center text-white px-2 ${
+          className={`border-r-2 transition-all bg-[#252525] h-screen overflow-y-hidden border-[#151515] min-w-[21.5vw] z-10 relative flex flex-col items-center text-white ${
             viewInfo ? "right-[21.5vw]" : "right-0"
           }`}
         >
-          <div className="text-white self-start flex justify-between items-center py-2 px-5 h-[58px] gap-6">
-            <button
-              onClick={() => setViewInfo(false)}
-              className="hover:bg-[#303030] cursor-pointer transition-all p-2 text-[#ccc] rounded-full"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
+          <header className="flex items-center justify-between w-full px-4">
+            <div className="text-white self-start flex justify-between items-center py-2 h-[58px] gap-6">
+              <button
+                onClick={() => setViewInfo(false)}
+                className="hover:bg-[#303030] cursor-pointer transition-all p-2 text-[#ccc] rounded-full"
               >
-                <path
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeWidth="2"
-                  d="M20 20L4 4m16 0L4 20"
-                />
-              </svg>
-            </button>
-            <h1 className="font-semibold text-xl">Group info</h1>
-          </div>
-          <div className="flex flex-col items-center mt-6 w-full">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeWidth="2"
+                    d="M20 20L4 4m16 0L4 20"
+                  />
+                </svg>
+              </button>
+              <h1 className="font-semibold text-xl">Group info</h1>
+            </div>
+            {isAdmin && (
+              <button
+                onClick={() => setViewInfo(false)}
+                className="hover:bg-[#303030] cursor-pointer transition-all p-2 text-[#ccc] rounded-full"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M5 19h1.425L16.2 9.225L14.775 7.8L5 17.575zm-2 2v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM19 6.4L17.6 5zm-3.525 2.125l-.7-.725L16.2 9.225z"
+                  />
+                </svg>
+              </button>
+            )}
+          </header>
+          <div className="mx-2 flex flex-col items-center mt-6 w-full">
             {activeChat?.imageUrl ? (
               <img
                 src={`http://localhost:3000/${activeChat.imageUrl}`}
@@ -564,12 +729,14 @@ export default function Main() {
                 {activeChat?.name.slice(0, 3)}
               </div>
             )}
-            <p className="mt-4 font-semibold text-lg">{activeChat?.name}</p>
-            <p className="text-[#ccc]">
+            <p className="mx-2 mt-4 font-semibold text-lg">
+              {activeChat?.name}
+            </p>
+            <p className="mx-2 text-[#ccc]">
               {activeChat?.users?.length} member
               {activeChat?.users?.length > 1 && "s"}
             </p>
-            <div className="flex flex-col w-full mt-8">
+            <div className="mx-2 flex flex-col w-full mt-8">
               <div className="flex hover:bg-[#303030] p-2 rounded-lg transition-all cursor-pointer gap-2 items-center w-full">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -617,6 +784,60 @@ export default function Main() {
                   <span className="text-[#ccc] text-sm mt-2">Link</span>
                 </div>
               </div>
+            </div>
+            <div className="w-full max-h-1/2">
+              <header className="p-3 flex border-t-16 border-b-2 border-b-[#151515] border-[#202021] w-full text-[#ccc] font-semibold">
+                <p
+                  onClick={() => setActiveSelect("members")}
+                  className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
+                    activeSelect !== "members"
+                      ? "text-[#ccc]"
+                      : "text-[#8675DC]"
+                  }`}
+                >
+                  Members
+                </p>
+                <p
+                  onClick={() => setActiveSelect("admins")}
+                  className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
+                    activeSelect !== "admins" ? "text-[#ccc]" : "text-[#8675DC]"
+                  }`}
+                >
+                  Admins
+                </p>
+              </header>
+              <ul className="p-2 flex flex-col w-full overflow-y-auto max-h-[100%]">
+                {showUsers?.map((user) => {
+                  const userIsAdmin = activeChat?.admins?.some(
+                    (u) => u._id.toString() === user._id
+                  );
+                  return (
+                    <li
+                      key={user._id}
+                      className="flex items-center gap-2 transition-all hover:bg-[#303030] p-2 rounded-lg cursor-pointer"
+                    >
+                      <img
+                        src={`http://localhost:3000/${user.imageUrl}`}
+                        alt={`${user.firstName} ${user.lastName}`}
+                        className="h-10 w-10 rounded-full mt-1"
+                      />
+                      <div className="w-full">
+                        <div className="flex justify-between items-center">
+                          <p className="text-white font-semibold">
+                            {user.firstName}, {user.lastName[0]}
+                          </p>
+                          {userIsAdmin && (
+                            <p className="text-[#ccc] text-xs">admin</p>
+                          )}
+                        </div>
+                        <p className="text-[#ccc] text-sm">
+                          Last seen recently
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           </div>
         </aside>

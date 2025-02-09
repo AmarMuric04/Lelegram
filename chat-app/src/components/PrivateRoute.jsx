@@ -11,7 +11,6 @@ const PrivateRoute = ({ children }) => {
 
   useEffect(() => {
     connectSocket();
-    console.log(123);
     socket.on("connect", () => {
       console.log("Connected to Socket.IO with ID:", socket.id);
     });
@@ -44,8 +43,6 @@ const PrivateRoute = ({ children }) => {
 
       const data = await response.json();
       dispatch(setUser(data.data));
-
-      console.log(data.data);
 
       return data;
     } catch (err) {

@@ -5,12 +5,16 @@ import { getSocket } from "../socket.js";
 
 export const sendMessage = async (req, res, next) => {
   try {
-    const { chatId, message } = req.body;
+    const { chatId, message, type, referenceMessageId } = req.body;
+
+    console.log(type, referenceMessageId);
 
     const newMessage = new Message({
       chat: chatId,
       message,
       sender: req.userId,
+      type,
+      referenceMessageId,
     });
 
     await newMessage.save();
@@ -25,13 +29,13 @@ export const sendMessage = async (req, res, next) => {
       data: chatId,
     });
 
-    console.log(chat);
-
     res.status(201).json({
       message: "Message sent successfully!",
       data: {
         sender: req.userId,
         message,
+        type,
+        referenceMessageId,
       },
     });
   } catch (err) {
@@ -47,7 +51,13 @@ export const getMessages = async (req, res, next) => {
       chat: new mongoose.Types.ObjectId(chatId),
     })
       .populate("sender")
-      .populate("chat");
+      .populate("chat")
+      .populate({
+        path: "referenceMessageId",
+        populate: {
+          path: "sender",
+        },
+      });
 
     if (!messages) {
       const error = new Error("Something went wrong.");
@@ -78,13 +88,6 @@ export const getSearchedMessages = async (req, res, next) => {
     let messages = await Message.find({
       message: { $regex: input, $options: "i" },
     }).populate("chat");
-
-    if (messages.length === 0) {
-      const error = new Error("No messages found matching your search.");
-      error.statusCode = 404;
-
-      throw error;
-    }
 
     messages = messages.map((message) => ({
       ...message.chat._doc,

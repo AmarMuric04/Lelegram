@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
-export default function AsideChat({ chat }) {
+export default function AsideChat({ chat, action }) {
   const { activeChat } = useSelector((state) => state.chat);
 
   let condition;
@@ -16,11 +16,11 @@ export default function AsideChat({ chat }) {
   let link = chat._id;
   if (chat?.more) {
     link += "#" + chat.more._id;
-    console.log(chat.more);
   }
 
   return (
     <Link
+      onClick={action}
       to={`/${link}`}
       className={`flex items-center gap-5 text-white p-2 rounded-xl transition-all cursor-pointer ${
         condition ? "bg-[#8675DC] hover:bg-[#8765DC]" : "hover:bg-[#353535]"
@@ -68,4 +68,5 @@ export default function AsideChat({ chat }) {
 
 AsideChat.propTypes = {
   chat: PropTypes.object,
+  action: PropTypes.func,
 };

@@ -6,7 +6,9 @@ import mongoose from "mongoose";
 export const getChat = async (req, res, next) => {
   try {
     const { chatId } = req.params;
-    const chats = await Chat.findById(chatId);
+    const chats = await Chat.findById(chatId)
+      .populate("users")
+      .populate("admins");
 
     res.status(200).json({
       message: "Successfully fetched chats.",
@@ -45,8 +47,33 @@ export const getUserChats = async (req, res, next) => {
   }
 };
 
-export const getAllChats = async (req, res, next) => {};
+export const getAllChats = async (req, res, next) => {
+  try {
+    const chats = await Chat.find().populate({
+      path: "lastMessage",
+      populate: {
+        path: "sender",
+      },
+    });
 
+    chats.sort((a, b) => {
+      const dateA = a.lastMessage
+        ? new Date(a.lastMessage.createdAt)
+        : new Date(a.createdAt);
+      const dateB = b.lastMessage
+        ? new Date(b.lastMessage.createdAt)
+        : new Date(b.createdAt);
+      return dateB - dateA;
+    });
+
+    res.status(200).json({
+      message: "Successfully fetched chats.",
+      data: chats,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 export const getSearchedChats = async (req, res, next) => {
   try {
     const { input } = req.body;
@@ -65,12 +92,6 @@ export const getSearchedChats = async (req, res, next) => {
         path: "sender",
       },
     });
-
-    if (chats.length === 0) {
-      const error = new Error("No chats found matching your search.");
-      error.statusCode = 404;
-      throw error;
-    }
 
     res.status(200).json({ data: chats });
   } catch (err) {
@@ -96,8 +117,6 @@ export const createChat = async (req, res, next) => {
     if (req.file) imageUrl = req.file.path.replace("\\", "/");
     else console.log("Image not found");
 
-    console.log(name, description, imageUrl);
-
     const chat = new Chat({
       name,
       description,
@@ -121,7 +140,9 @@ export const removeUserFromChat = async (req, res, next) => {
     const { chatId } = req.params;
     const { userId } = req.body;
 
-    const chat = await Chat.findById(chatId);
+    const chat = await Chat.findById(chatId)
+      .populate("users")
+      .populate("admins");
 
     if (!userId) {
       const error = new Error("Please provide a valid id.");
@@ -160,7 +181,9 @@ export const addUserToChat = async (req, res, next) => {
       throw error;
     }
 
-    const chat = await Chat.findById(chatId);
+    const chat = await Chat.findById(chatId)
+      .populate("users")
+      .populate("admins");
 
     if (!chat) {
       const error = new Error("Chat not found.");
@@ -168,19 +191,28 @@ export const addUserToChat = async (req, res, next) => {
       throw error;
     }
 
-    if (chat.users.some((u) => u.toString() === userId)) {
+    if (chat.users.some((u) => u._id.toString() === userId)) {
       const error = new Error("User is already in the chat.");
       error.statusCode = 422;
       throw error;
     }
 
+    const user = await User.findById(userId);
+
+    // Add the user to the chat
     chat.users.push(new mongoose.Types.ObjectId(userId));
 
+    // Save the chat
     await chat.save();
+
+    // Populate the users and admins fields again after saving
+    const updatedChat = await Chat.findById(chatId)
+      .populate("users")
+      .populate("admins");
 
     res
       .status(200)
-      .send({ message: "User added to chat successfully.", data: chat });
+      .send({ message: "User added to chat successfully.", data: updatedChat });
   } catch (err) {
     next(err);
   }

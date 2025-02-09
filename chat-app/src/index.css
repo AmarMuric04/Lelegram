@@ -181,7 +181,13 @@ select:-webkit-autofill:focus {
   0% {
     opacity: 0;
   }
+  25% {
+    opacity: 1;
+  }
   50% {
+    opacity: 0;
+  }
+  75% {
     opacity: 1;
   }
   100% {
@@ -190,5 +196,20 @@ select:-webkit-autofill:focus {
 }
 
 .showAnimation {
-  animation: show 1s ease-out forwards;
+  animation: show 2s ease-out forwards;
+}
+
+@keyframes interactInput {
+  0% {
+    bottom: 0%;
+    opacity: 0;
+  }
+  100% {
+    bottom: 80%;
+    opacity: 1;
+  }
+}
+
+.interactInputAnimation {
+  animation: interactInput 0.2s ease-in forwards;
 }
