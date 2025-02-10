@@ -12,7 +12,6 @@ export default function PopUpMenu({
   br,
 }) {
   const [open, setOpen] = useState(false);
-
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -51,7 +50,7 @@ export default function PopUpMenu({
   }, [open]);
 
   return (
-    <div ref={modalRef} role="menu" className="relative">
+    <div role="menu" className="relative">
       <button
         aria-expanded={open}
         onClick={(e) => {
@@ -65,11 +64,14 @@ export default function PopUpMenu({
         {!iconWhenClicked && icon}
       </button>
       <div
-        className={`absolute w-[140px] right-0 bg-[#252525] p-2 text-xs text-white rounded-md  ${
-          open ? "opacity-100 scale-100" : "opacity-0 scale-0"
-        } ${tl && "bottom-[150%] right-0"} ${tr && "bottom-[150%] left-0"} ${
-          br && "top-[150%] left-0"
-        } ${bl && "top-[150%] right-0"} transition-all shadow-md`}
+        ref={modalRef}
+        className={`absolute min-w-max right-0 bg-[#252525] p-2 text-xs text-white rounded-md
+        ${open ? "opacity-100 scale-100" : "opacity-0 scale-0"}
+        ${tl ? "bottom-full right-0" : ""}
+        ${tr ? "bottom-full left-0" : ""}
+        ${bl ? "top-full right-0" : ""}
+        ${br ? "top-full left-0" : ""}
+        transition-all shadow-md whitespace-nowrap`}
       >
         {children}
       </div>

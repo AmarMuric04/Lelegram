@@ -13,7 +13,7 @@ function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // if (user) navigate("/");
+    if (user) navigate("/");
   }, [user, navigate]);
 
   let move;

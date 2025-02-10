@@ -1,7 +1,7 @@
 import User from "../models/user.js";
 import { validationResult } from "express-validator";
-import jwt from "jsonwebtoken";
 import { createJWT } from "../utility/jwt.js";
+import Chat from "../models/chat.js";
 
 export const getUser = async (req, res, next) => {
   try {
@@ -59,6 +59,21 @@ export const createUser = async (req, res, next) => {
     });
 
     await user.save();
+
+    const gradient = { colors: ["#BE10CE", "#F130FF"], direction: "to right" };
+
+    const chat = new Chat({
+      name: "ʚ♡ɞ Saved Messages",
+      description: "This is where you store your saved messages.",
+      creator: user,
+      admins: [user],
+      users: [user],
+      gradient,
+      imageUrl: null,
+      lastMessage: null,
+    });
+
+    await chat.save();
 
     const token = createJWT(user);
 

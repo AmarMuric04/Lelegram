@@ -16,7 +16,9 @@ const MessagesList = forwardRef(function MessagesList(
 ) {
   const { user } = useSelector((state) => state.auth);
   const { activeChat } = useSelector((state) => state.chat);
-  const { messageType, forwardedChat } = useSelector((state) => state.message);
+  const { messageType, forwardedChat, messageToEdit } = useSelector(
+    (state) => state.message
+  );
 
   const bottomRef = useRef(null);
   const messagesRef = useRef(null);
@@ -101,12 +103,16 @@ const MessagesList = forwardRef(function MessagesList(
   yesterday.setDate(today.getDate() - 1);
 
   const specialMessage =
-    messageType === "reply" || (messageType === "forward" && forwardedChat);
+    messageType === "reply" ||
+    (messageType === "forward" && forwardedChat) ||
+    messageToEdit;
 
   return (
     <div
       ref={messagesRef}
-      className={`relative ${specialMessage} bottom-0 z-10 messages-list-container transition-all ${
+      className={`relative ${
+        specialMessage && "bottom-10"
+      } bottom-0 z-10 messages-list-container transition-all ${
         activeContextMenu ? "overflow-hidden" : "overflow-y-auto"
       } ${viewInfo ? "w-full" : "w-[90%]"}`}
     >

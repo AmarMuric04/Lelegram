@@ -55,7 +55,10 @@ export default function AsideChat({ chat, action }) {
               <span className="font-semibold text-white">
                 {chat.lastMessage.sender.firstName}
               </span>
-              : {chat.lastMessage.message}
+              :{" "}
+              {chat.lastMessage.referenceMessageId
+                ? chat.lastMessage.referenceMessageId.message
+                : chat.lastMessage.message}
             </p>
           ) : (
             "Channel created!"

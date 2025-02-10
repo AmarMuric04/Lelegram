@@ -14,11 +14,14 @@ import { setIsFocused } from "../store/searchSlice";
 import MessagesList from "./MessagesList";
 import { io } from "socket.io-client";
 import Gradient from "../assets/gradient.png";
+import cat from "../assets/undraw_cat_lqdj.svg";
 import {
   setForwardedChat,
+  setIsSelecting,
   setMessage,
   setMessageToEdit,
   setMessageType,
+  setSelected,
 } from "../store/messageSlice";
 import AsideChat from "./AsideChat";
 
@@ -33,6 +36,7 @@ export default function Main() {
   const { chatId } = useParams();
 
   const queryClient = useQueryClient();
+
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
   const messagesListRef = useRef(null);
@@ -40,9 +44,14 @@ export default function Main() {
   const { user } = useSelector((state) => state.auth);
   const { activeChat, userChats } = useSelector((state) => state.chat);
   const { select } = useSelector((state) => state.search);
-  const { message, messageType, forwardedChat, messageToEdit } = useSelector(
-    (state) => state.message
-  );
+  const {
+    message,
+    messageType,
+    forwardedChat,
+    messageToEdit,
+    isSelecting,
+    selected,
+  } = useSelector((state) => state.message);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -102,6 +111,7 @@ export default function Main() {
   });
 
   const handleGetMessages = async () => {
+    console.log(chatId);
     const response = await fetch(
       "http://localhost:3000/message/get-messages/" + chatId,
       {
@@ -125,6 +135,10 @@ export default function Main() {
 
   const handleSendMessage = async () => {
     try {
+      let refIds;
+      if (Array.isArray(message)) {
+        refIds = message.map((m) => m._id);
+      }
       const response = await fetch(
         "http://localhost:3000/message/send-message",
         {
@@ -137,7 +151,9 @@ export default function Main() {
             message: value,
             chatId: activeChat._id,
             type: messageType,
-            referenceMessageId: message?._id || null,
+            referenceMessageId: Array.isArray(message)
+              ? refIds
+              : message?._id || null,
           }),
         }
       );
@@ -379,25 +395,44 @@ export default function Main() {
         </Modal>
       )}
       <Modal extraClasses="w-[30rem]" id="forward-to-channels">
-        <button
-          onClick={() => dispatch(closeModal())}
-          className="hover:bg-[#303030] cursor-pointer transition-all p-2 text-[#ccc] rounded-full"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
+        <div className=" text-[#ccc] flex gap-4 items-center">
+          <button
+            onClick={() => {
+              dispatch(closeModal());
+              dispatch(setForwardedChat(null));
+              dispatch(setMessageType("normal"));
+              dispatch(setMessage(null));
+            }}
+            className="hover:bg-[#303030] cursor-pointer transition-all p-2 rounded-full"
           >
-            <path
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeWidth="2"
-              d="M20 20L4 4m16 0L4 20"
-            />
-          </svg>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeWidth="2"
+                d="M20 20L4 4m16 0L4 20"
+              />
+            </svg>
+          </button>
+          <h1 className="font-semibold text-xl">Forward to</h1>
+        </div>
+        {userChats?.length === 1 && (
+          <div className="flex py-20 items-center justify-center flex-col gap-2 h-full w-ful">
+            <img className="w-1/2" src={cat} alt="No chats available" />
+            <p className="text-[#ccc] text-sm font-semibold">
+              You are not in any chats yet
+            </p>
+            <p className="text-[#ccc] text-xs">
+              Try searching for one or check out all the chats
+            </p>
+          </div>
+        )}
         {userChats.map((chat) => {
           if (chat?._id === activeChat?._id) return;
           return (
@@ -406,6 +441,11 @@ export default function Main() {
               action={() => {
                 dispatch(setForwardedChat(chat));
                 dispatch(closeModal());
+
+                if (isSelecting) {
+                  dispatch(setIsSelecting(false));
+                  dispatch(setSelected([]));
+                }
               }}
               chat={chat}
             />
@@ -464,52 +504,54 @@ export default function Main() {
                       </p>
                     </div>
                   </div>
-                  <PopUpMenu
-                    bl={true}
-                    icon={
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          fill="none"
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="1.5"
-                          d="M12 5.92A.96.96 0 1 0 12 4a.96.96 0 0 0 0 1.92m0 7.04a.96.96 0 1 0 0-1.92a.96.96 0 0 0 0 1.92M12 20a.96.96 0 1 0 0-1.92a.96.96 0 0 0 0 1.92"
-                        />
-                      </svg>
-                    }
-                    buttonClasses={
-                      "hover:bg-[#303030] cursor-pointer transition-all p-2 text-white rounded-full"
-                    }
-                  >
-                    <PopUpMenuItem
-                      itemClasses={"text-red-500 hover:bg-red-500/20"}
-                      action={(e) => {
-                        e.stopPropagation();
-                        dispatch(openModal("leave-channel"));
-                      }}
+                  {activeChat.name !== "ʚ♡ɞ Saved Messages" && (
+                    <PopUpMenu
+                      bl={true}
+                      icon={
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            fill="none"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="1.5"
+                            d="M12 5.92A.96.96 0 1 0 12 4a.96.96 0 0 0 0 1.92m0 7.04a.96.96 0 1 0 0-1.92a.96.96 0 0 0 0 1.92M12 20a.96.96 0 1 0 0-1.92a.96.96 0 0 0 0 1.92"
+                          />
+                        </svg>
+                      }
+                      buttonClasses={
+                        "hover:bg-[#303030] cursor-pointer transition-all p-2 text-white rounded-full"
+                      }
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
+                      <PopUpMenuItem
+                        itemClasses={"text-red-500 hover:bg-red-500/20"}
+                        action={(e) => {
+                          e.stopPropagation();
+                          dispatch(openModal("leave-channel"));
+                        }}
                       >
-                        <path
-                          fill="currentColor"
-                          d="M16 9v10H8V9zm-1.5-6h-5l-1 1H5v2h14V4h-3.5zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2z"
-                        />
-                      </svg>
-                      <p className="font-semibold flex-shrink-0">
-                        {isAdmin ? "Delete Channel" : "Leave Channel"}
-                      </p>
-                    </PopUpMenuItem>
-                  </PopUpMenu>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            fill="currentColor"
+                            d="M16 9v10H8V9zm-1.5-6h-5l-1 1H5v2h14V4h-3.5zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2z"
+                          />
+                        </svg>
+                        <p className="font-semibold flex-shrink-0">
+                          {isAdmin ? "Delete Channel" : "Leave Channel"}
+                        </p>
+                      </PopUpMenuItem>
+                    </PopUpMenu>
+                  )}
                 </header>
                 <div
                   className={`flex flex-col justify-end gap-2 transition-all h-[92%] w-full`}
@@ -557,7 +599,7 @@ export default function Main() {
                         {isInChat && (
                           <>
                             {isReplying && (
-                              <div className="interactInputAnimation absolute bg-[#252525] flex gap-4 px-4 py-2 left-0 w-[89%] h-full rounded-2xl items-center rounded-b-none">
+                              <div className="interactInputAnimation absolute bg-[#252525] flex gap-4 px-4 py-2 left-0 w-[89%] z-10 h-full rounded-2xl items-center rounded-b-none">
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="24"
@@ -572,10 +614,13 @@ export default function Main() {
                                 </svg>
                                 <div className="bg-[#8675DC20] w-full px-2 text-sm rounded-md border-l-4 border-[#8675DC]">
                                   <p className="text-[#8675DC]">
-                                    Reply to {message.sender.firstName}
+                                    Reply to {message.sender.firstName}{" "}
+                                    {message.sender.lastName}
                                   </p>
-                                  <p className="text-[#ccc]">
-                                    {message.message}
+                                  <p className="text-[#ccc] line-clamp-1">
+                                    {message.referenceMessageId
+                                      ? message.referenceMessageId.message
+                                      : message.message}
                                   </p>
                                 </div>
                                 <button
@@ -604,13 +649,13 @@ export default function Main() {
                               </div>
                             )}
                             {isForwarding && forwardedChat && (
-                              <div className="interactInputAnimation absolute bg-[#252525] flex gap-4 px-4 py-2 left-0 w-[89%] h-full rounded-2xl items-center rounded-b-none">
+                              <div className="interactInputAnimation absolute bg-[#252525] flex gap-4 px-4 py-2 left-0 w-[89%] z-10 h-full rounded-2xl items-center rounded-b-none">
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="24"
                                   height="24"
                                   viewBox="0 0 32 32"
-                                  className="text-[#8675DC]"
+                                  className="text-[#8675DC] -scale-x-100"
                                 >
                                   <path
                                     fill="currentColor"
@@ -619,11 +664,17 @@ export default function Main() {
                                 </svg>
                                 <div className="bg-[#8675DC20] w-full px-2 text-sm rounded-md border-l-4 border-[#8675DC]">
                                   <p className="text-[#8675DC]">
-                                    Forwarded Message
+                                    {Array.isArray(message)
+                                      ? `Forwarded ${message.length} Messages`
+                                      : "Forwarded Message"}
                                   </p>
-                                  <p className="text-[#ccc]">
-                                    {message?.sender.firstName}{" "}
-                                    {message?.sender.lastName}:{" "}
+                                  <p className="text-[#ccc] line-clamp-1">
+                                    {Array.isArray(message)
+                                      ? `From ${message[0]?.sender.firstName} ${
+                                          message.length > 1 ? "and others" : ""
+                                        }`
+                                      : `${message?.sender.firstName} 
+                                    ${message?.sender.lastName}: `}
                                     {message?.message}
                                   </p>
                                 </div>
@@ -652,7 +703,7 @@ export default function Main() {
                               </div>
                             )}
                             {messageToEdit && (
-                              <div className="interactInputAnimation absolute bg-[#252525] flex gap-4 px-4 py-2 left-0 w-[89%] h-full rounded-2xl items-center rounded-b-none">
+                              <div className="interactInputAnimation z-10 absolute bg-[#252525] flex gap-4 px-4 py-2 left-0 w-[89%] h-full rounded-2xl items-center rounded-b-none">
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="24"
@@ -668,7 +719,7 @@ export default function Main() {
                                 </svg>
                                 <div className="bg-[#8675DC20] w-full px-2 text-sm rounded-md border-l-4 border-[#8675DC]">
                                   <p className="text-[#8675DC]">Editing</p>
-                                  <p className="text-[#ccc]">
+                                  <p className="text-[#ccc] line-clamp-1">
                                     {messageToEdit?.message}
                                   </p>
                                 </div>
@@ -698,11 +749,87 @@ export default function Main() {
                                 </button>
                               </div>
                             )}
+                            {isSelecting && (
+                              <div className="absolute left-1/2 -translate-x-1/2  bg-[#252525] flex gap-4 px-4 py-2 h-full rounded-2xl z-10 items-center w-[70%] justify-between">
+                                <div className="flex items-center">
+                                  <button
+                                    onClick={() => {
+                                      dispatch(setIsSelecting(false));
+                                      dispatch(setSelected([]));
+                                    }}
+                                    className="hover:bg-[#8675DC20] cursor-pointer transition-all p-2  rounded-full"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="18"
+                                      height="18"
+                                      viewBox="0 0 24 24"
+                                      className="text-[#ccc]"
+                                    >
+                                      <path
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeLinecap="round"
+                                        strokeWidth="2"
+                                        d="M20 20L4 4m16 0L4 20"
+                                      />
+                                    </svg>
+                                  </button>
+                                  <p className="font-semibold flex-shrink-0">
+                                    {selected.length} Messages
+                                  </p>
+                                </div>
+                                <div
+                                  onClick={() => {
+                                    dispatch(openModal("forward-to-channels"));
+                                    dispatch(setMessageType("forward"));
+                                    dispatch(setMessage(selected));
+                                    dispatch(setForwardedChat(null));
+                                    console.log(selected);
+                                  }}
+                                  className="w-1/2 flex"
+                                >
+                                  <button className="flex w-full py-2  px-2 items-center gap-4 rounded-md  hover:bg-[#303030] transition-all cursor-pointer">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="24"
+                                      height="24"
+                                      viewBox="0 0 32 32"
+                                      className="text-[#ccc] -scale-x-100"
+                                    >
+                                      <path
+                                        fill="currentColor"
+                                        d="M28.88 30a1 1 0 0 1-.88-.5A15.19 15.19 0 0 0 15 22v6a1 1 0 0 1-.62.92a1 1 0 0 1-1.09-.21l-12-12a1 1 0 0 1 0-1.42l12-12a1 1 0 0 1 1.09-.21A1 1 0 0 1 15 4v6.11a17.19 17.19 0 0 1 15 17a16 16 0 0 1-.13 2a1 1 0 0 1-.79.86ZM14.5 20A17.62 17.62 0 0 1 28 26a15.31 15.31 0 0 0-14.09-14a1 1 0 0 1-.91-1V6.41L3.41 16L13 25.59V21a1 1 0 0 1 1-1h.54Z"
+                                      />
+                                    </svg>
+                                    <p className="font-semibold">Forward</p>
+                                  </button>
+                                  <button className="flex w-full py-2  px-2 items-center gap-4 text-red-500 hover:bg-red-500/10 rounded-md transition-all cursor-pointer">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="20"
+                                      height="20"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        fill="currentColor"
+                                        d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM8 9h8v10H8zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
+                                      />
+                                    </svg>
+                                    <p className="font-semibold">Delete</p>
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                             <input
                               value={value}
                               onChange={(e) => setValue(e.target.value)}
-                              placeholder="Broadcast"
-                              className={`bg-[#252525] focus:outline-none py-2 rounded-2xl rounded-br-none px-4 w-[89%]`}
+                              placeholder={!isSelecting && "Broadcast"}
+                              className={`bg-[#252525] transition-all relative focus:outline-none py-2 rounded-2xl px-4  ${
+                                isSelecting
+                                  ? "w-[70%] opacity-0 rounded-br-2xl left-1/2 -translate-x-1/2"
+                                  : "w-[89%] opacity-100 rounded-br-none left-0 -translate-x-0"
+                              }`}
                             />
                             {showScrollButton && (
                               <button
@@ -739,9 +866,11 @@ export default function Main() {
                                   editMessage();
                                 }
                               }}
-                              className="p-4 rounded-full bg-[#8675DC] hover:bg-[#8765DC] transition-all cursor-pointer"
+                              className={`${
+                                isSelecting && "scale-0"
+                              } p-4 rounded-full bg-[#8675DC] hover:bg-[#8765DC] transition-all cursor-pointer`}
                             >
-                              {message === "" && (
+                              {value === "" && !isForwarding && (
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="24"
@@ -756,7 +885,7 @@ export default function Main() {
                               )}
                               {!isPending &&
                                 !editIsPending &&
-                                message !== "" && (
+                                (value !== "" || isForwarding) && (
                                   <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="24"

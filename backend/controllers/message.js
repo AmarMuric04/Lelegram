@@ -11,40 +11,157 @@ export const sendMessage = async (req, res, next) => {
     if (type !== "forward" && !message) {
       const error = new Error("Message is required when not forwarding.");
       error.statusCode = 404;
-
       throw error;
     }
 
-    const newMessage = new Message({
-      chat: chatId,
-      message,
-      sender: req.userId,
-      type,
-      referenceMessageId,
-    });
+    let newMessage;
 
-    await newMessage.save();
+    if (type === "forward") {
+      if (Array.isArray(referenceMessageId)) {
+        const forwardedMessages = [];
 
-    const chat = await Chat.findById(chatId);
+        if (message) {
+          const commentMessage = new Message({
+            chat: chatId,
+            message,
+            sender: req.userId,
+            type: "normal",
+            referenceMessageId: null,
+          });
+          await commentMessage.save();
+        }
 
-    chat.lastMessage = newMessage._id;
+        for (const refId of referenceMessageId) {
+          const referencedMessage = await Message.findById(refId);
+          if (!referencedMessage) continue;
+          let forwardedMsg;
 
-    await chat.save();
+          if (referencedMessage.type === "forward") {
+            forwardedMsg = new Message({
+              ...referencedMessage._doc,
+              sender: req.userId,
+              _id: new mongoose.Types.ObjectId(),
+              chat: chatId,
+            });
+          } else {
+            forwardedMsg = new Message({
+              chat: chatId,
+              message: null,
+              sender: req.userId,
+              type: "forward",
+              referenceMessageId: refId,
+            });
+          }
+          await forwardedMsg.save();
+          forwardedMessages.push(forwardedMsg);
+        }
 
-    getSocket().emit("messageSent", {
-      data: chatId,
-    });
+        const chat = await Chat.findById(chatId);
+        if (forwardedMessages.length > 0) {
+          chat.lastMessage =
+            forwardedMessages[forwardedMessages.length - 1]._id;
+          await chat.save();
+        }
+        getSocket().emit("messageSent", { data: chatId });
 
-    res.status(201).json({
-      message: "Message sent successfully!",
-      data: {
-        sender: req.userId,
-        message,
-        type,
-        referenceMessageId,
-        forwardToChat,
-      },
-    });
+        return res.status(201).json({
+          message: "Messages forwarded successfully!",
+          data: forwardedMessages.map((msg) => ({
+            sender: req.userId,
+            message: msg.message,
+            type: msg.type,
+            referenceMessageId: msg.referenceMessageId,
+            forwardToChat,
+          })),
+        });
+      } else {
+        if (message) {
+          const commentMessage = new Message({
+            chat: chatId,
+            message,
+            sender: req.userId,
+            type: "normal",
+            referenceMessageId: null,
+          });
+          await commentMessage.save();
+        }
+
+        const referencedMessage = await Message.findById(referenceMessageId);
+        if (!referencedMessage) {
+          const error = new Error("Referenced message not found.");
+          error.statusCode = 404;
+          throw error;
+        }
+
+        if (referencedMessage.type === "forward") {
+          newMessage = new Message({
+            ...referencedMessage._doc,
+            _id: new mongoose.Types.ObjectId(),
+            chat: chatId,
+          });
+        } else {
+          newMessage = new Message({
+            chat: chatId,
+            message: null,
+            sender: req.userId,
+            type: "forward",
+            referenceMessageId,
+          });
+        }
+        await newMessage.save();
+
+        const chat = await Chat.findById(chatId);
+        chat.lastMessage = newMessage._id;
+        await chat.save();
+
+        getSocket().emit("messageSent", { data: chatId });
+
+        return res.status(201).json({
+          message: "Message forwarded successfully!",
+          data: {
+            sender: req.userId,
+            type: newMessage.type,
+            referenceMessageId: newMessage.referenceMessageId,
+            forwardToChat,
+          },
+        });
+      }
+    } else {
+      const referencedMessage = await Message.findById(referenceMessageId);
+      if (type === "reply" && referencedMessage.type === "forward") {
+        newMessage = new Message({
+          chat: chatId,
+          message,
+          sender: req.userId,
+          type,
+          referenceMessageId: referencedMessage.referenceMessageId,
+        });
+      } else {
+        newMessage = new Message({
+          chat: chatId,
+          message,
+          sender: req.userId,
+          type,
+          referenceMessageId,
+        });
+      }
+      await newMessage.save();
+
+      const chat = await Chat.findById(chatId);
+      chat.lastMessage = newMessage._id;
+      await chat.save();
+
+      return res.status(201).json({
+        message: "Message sent successfully!",
+        data: {
+          sender: req.userId,
+          message,
+          type: "normal",
+          referenceMessageId: null,
+          forwardToChat,
+        },
+      });
+    }
   } catch (err) {
     next(err);
   }
@@ -67,8 +184,10 @@ export const editMessage = async (req, res, next) => {
     if (messageToEdit.message === message) {
       return;
     }
+    3;
 
     messageToEdit.message = message;
+    messageToEdit.edited = true;
 
     await messageToEdit.save();
 

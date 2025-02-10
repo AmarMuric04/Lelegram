@@ -90,7 +90,11 @@ export default function AsideChatWrapper() {
             </svg>
           </div>
         )}
-        {!isLoading && chats?.data?.length === 0 && (
+        {chats?.data?.map((chat, index) => {
+          const uniqueKey = chat._id + "-" + index;
+          return <AsideChat key={uniqueKey} chat={chat} />;
+        })}
+        {!isLoading && chats?.data?.length === 1 && (
           <div className="flex items-center justify-center flex-col gap-2 h-full w-ful">
             <img className="w-1/2" src={cat} alt="No chats available" />
             <p className="text-[#ccc] text-sm font-semibold">
@@ -101,10 +105,6 @@ export default function AsideChatWrapper() {
             </p>
           </div>
         )}
-        {chats?.data?.map((chat, index) => {
-          const uniqueKey = chat._id + "-" + index;
-          return <AsideChat key={uniqueKey} chat={chat} />;
-        })}
       </ul>
     </div>
   );

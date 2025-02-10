@@ -1,6 +1,5 @@
 import Chat from "../models/chat.js";
 import User from "../models/user.js";
-import Message from "../models/message.js";
 import mongoose from "mongoose";
 
 export const getChat = async (req, res, next) => {
@@ -23,9 +22,7 @@ export const getUserChats = async (req, res, next) => {
   try {
     const chats = await Chat.find({ users: req.userId }).populate({
       path: "lastMessage",
-      populate: {
-        path: "sender",
-      },
+      populate: [{ path: "sender" }, { path: "referenceMessageId" }],
     });
 
     chats.sort((a, b) => {
@@ -51,9 +48,7 @@ export const getAllChats = async (req, res, next) => {
   try {
     const chats = await Chat.find().populate({
       path: "lastMessage",
-      populate: {
-        path: "sender",
-      },
+      populate: [{ path: "sender" }, { path: "referenceMessageId" }],
     });
 
     chats.sort((a, b) => {
@@ -68,7 +63,7 @@ export const getAllChats = async (req, res, next) => {
 
     res.status(200).json({
       message: "Successfully fetched chats.",
-      data: chats,
+      data: chats.filter((c) => c.name !== "ʚ♡ɞ Saved Messages"),
     });
   } catch (err) {
     next(err);
@@ -87,13 +82,12 @@ export const getSearchedChats = async (req, res, next) => {
     let chats = await Chat.find({
       name: { $regex: input, $options: "i" },
     }).populate({
-      path: "lastMessage",
-      populate: {
-        path: "sender",
-      },
+      populate: [{ path: "sender" }, { path: "referenceMessageId" }],
     });
 
-    res.status(200).json({ data: chats });
+    res
+      .status(200)
+      .json({ data: chats.filter((c) => c.name !== "ʚ♡ɞ Saved Messages") });
   } catch (err) {
     next(err);
   }

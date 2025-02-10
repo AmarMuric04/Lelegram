@@ -1,3 +1,5 @@
+import { setUser } from "../store/authSlice";
+
 export const generateBase64FromImage = (imageFile) => {
   const reader = new FileReader();
   const promise = new Promise((resolve, reject) => {
@@ -30,4 +32,49 @@ export const copyToClipboard = (text) => {
     .writeText(text)
     .then(() => alert("Copied to clipboard!"))
     .catch((err) => console.error("Failed to copy:", err));
+};
+
+export const checkIfSignedIn = (dispatch) => {
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
+  const expiresIn = Number(localStorage.getItem("expires-in"));
+
+  console.log(token);
+  console.log(userId);
+  console.log(expiresIn);
+  console.log(Date.now());
+
+  if (!token || !userId) {
+    dispatch(setUser(null));
+    return false;
+  }
+
+  if (Date.now() >= expiresIn) {
+    dispatch(setUser(null));
+    return false;
+  }
+
+  console.log("Sue");
+
+  const timeLeftMs = expiresIn - Date.now();
+  console.log(`Signing out in ${timeLeftMs / (1000 * 60 * 60 * 24)} days`);
+
+  const timeout = setTimeout(() => {
+    if (Date.now() >= expiresIn) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("expires-in");
+      dispatch(setUser(null));
+      clearTimeout(timeout);
+    }
+  }, Math.min(timeLeftMs, 2 ** 31 - 1));
+
+  return true;
+};
+
+export const signOut = (dispatch) => {
+  dispatch(setUser(null));
+  localStorage.removeItem("token");
+  localStorage.removeItem("userId");
+  localStorage.removeItem("expires-in");
 };

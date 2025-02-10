@@ -7,6 +7,8 @@ const messageSlice = createSlice({
     messageType: "normal",
     forwardedChat: null,
     messageToEdit: null,
+    isSelecting: false,
+    selected: [],
   },
   reducers: {
     setMessage: (state, action) => {
@@ -21,6 +23,12 @@ const messageSlice = createSlice({
     setMessageToEdit: (state, action) => {
       state.messageToEdit = action.payload;
     },
+    setIsSelecting: (state, action) => {
+      state.isSelecting = action.payload;
+    },
+    setSelected: (state, action) => {
+      state.selected = action.payload;
+    },
   },
 });
 
@@ -29,5 +37,7 @@ export const {
   setMessageType,
   setForwardedChat,
   setMessageToEdit,
+  setIsSelecting,
+  setSelected,
 } = messageSlice.actions;
 export default messageSlice.reducer;

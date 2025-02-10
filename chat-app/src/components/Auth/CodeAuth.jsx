@@ -3,14 +3,14 @@ import PropTypes from "prop-types";
 import Image from "../../assets/mnky.png";
 import { useSelector } from "react-redux";
 import Input from "../Input";
-import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 export default function CodeAuth({ setActivePage }) {
   const [code, setCode] = useState("");
   const { phoneNumber, isSigningIn } = useSelector((state) => state.auth);
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const handleChange = (value) => {
     setCode(value);
@@ -44,9 +44,13 @@ export default function CodeAuth({ setActivePage }) {
     onSuccess: (data) => {
       localStorage.setItem("token", data.data.token);
       localStorage.setItem("userId", data.data.userId);
+      localStorage.setItem(
+        "expires-in",
+        String(Date.now() + 1000 * 60 * 60 * 24)
+      );
 
-      navigate("/");
       queryClient.invalidateQueries(["userData"]);
+      navigate("/");
     },
   });
 

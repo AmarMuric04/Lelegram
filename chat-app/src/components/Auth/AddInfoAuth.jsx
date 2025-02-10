@@ -2,8 +2,8 @@ import Input from "../Input";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 import { handlePostInput } from "../../utility/util";
+import { useNavigate } from "react-router-dom";
 
 export default function AddInfoAuth() {
   const [email, setEmail] = useState("");
@@ -13,8 +13,8 @@ export default function AddInfoAuth() {
   const [imagePreview, setImagePreview] = useState();
   const [imageUrl, setImageUrl] = useState("");
   const { phoneNumber } = useSelector((state) => state.auth);
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const navigate = useNavigate("/");
 
   const auth = async () => {
     try {
@@ -50,10 +50,15 @@ export default function AddInfoAuth() {
     onSuccess: (data) => {
       localStorage.setItem("token", data.data.token);
       localStorage.setItem("userId", data.data.userId);
+      localStorage.setItem(
+        "expires-in",
+        String(Date.now() + 1000 * 60 * 60 * 24)
+      );
 
-      navigate("/");
       queryClient.invalidateQueries(["userData"]);
       queryClient.invalidateQueries(["chats"]);
+
+      navigate("/");
     },
   });
 

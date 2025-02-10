@@ -1,9 +1,11 @@
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   setForwardedChat,
+  setIsSelecting,
   setMessage,
   setMessageToEdit,
   setMessageType,
+  setSelected,
 } from "../store/messageSlice";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
@@ -28,6 +30,13 @@ export default function Message({
   const modalRef = useRef();
   const [showForward, setShowForward] = useState(false);
   const [open, setOpen] = useState(false);
+  const { isSelecting, selected } = useSelector((state) => state.message);
+
+  useEffect(() => {
+    if (selected.length === 0) {
+      dispatch(setIsSelecting(false));
+    }
+  }, [selected, dispatch]);
 
   useEffect(() => {
     const unsetOpen = () => {
@@ -81,7 +90,6 @@ export default function Message({
 
     if (y + menuHeight > screenHeight) {
       y = screenHeight - menuHeight;
-      console.log(y);
     }
 
     onContextMenu(x, y);
@@ -93,6 +101,7 @@ export default function Message({
     dispatch(setMessageType("reply"));
   };
 
+  if (message.type === "forward") console.log(message);
   const contextMenuPortal =
     open &&
     isActiveContextMenu &&
@@ -245,7 +254,10 @@ export default function Message({
           </button>
         )}
         <button
-          onClick={handleClick}
+          onClick={() => {
+            dispatch(setIsSelecting(true));
+            dispatch(setSelected([message]));
+          }}
           className="flex w-full py-2  px-2 items-center gap-4 hover:bg-[#303030] rounded-md transition-all cursor-pointer"
         >
           <svg
@@ -292,24 +304,74 @@ export default function Message({
     showImage = false;
   }
 
+  const isSelected = selected.some((s) => s._id === message._id);
+
   return (
     <div
+      onDoubleClick={handleClick}
+      onClick={() => {
+        if (!isSelecting) return;
+
+        if (isSelected) {
+          const newSelected = selected.filter((s) => s._id !== message._id);
+          dispatch(setSelected(newSelected));
+        } else dispatch(setSelected([...selected, message]));
+      }}
       onContextMenu={handleContextMenu}
       onMouseOver={() => setShowForward(true)}
       onMouseLeave={() => setShowForward(false)}
-      className={`w-[50rem] flex z-10 justify-end relative ${
-        isMe ? "self-end flex-row" : "self-start flex-row-reverse"
-      }`}
+      className={`w-full overflow-hidden flex z-10 justify-end relative ${
+        isSelecting && "cursor-pointer"
+      } ${isMe ? "self-end flex-row" : "self-start flex-row-reverse"}`}
       key={message._id}
     >
+      {isSelecting && (
+        <div className="appearAnimation absolute z-50 left-0 top-1/2 -translate-y-1/2">
+          <div className="checkbox-wrapper-12">
+            <div className="cbx">
+              <input id="cbx-12" checked={isSelected} type="checkbox" />
+              <label htmlFor="cbx-12"></label>
+              <svg width="15" height="14" viewBox="0 0 15 14" fill="none">
+                <path d="M2 8.36364L6.23077 12L13 2"></path>
+              </svg>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+              <defs>
+                <filter id="goo-12">
+                  <fegaussianblur
+                    in="SourceGraphic"
+                    stdDeviation="4"
+                    result="blur"
+                  ></fegaussianblur>
+                  <fecolormatrix
+                    in="blur"
+                    mode="matrix"
+                    values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -7"
+                    result="goo-12"
+                  ></fecolormatrix>
+                  <feblend in="SourceGraphic" in2="goo-12"></feblend>
+                </filter>
+              </defs>
+            </svg>
+          </div>
+        </div>
+      )}
       <li
         id={message._id}
-        className={`relative z-50 appearAnimation flex max-w-[30rem] gap-2 ${
+        className={`relative transition-all left-0 ${
+          !isMe && isSelecting && "left-12"
+        } z-50 appearAnimation flex max-w-[30rem] gap-2 ${
           isMe ? "self-end flex-row" : "self-start flex-row-reverse"
         } ${!showImage && !isMe && "ml-12"} ${showImage && "mb-1"}`}
       >
-        {showForward && (
+        {showForward && !isSelecting && (
           <button
+            onClick={() => {
+              dispatch(openModal("forward-to-channels"));
+              dispatch(setMessageType("forward"));
+              dispatch(setMessage(message));
+              dispatch(setForwardedChat(null));
+            }}
             className={`bg-[#8675DC20] hover:bg-[#8675DC80] cursor-pointer p-2 rounded-full appearAnimation z-50 transition-all absolute top-1/2 -translate-y-1/2 ${
               isMe ? "right-[110%]" : "left-[110%] -scale-x-100"
             }`}
@@ -346,7 +408,10 @@ export default function Message({
               </div>
             )}
             {message.type === "forward" && (
-              <Link to={`/${message.referenceMessageId.chat?._id}`}>
+              <Link
+                className={`${isSelecting && "pointer-events-none"}`}
+                to={`/${message.referenceMessageId.chat?._id}`}
+              >
                 <div
                   className={`text-sm cursor-pointer transition-all px-2 py-1 rounded-md`}
                 >
@@ -379,6 +444,7 @@ export default function Message({
             )}
             {message.type === "reply" && (
               <Link
+                className={`${isSelecting && "pointer-events-none"}`}
                 to={`/${message.chat._id}#${message.referenceMessageId._id}`}
               >
                 <div
@@ -397,21 +463,28 @@ export default function Message({
             )}
             <div className="flex flex-wrap items-baseline justify-end">
               {message.type !== "forward" && (
-                <p className="flex-grow break-words">{message.message}</p>
+                <p className="flex-grow break-words break-all">
+                  {message.message}
+                </p>
               )}
               {message.type === "forward" && (
-                <p className="flex-grow break-words">
+                <p className="flex-grow break-words break-all">
                   {message.referenceMessageId.message}
                 </p>
               )}
-              <p className="flex-shrink-0 whitespace-nowrap text-xs text-[#ccc] ml-2">
-                {new Date(message.createdAt).toLocaleString("en-US", {
-                  weekday: "short",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                })}
-              </p>
+              <div className="flex-shrink-0 flex gap-2 whitespace-nowrap text-xs text-[#ccc] ml-2">
+                {message.edited && message.type !== "forward" && (
+                  <p className="italic">edited</p>
+                )}
+                <p>
+                  {new Date(message.createdAt).toLocaleString("en-US", {
+                    weekday: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -423,9 +496,11 @@ export default function Message({
           />
         )}
       </li>
-      {message._id === messageId && (
+      {(message._id === messageId || isSelected) && (
         <div
-          className={`showAnimation absolute top-0 -left-[100rem] bg-[#8675DC50] min-w-[300rem] h-full`}
+          className={`${isSelected && "bg-[#8675DC20]"} ${
+            !isSelecting && "showAnimation"
+          } absolute top-0 -left-[100rem] bg-[#8675DC50] min-w-[300rem] h-full`}
         ></div>
       )}
 
