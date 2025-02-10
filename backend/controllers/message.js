@@ -5,9 +5,15 @@ import { getSocket } from "../socket.js";
 
 export const sendMessage = async (req, res, next) => {
   try {
-    const { chatId, message, type, referenceMessageId } = req.body;
+    const { chatId, message, type, referenceMessageId, forwardToChat } =
+      req.body;
 
-    console.log(type, referenceMessageId);
+    if (type !== "forward" && !message) {
+      const error = new Error("Message is required when not forwarding.");
+      error.statusCode = 404;
+
+      throw error;
+    }
 
     const newMessage = new Message({
       chat: chatId,
@@ -36,6 +42,44 @@ export const sendMessage = async (req, res, next) => {
         message,
         type,
         referenceMessageId,
+        forwardToChat,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const editMessage = async (req, res, next) => {
+  try {
+    const { chatId, message, messageId } = req.body;
+
+    const messageToEdit = await Message.findById(messageId).populate("sender");
+    console.log(messageToEdit);
+
+    if (messageToEdit.sender._id.toString() !== req.userId) {
+      const error = new Error("Message does not belong to you.");
+      error.statusCode = 405;
+
+      throw error;
+    }
+
+    if (messageToEdit.message === message) {
+      return;
+    }
+
+    messageToEdit.message = message;
+
+    await messageToEdit.save();
+
+    getSocket().emit("messageSent", {
+      data: chatId,
+    });
+
+    res.status(201).json({
+      message: "Message sent successfully!",
+      data: {
+        messageToEdit,
       },
     });
   } catch (err) {
@@ -54,9 +98,7 @@ export const getMessages = async (req, res, next) => {
       .populate("chat")
       .populate({
         path: "referenceMessageId",
-        populate: {
-          path: "sender",
-        },
+        populate: [{ path: "sender" }, { path: "chat" }],
       });
 
     if (!messages) {

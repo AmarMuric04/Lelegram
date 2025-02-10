@@ -8,6 +8,8 @@ router.get("/get-messages/:chatId", isAuth, MessageController.getMessages);
 
 router.post("/send-message", isAuth, MessageController.sendMessage);
 
+router.post("/edit-message", isAuth, MessageController.editMessage);
+
 router.post(
   "/get-searched-messages",
   isAuth,

@@ -14,7 +14,12 @@ import { setIsFocused } from "../store/searchSlice";
 import MessagesList from "./MessagesList";
 import { io } from "socket.io-client";
 import Gradient from "../assets/gradient.png";
-import { setForwardedChat, setMessage, setMessageType } from "../store/messageSlice";
+import {
+  setForwardedChat,
+  setMessage,
+  setMessageToEdit,
+  setMessageType,
+} from "../store/messageSlice";
 import AsideChat from "./AsideChat";
 
 const socket = io("http://localhost:3000");
@@ -35,7 +40,9 @@ export default function Main() {
   const { user } = useSelector((state) => state.auth);
   const { activeChat, userChats } = useSelector((state) => state.chat);
   const { select } = useSelector((state) => state.search);
-  const { message, messageType } = useSelector((state) => state.message);
+  const { message, messageType, forwardedChat, messageToEdit } = useSelector(
+    (state) => state.message
+  );
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -45,7 +52,10 @@ export default function Main() {
       dispatch(setMessageType("normal"));
       dispatch(setMessage(null));
     }
-  }, [dispatch, messageType, message, activeChat]);
+    if (messageToEdit) {
+      setValue(messageToEdit.message);
+    }
+  }, [messageToEdit, activeChat, message, dispatch, messageType]);
 
   useEffect(() => {
     if (!user) navigate("/auth");
@@ -145,9 +155,6 @@ export default function Main() {
       dispatch(setMessage(null));
       dispatch(setMessageType("normal"));
       messagesListRef.current?.scrollToBottom();
-      const href = window.location.href.split("#");
-
-      window.location.href = href[0];
 
       return data;
     } catch (error) {
@@ -157,6 +164,49 @@ export default function Main() {
 
   const { mutate: sendMessage, isPending } = useMutation({
     mutationFn: handleSendMessage,
+  });
+
+  const handleEditMessage = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/message/edit-message",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify({
+            message: value,
+            messageId: messageToEdit._id,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error("Sending a message failed.");
+      }
+
+      queryClient.invalidateQueries(["messages", activeChat?._id]);
+      queryClient.invalidateQueries(["search", select]);
+
+      setValue("");
+      dispatch(setMessage(null));
+      dispatch(setMessageType("normal"));
+      dispatch(setMessageToEdit(null));
+
+      return data;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  if (messageToEdit) console.log(messageToEdit);
+
+  const { mutate: editMessage, isLoading: editIsPending } = useMutation({
+    mutationFn: handleEditMessage,
   });
 
   const handleAddUserToChat = async (userId) => {
@@ -245,6 +295,9 @@ export default function Main() {
 
   const isReplying =
     messageType === "reply" && message.chat._id === activeChat._id;
+
+  const isForwarding =
+    messageType === "forward" && activeChat._id === forwardedChat?._id;
 
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center ">
@@ -346,14 +399,12 @@ export default function Main() {
           </svg>
         </button>
         {userChats.map((chat) => {
-          if (chat._id === activeChat._id) return;
+          if (chat?._id === activeChat?._id) return;
           return (
             <AsideChat
               key={chat._id}
               action={() => {
-                dispatch(setMessageType("forward"));
-                dispatch(setMessage(message));
-                dispatch(setForwardedChat(chat))
+                dispatch(setForwardedChat(chat));
                 dispatch(closeModal());
               }}
               chat={chat}
@@ -531,6 +582,102 @@ export default function Main() {
                                   onClick={() => {
                                     dispatch(setMessage(null));
                                     dispatch(setMessageType("normal"));
+                                    dispatch(setForwardedChat(null));
+                                  }}
+                                  className="hover:bg-[#8675DC20] cursor-pointer transition-all p-2 text-[#8675DC] rounded-full"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeLinecap="round"
+                                      strokeWidth="2"
+                                      d="M20 20L4 4m16 0L4 20"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                            )}
+                            {isForwarding && forwardedChat && (
+                              <div className="interactInputAnimation absolute bg-[#252525] flex gap-4 px-4 py-2 left-0 w-[89%] h-full rounded-2xl items-center rounded-b-none">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 32 32"
+                                  className="text-[#8675DC]"
+                                >
+                                  <path
+                                    fill="currentColor"
+                                    d="M28.88 30a1 1 0 0 1-.88-.5A15.19 15.19 0 0 0 15 22v6a1 1 0 0 1-.62.92a1 1 0 0 1-1.09-.21l-12-12a1 1 0 0 1 0-1.42l12-12a1 1 0 0 1 1.09-.21A1 1 0 0 1 15 4v6.11a17.19 17.19 0 0 1 15 17a16 16 0 0 1-.13 2a1 1 0 0 1-.79.86ZM14.5 20A17.62 17.62 0 0 1 28 26a15.31 15.31 0 0 0-14.09-14a1 1 0 0 1-.91-1V6.41L3.41 16L13 25.59V21a1 1 0 0 1 1-1h.54Z"
+                                  />
+                                </svg>
+                                <div className="bg-[#8675DC20] w-full px-2 text-sm rounded-md border-l-4 border-[#8675DC]">
+                                  <p className="text-[#8675DC]">
+                                    Forwarded Message
+                                  </p>
+                                  <p className="text-[#ccc]">
+                                    {message?.sender.firstName}{" "}
+                                    {message?.sender.lastName}:{" "}
+                                    {message?.message}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    dispatch(setMessage(null));
+                                    dispatch(setMessageType("normal"));
+                                  }}
+                                  className="hover:bg-[#8675DC20] cursor-pointer transition-all p-2 text-[#8675DC] rounded-full"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeLinecap="round"
+                                      strokeWidth="2"
+                                      d="M20 20L4 4m16 0L4 20"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                            )}
+                            {messageToEdit && (
+                              <div className="interactInputAnimation absolute bg-[#252525] flex gap-4 px-4 py-2 left-0 w-[89%] h-full rounded-2xl items-center rounded-b-none">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                  className="text-[#8675DC]"
+                                >
+                                  <rect width="24" height="24" fill="none" />
+                                  <path
+                                    fill="currentColor"
+                                    d="M5 19h1.425L16.2 9.225L14.775 7.8L5 17.575zm-1 2q-.425 0-.712-.288T3 20v-2.425q0-.4.15-.763t.425-.637L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.437.65T21 6.4q0 .4-.138.763t-.437.662l-12.6 12.6q-.275.275-.638.425t-.762.15zM19 6.4L17.6 5zm-3.525 2.125l-.7-.725L16.2 9.225z"
+                                  />
+                                </svg>
+                                <div className="bg-[#8675DC20] w-full px-2 text-sm rounded-md border-l-4 border-[#8675DC]">
+                                  <p className="text-[#8675DC]">Editing</p>
+                                  <p className="text-[#ccc]">
+                                    {messageToEdit?.message}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    dispatch(setMessage(null));
+                                    dispatch(setMessageType("normal"));
+                                    dispatch(setMessageToEdit(null));
+                                    setValue("");
                                   }}
                                   className="hover:bg-[#8675DC20] cursor-pointer transition-all p-2 text-[#8675DC] rounded-full"
                                 >
@@ -579,8 +726,18 @@ export default function Main() {
                             )}
                             <button
                               onClick={() => {
-                                if (message !== "") sendMessage();
-                                else console.log("Voice message.");
+                                if (!messageToEdit) {
+                                  if (
+                                    messageType === "forward" ||
+                                    message !== ""
+                                  ) {
+                                    sendMessage();
+                                  } else {
+                                    console.log("Voice message.");
+                                  }
+                                } else {
+                                  editMessage();
+                                }
                               }}
                               className="p-4 rounded-full bg-[#8675DC] hover:bg-[#8765DC] transition-all cursor-pointer"
                             >
@@ -597,20 +754,22 @@ export default function Main() {
                                   />
                                 </svg>
                               )}
-                              {!isPending && message !== "" && (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    fill="currentColor"
-                                    d="M21.243 12.437a.5.5 0 0 0 0-.874l-2.282-1.268A75.5 75.5 0 0 0 4.813 4.231l-.665-.208A.5.5 0 0 0 3.5 4.5v5.75a.5.5 0 0 0 .474.5l1.01.053a44.4 44.4 0 0 1 7.314.998l.238.053c.053.011.076.033.089.05a.16.16 0 0 1 .029.096c0 .04-.013.074-.029.096c-.013.017-.036.039-.089.05l-.238.053a44.5 44.5 0 0 1-7.315.999l-1.01.053a.5.5 0 0 0-.473.499v5.75a.5.5 0 0 0 .65.477l.664-.208a75.5 75.5 0 0 0 14.147-6.064z"
-                                  />
-                                </svg>
-                              )}
-                              {isPending && (
+                              {!isPending &&
+                                !editIsPending &&
+                                message !== "" && (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      fill="currentColor"
+                                      d="M21.243 12.437a.5.5 0 0 0 0-.874l-2.282-1.268A75.5 75.5 0 0 0 4.813 4.231l-.665-.208A.5.5 0 0 0 3.5 4.5v5.75a.5.5 0 0 0 .474.5l1.01.053a44.4 44.4 0 0 1 7.314.998l.238.053c.053.011.076.033.089.05a.16.16 0 0 1 .029.096c0 .04-.013.074-.029.096c-.013.017-.036.039-.089.05l-.238.053a44.5 44.5 0 0 1-7.315.999l-1.01.053a.5.5 0 0 0-.473.499v5.75a.5.5 0 0 0 .65.477l.664-.208a75.5 75.5 0 0 0 14.147-6.064z"
+                                    />
+                                  </svg>
+                                )}
+                              {(isPending || editIsPending) && (
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   width="24"

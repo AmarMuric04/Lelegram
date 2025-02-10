@@ -1,5 +1,10 @@
 import { useDispatch } from "react-redux";
-import { setMessage, setMessageType } from "../store/messageSlice";
+import {
+  setForwardedChat,
+  setMessage,
+  setMessageToEdit,
+  setMessageType,
+} from "../store/messageSlice";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import ReactDOM from "react-dom";
@@ -67,8 +72,18 @@ export default function Message({
 
   const handleContextMenu = (e) => {
     e.preventDefault();
-    const x = e.clientX;
-    const y = e.clientY;
+
+    const menuHeight = 300;
+    const screenHeight = window.innerHeight;
+
+    let x = e.clientX;
+    let y = e.clientY;
+
+    if (y + menuHeight > screenHeight) {
+      y = screenHeight - menuHeight;
+      console.log(y);
+    }
+
     onContextMenu(x, y);
     setOpen(true);
   };
@@ -76,8 +91,6 @@ export default function Message({
   const handleClick = () => {
     dispatch(setMessage(message));
     dispatch(setMessageType("reply"));
-    onClearContextMenu();
-    setOpen(false);
   };
 
   const contextMenuPortal =
@@ -86,6 +99,10 @@ export default function Message({
     contextMenuPosition &&
     ReactDOM.createPortal(
       <div
+        onClick={() => {
+          onClearContextMenu();
+          setOpen(false);
+        }}
         ref={modalRef}
         className="appearAnimation text-white bg-[#202021] p-2 rounded-xl z-[9999]"
         style={{
@@ -135,7 +152,12 @@ export default function Message({
         </button>
 
         <button
-          onClick={() => dispatch(openModal("forward-to-channels"))}
+          onClick={() => {
+            dispatch(openModal("forward-to-channels"));
+            dispatch(setMessageType("forward"));
+            dispatch(setMessage(message));
+            dispatch(setForwardedChat(null));
+          }}
           className="flex w-full py-2  px-2 items-center gap-4 hover:bg-[#303030] rounded-md transition-all cursor-pointer"
         >
           <svg
@@ -203,7 +225,9 @@ export default function Message({
         </button>
         {isMe && (
           <button
-            onClick={handleClick}
+            onClick={() => {
+              dispatch(setMessageToEdit(message));
+            }}
             className="flex w-full py-2  px-2 items-center gap-4 hover:bg-[#303030] rounded-md transition-all cursor-pointer"
           >
             <svg
@@ -260,6 +284,14 @@ export default function Message({
       document.body
     );
 
+  if (message.type === "forward" && message.message) {
+    showSenderInfo = false;
+  }
+
+  if (message.extra) {
+    showImage = false;
+  }
+
   return (
     <div
       onContextMenu={handleContextMenu}
@@ -313,6 +345,38 @@ export default function Message({
                 {isAdmin && <p className="text-[#ccc] text-xs">admin</p>}
               </div>
             )}
+            {message.type === "forward" && (
+              <Link to={`/${message.referenceMessageId.chat?._id}`}>
+                <div
+                  className={`text-sm cursor-pointer transition-all px-2 py-1 rounded-md`}
+                >
+                  <p className="font-semibold">Forwarded from</p>
+                  <div className="flex items-center gap-1">
+                    {message.referenceMessageId.chat?.imageUrl ? (
+                      <img
+                        src={`http://localhost:3000/${message.referenceMessageId.chat.imageUrl}`}
+                        alt={message.referenceMessageId.chat.name}
+                        className="min-h-6 max-h-6 min-w-6 max-w-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="h-6 w-6 rounded-full text-[0.5rem] grid place-items-center font-semibold text-white"
+                        style={{
+                          background: `linear-gradient(${
+                            message.referenceMessageId.chat?.gradient?.direction
+                          }, ${message.referenceMessageId.chat?.gradient?.colors.join(
+                            ", "
+                          )})`,
+                        }}
+                      >
+                        {message.referenceMessageId.chat?.name?.slice(0, 3)}
+                      </div>
+                    )}
+                    <p>{message.referenceMessageId.chat?.name}</p>
+                  </div>
+                </div>
+              </Link>
+            )}
             {message.type === "reply" && (
               <Link
                 to={`/${message.chat._id}#${message.referenceMessageId._id}`}
@@ -332,7 +396,14 @@ export default function Message({
               </Link>
             )}
             <div className="flex flex-wrap items-baseline justify-end">
-              <p className="flex-grow break-words">{message.message}</p>
+              {message.type !== "forward" && (
+                <p className="flex-grow break-words">{message.message}</p>
+              )}
+              {message.type === "forward" && (
+                <p className="flex-grow break-words">
+                  {message.referenceMessageId.message}
+                </p>
+              )}
               <p className="flex-shrink-0 whitespace-nowrap text-xs text-[#ccc] ml-2">
                 {new Date(message.createdAt).toLocaleString("en-US", {
                   weekday: "short",
@@ -358,7 +429,6 @@ export default function Message({
         ></div>
       )}
 
-      {/* Render the portal for the context menu */}
       {contextMenuPortal}
     </div>
   );

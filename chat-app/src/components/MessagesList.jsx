@@ -16,7 +16,7 @@ const MessagesList = forwardRef(function MessagesList(
 ) {
   const { user } = useSelector((state) => state.auth);
   const { activeChat } = useSelector((state) => state.chat);
-  const { messageType } = useSelector((state) => state.message);
+  const { messageType, forwardedChat } = useSelector((state) => state.message);
 
   const bottomRef = useRef(null);
   const messagesRef = useRef(null);
@@ -100,12 +100,13 @@ const MessagesList = forwardRef(function MessagesList(
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
 
+  const specialMessage =
+    messageType === "reply" || (messageType === "forward" && forwardedChat);
+
   return (
     <div
       ref={messagesRef}
-      className={`relative ${
-        messageType === "reply" && "bottom-10"
-      } bottom-0 z-10 messages-list-container transition-all ${
+      className={`relative ${specialMessage} bottom-0 z-10 messages-list-container transition-all ${
         activeContextMenu ? "overflow-hidden" : "overflow-y-auto"
       } ${viewInfo ? "w-full" : "w-[90%]"}`}
     >
@@ -187,21 +188,44 @@ const MessagesList = forwardRef(function MessagesList(
                 );
 
                 return (
-                  <Message
-                    key={message._id}
-                    message={message}
-                    isMe={isMe}
-                    isAdmin={isAdmin}
-                    showImage={showImage}
-                    showSenderInfo={showSenderInfo}
-                    messageId={messageId}
-                    isActiveContextMenu={activeContextMenu?.id === message._id}
-                    contextMenuPosition={activeContextMenu}
-                    onContextMenu={(x, y) =>
-                      handleContextMenu(message._id, x, y)
-                    }
-                    onClearContextMenu={clearContextMenu}
-                  />
+                  <>
+                    {message.type === "forward" && message.message && (
+                      <Message
+                        key={`${message._id}-forward`}
+                        message={{ ...message, type: "normal", extra: true }}
+                        isMe={isMe}
+                        isAdmin={isAdmin}
+                        showImage={showImage}
+                        showSenderInfo={showSenderInfo}
+                        messageId={messageId}
+                        isActiveContextMenu={
+                          activeContextMenu?.id === message._id
+                        }
+                        contextMenuPosition={activeContextMenu}
+                        onContextMenu={(x, y) =>
+                          handleContextMenu(message._id, x, y)
+                        }
+                        onClearContextMenu={clearContextMenu}
+                      />
+                    )}
+                    <Message
+                      key={message._id}
+                      message={message}
+                      isMe={isMe}
+                      isAdmin={isAdmin}
+                      showImage={showImage}
+                      showSenderInfo={showSenderInfo}
+                      messageId={messageId}
+                      isActiveContextMenu={
+                        activeContextMenu?.id === message._id
+                      }
+                      contextMenuPosition={activeContextMenu}
+                      onContextMenu={(x, y) =>
+                        handleContextMenu(message._id, x, y)
+                      }
+                      onClearContextMenu={clearContextMenu}
+                    />
+                  </>
                 );
               })}
             </ul>
