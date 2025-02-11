@@ -71,6 +71,7 @@ export const createUser = async (req, res, next) => {
       gradient,
       imageUrl: null,
       lastMessage: null,
+      type: "saved",
     });
 
     await chat.save();

@@ -63,12 +63,13 @@ export const getAllChats = async (req, res, next) => {
 
     res.status(200).json({
       message: "Successfully fetched chats.",
-      data: chats.filter((c) => c.name !== "ʚ♡ɞ Saved Messages"),
+      data: chats.filter((c) => c.type !== "saved"),
     });
   } catch (err) {
     next(err);
   }
 };
+
 export const getSearchedChats = async (req, res, next) => {
   try {
     const { input } = req.body;
@@ -82,12 +83,11 @@ export const getSearchedChats = async (req, res, next) => {
     let chats = await Chat.find({
       name: { $regex: input, $options: "i" },
     }).populate({
+      path: "lastMessage",
       populate: [{ path: "sender" }, { path: "referenceMessageId" }],
     });
 
-    res
-      .status(200)
-      .json({ data: chats.filter((c) => c.name !== "ʚ♡ɞ Saved Messages") });
+    res.status(200).json({ data: chats.filter((c) => c.type !== "saved") });
   } catch (err) {
     next(err);
   }
@@ -120,6 +120,7 @@ export const createChat = async (req, res, next) => {
       gradient,
       imageUrl,
       lastMessage: null,
+      type: "group",
     });
 
     await chat.save();
@@ -191,15 +192,10 @@ export const addUserToChat = async (req, res, next) => {
       throw error;
     }
 
-    const user = await User.findById(userId);
-
-    // Add the user to the chat
     chat.users.push(new mongoose.Types.ObjectId(userId));
 
-    // Save the chat
     await chat.save();
 
-    // Populate the users and admins fields again after saving
     const updatedChat = await Chat.findById(chatId)
       .populate("users")
       .populate("admins");

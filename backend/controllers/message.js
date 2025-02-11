@@ -32,25 +32,37 @@ export const sendMessage = async (req, res, next) => {
         }
 
         for (const refId of referenceMessageId) {
-          const referencedMessage = await Message.findById(refId);
+          const referencedMessage = await Message.findById(refId).populate(
+            "chat"
+          );
           if (!referencedMessage) continue;
           let forwardedMsg;
 
-          if (referencedMessage.type === "forward") {
+          if (referencedMessage.chat.type === "saved") {
             forwardedMsg = new Message({
-              ...referencedMessage._doc,
-              sender: req.userId,
-              _id: new mongoose.Types.ObjectId(),
               chat: chatId,
+              message: referencedMessage.message,
+              sender: req.userId,
+              type: "normal",
+              referenceMessageId: null,
             });
           } else {
-            forwardedMsg = new Message({
-              chat: chatId,
-              message: null,
-              sender: req.userId,
-              type: "forward",
-              referenceMessageId: refId,
-            });
+            if (referencedMessage.type === "forward") {
+              forwardedMsg = new Message({
+                ...referencedMessage._doc,
+                sender: req.userId,
+                _id: new mongoose.Types.ObjectId(),
+                chat: chatId,
+              });
+            } else {
+              forwardedMsg = new Message({
+                chat: chatId,
+                message: null,
+                sender: req.userId,
+                type: "forward",
+                referenceMessageId: refId,
+              });
+            }
           }
           await forwardedMsg.save();
           forwardedMessages.push(forwardedMsg);
@@ -86,27 +98,39 @@ export const sendMessage = async (req, res, next) => {
           await commentMessage.save();
         }
 
-        const referencedMessage = await Message.findById(referenceMessageId);
+        const referencedMessage = await Message.findById(
+          referenceMessageId
+        ).populate("chat");
         if (!referencedMessage) {
           const error = new Error("Referenced message not found.");
           error.statusCode = 404;
           throw error;
         }
 
-        if (referencedMessage.type === "forward") {
+        if (referencedMessage.chat.type === "saved") {
           newMessage = new Message({
-            ...referencedMessage._doc,
-            _id: new mongoose.Types.ObjectId(),
             chat: chatId,
+            message: referencedMessage.message,
+            sender: req.userId,
+            type: "normal",
+            referenceMessageId: null,
           });
         } else {
-          newMessage = new Message({
-            chat: chatId,
-            message: null,
-            sender: req.userId,
-            type: "forward",
-            referenceMessageId,
-          });
+          if (referencedMessage.type === "forward") {
+            newMessage = new Message({
+              ...referencedMessage._doc,
+              _id: new mongoose.Types.ObjectId(),
+              chat: chatId,
+            });
+          } else {
+            newMessage = new Message({
+              chat: chatId,
+              message: null,
+              sender: req.userId,
+              type: "forward",
+              referenceMessageId,
+            });
+          }
         }
         await newMessage.save();
 
@@ -167,12 +191,69 @@ export const sendMessage = async (req, res, next) => {
   }
 };
 
+export const deleteMessage = async (req, res, next) => {
+  try {
+    const { messageId } = req.body;
+
+    if (Array.isArray(messageId)) {
+      for (const id of messageId) {
+        const message = await Message.findById(id);
+
+        if (message.sender.toString() !== req.userId) {
+          const error = new Error("You are not the creator of this message.");
+          error.statusCode = 405;
+
+          throw error;
+        }
+      }
+    }
+    if (Array.isArray(messageId)) {
+      for (const id of messageId) {
+        const message = await Message.findById(id);
+
+        if (!message) {
+          const error = new Error("Message not found.");
+          error.statusCode = 404;
+
+          throw error;
+        }
+
+        if (message.sender.toString() !== req.userId) {
+          const error = new Error("You are not the creator of this message.");
+          error.statusCode = 405;
+
+          throw error;
+        }
+
+        await Message.findByIdAndDelete(id);
+      }
+      return res
+        .status(200)
+        .json({ message: "Messages successfully deleted." });
+    }
+
+    const message = await Message.findById(messageId);
+
+    if (message.sender.toString() !== req.userId) {
+      const error = new Error("You are not the creator of this message.");
+      error.statusCode = 405;
+
+      throw error;
+    }
+
+    await Message.findByIdAndDelete(messageId);
+
+    res.status(200).json({ message: "Message successfully deleted." });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const editMessage = async (req, res, next) => {
   try {
     const { chatId, message, messageId } = req.body;
 
     const messageToEdit = await Message.findById(messageId).populate("sender");
-    console.log(messageToEdit);
 
     if (messageToEdit.sender._id.toString() !== req.userId) {
       const error = new Error("Message does not belong to you.");

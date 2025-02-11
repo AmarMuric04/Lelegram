@@ -133,6 +133,50 @@ export default function Main() {
     enabled: !!activeChat,
   });
 
+  const handleDeleteMessage = async () => {
+    try {
+      let refIds = message._id;
+      if (Array.isArray(message)) {
+        refIds = message.map((m) => m._id);
+      }
+      const response = await fetch(
+        "http://localhost:3000/message/delete-message",
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify({
+            messageId: refIds,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error("Sending a message failed.");
+      }
+
+      queryClient.invalidateQueries(["messages", activeChat?._id]);
+      queryClient.invalidateQueries(["search", select]);
+
+      dispatch(setMessage(null));
+      dispatch(setIsSelecting(false));
+      dispatch(setSelected([]));
+      messagesListRef.current?.scrollToBottom();
+
+      return data;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const { mutate: deleteMessage } = useMutation({
+    mutationFn: handleDeleteMessage,
+  });
+
   const handleSendMessage = async () => {
     try {
       let refIds;
@@ -452,6 +496,69 @@ export default function Main() {
           );
         })}
       </Modal>
+      <Modal id="delete-message">
+        <header className="flex items-center gap-5">
+          {activeChat?.imageUrl ? (
+            <img
+              src={`http://localhost:3000/${activeChat.imageUrl}`}
+              alt={activeChat.name}
+              className="min-h-8 max-h-8 min-w-8 max-w-8 rounded-full object-cover"
+            />
+          ) : (
+            <div
+              className="h-8 w-8 rounded-full text-xs grid place-items-center font-semibold text-white"
+              style={{
+                background: `linear-gradient(${
+                  activeChat?.gradient?.direction
+                }, ${activeChat?.gradient?.colors.join(", ")})`,
+              }}
+            >
+              {activeChat?.name?.slice(0, 3)}
+            </div>
+          )}
+          <p className="font-semibold text-xl">
+            Delete {Array.isArray && message?.length} message
+            {Array.isArray(message) && message.length > 1 && "s"}
+          </p>
+        </header>
+        <p className="mt-4 font-semibold">
+          Are you sure you want to delete{" "}
+          {Array.isArray(message) ? "these" : "this"} <br /> message
+          {Array.isArray(message) && message.length > 1 && "s"}{" "}
+          {Array.isArray(message) && "for everyone"}?
+        </p>
+
+        <div className="flex items-center justify-end">
+          <Button
+            onClick={() => dispatch(closeModal())}
+            sx={{
+              backgroundColor: "transparent",
+              color: "#8675DC",
+              padding: "16px",
+              borderRadius: "12px",
+              width: "40%",
+            }}
+            variant="contained"
+          >
+            CANCEL
+          </Button>
+          <Button
+            onClick={() => {
+              deleteMessage();
+              dispatch(closeModal());
+            }}
+            sx={{
+              backgroundColor: "transparent",
+              color: "#f56565",
+              padding: "16px",
+              borderRadius: "12px",
+            }}
+            variant="contained"
+          >
+            {removeUserIsPending ? "PLEASE WAIT..." : "DELETE"}
+          </Button>
+        </div>
+      </Modal>
       <div className="w-[85vw] flex justify-between overflow-hidden">
         <Aside />
         <div
@@ -504,7 +611,7 @@ export default function Main() {
                       </p>
                     </div>
                   </div>
-                  {activeChat.name !== "ʚ♡ɞ Saved Messages" && (
+                  {activeChat.type !== "saved" && (
                     <PopUpMenu
                       bl={true}
                       icon={
@@ -779,17 +886,18 @@ export default function Main() {
                                     {selected.length} Messages
                                   </p>
                                 </div>
-                                <div
-                                  onClick={() => {
-                                    dispatch(openModal("forward-to-channels"));
-                                    dispatch(setMessageType("forward"));
-                                    dispatch(setMessage(selected));
-                                    dispatch(setForwardedChat(null));
-                                    console.log(selected);
-                                  }}
-                                  className="w-1/2 flex"
-                                >
-                                  <button className="flex w-full py-2  px-2 items-center gap-4 rounded-md  hover:bg-[#303030] transition-all cursor-pointer">
+                                <div className="w-1/2 flex">
+                                  <button
+                                    onClick={() => {
+                                      dispatch(
+                                        openModal("forward-to-channels")
+                                      );
+                                      dispatch(setMessageType("forward"));
+                                      dispatch(setMessage(selected));
+                                      dispatch(setForwardedChat(null));
+                                    }}
+                                    className="flex w-full py-2  px-2 items-center gap-4 rounded-md  hover:bg-[#303030] transition-all cursor-pointer"
+                                  >
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       width="24"
@@ -804,7 +912,13 @@ export default function Main() {
                                     </svg>
                                     <p className="font-semibold">Forward</p>
                                   </button>
-                                  <button className="flex w-full py-2  px-2 items-center gap-4 text-red-500 hover:bg-red-500/10 rounded-md transition-all cursor-pointer">
+                                  <button
+                                    onClick={() => {
+                                      dispatch(openModal("delete-message"));
+                                      dispatch(setMessage(selected));
+                                    }}
+                                    className="flex w-full py-2  px-2 items-center gap-4 text-red-500 hover:bg-red-500/10 rounded-md transition-all cursor-pointer"
+                                  >
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
                                       width="20"
