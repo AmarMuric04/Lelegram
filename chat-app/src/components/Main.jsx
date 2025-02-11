@@ -636,27 +636,50 @@ export default function Main() {
                       }
                     >
                       <PopUpMenuItem
-                        itemClasses={"text-red-500 hover:bg-red-500/20"}
                         action={(e) => {
                           e.stopPropagation();
-                          dispatch(openModal("leave-channel"));
+                          dispatch(setIsSelecting(true));
                         }}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="16"
                           height="16"
-                          viewBox="0 0 24 24"
+                          viewBox="0 0 20 20"
                         >
                           <path
                             fill="currentColor"
-                            d="M16 9v10H8V9zm-1.5-6h-5l-1 1H5v2h14V4h-3.5zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2z"
+                            d="M2.93 17.07A10 10 0 1 1 17.07 2.93A10 10 0 0 1 2.93 17.07m12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32M6.7 9.29L9 11.6l4.3-4.3l1.4 1.42L9 14.4l-3.7-3.7l1.4-1.42z"
                           />
                         </svg>
                         <p className="font-semibold flex-shrink-0">
-                          {isAdmin ? "Delete Channel" : "Leave Channel"}
+                          Select Messages
                         </p>
                       </PopUpMenuItem>
+                      {isInChat && (
+                        <PopUpMenuItem
+                          itemClasses={"text-red-500 hover:bg-red-500/20"}
+                          action={(e) => {
+                            e.stopPropagation();
+                            dispatch(openModal("leave-channel"));
+                          }}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              fill="currentColor"
+                              d="M16 9v10H8V9zm-1.5-6h-5l-1 1H5v2h14V4h-3.5zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2z"
+                            />
+                          </svg>
+                          <p className="font-semibold flex-shrink-0">
+                            {isAdmin ? "Delete Channel" : "Leave Channel"}
+                          </p>
+                        </PopUpMenuItem>
+                      )}
                     </PopUpMenu>
                   )}
                 </header>
@@ -703,6 +726,109 @@ export default function Main() {
                       <div
                         className={`relative z-10 flex justify-between gap-2 w-full`}
                       >
+                        {isSelecting && (
+                          <div
+                            className={`${
+                              !isInChat && "jumpInAnimation"
+                            } absolute left-1/2 -translate-x-1/2  bg-[#252525] flex gap-4 px-4 py-2 h-full rounded-2xl z-10 items-center w-[70%] justify-between`}
+                          >
+                            <div className="flex items-center">
+                              <button
+                                onClick={() => {
+                                  dispatch(setIsSelecting(false));
+                                  dispatch(setSelected([]));
+                                }}
+                                className="hover:bg-[#8675DC20] cursor-pointer transition-all p-2  rounded-full"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="18"
+                                  height="18"
+                                  viewBox="0 0 24 24"
+                                  className="text-[#ccc]"
+                                >
+                                  <path
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeLinecap="round"
+                                    strokeWidth="2"
+                                    d="M20 20L4 4m16 0L4 20"
+                                  />
+                                </svg>
+                              </button>
+                              <p className="font-semibold flex-shrink-0">
+                                {selected.length} Messages
+                              </p>
+                            </div>
+                            <div className="w-1/2 flex">
+                              <button
+                                disabled={!selected.length}
+                                onClick={() => {
+                                  dispatch(openModal("forward-to-channels"));
+                                  dispatch(setMessageType("forward"));
+                                  dispatch(setMessage(selected));
+                                  dispatch(setForwardedChat(null));
+                                }}
+                                className={`${
+                                  !selected.length &&
+                                  "opacity-50 pointer-events-none"
+                                } flex w-full py-2  px-2 items-center gap-4 rounded-md  hover:bg-[#303030] transition-all cursor-pointer`}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 32 32"
+                                  className="text-[#ccc] -scale-x-100"
+                                >
+                                  <path
+                                    fill="currentColor"
+                                    d="M28.88 30a1 1 0 0 1-.88-.5A15.19 15.19 0 0 0 15 22v6a1 1 0 0 1-.62.92a1 1 0 0 1-1.09-.21l-12-12a1 1 0 0 1 0-1.42l12-12a1 1 0 0 1 1.09-.21A1 1 0 0 1 15 4v6.11a17.19 17.19 0 0 1 15 17a16 16 0 0 1-.13 2a1 1 0 0 1-.79.86ZM14.5 20A17.62 17.62 0 0 1 28 26a15.31 15.31 0 0 0-14.09-14a1 1 0 0 1-.91-1V6.41L3.41 16L13 25.59V21a1 1 0 0 1 1-1h.54Z"
+                                  />
+                                </svg>
+                                <p className="font-semibold">Forward</p>
+                              </button>
+                              <button
+                                disabled={
+                                  !isInChat ||
+                                  !selected.length ||
+                                  (!isAdmin &&
+                                    selected.some(
+                                      (s) => s.sender._id !== user._id
+                                    ))
+                                }
+                                onClick={() => {
+                                  dispatch(openModal("delete-message"));
+                                  dispatch(setMessage(selected));
+                                  console.log(selected, user);
+                                }}
+                                className={`${
+                                  !isInChat ||
+                                  !selected.length ||
+                                  (!isAdmin &&
+                                    selected.some(
+                                      (s) => s.sender._id !== user._id
+                                    ))
+                                    ? "opacity-50 pointer-events-none"
+                                    : ""
+                                } flex w-full py-2  px-2 items-center gap-4 text-red-500 hover:bg-red-500/10 rounded-md transition-all cursor-pointer`}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="20"
+                                  height="20"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    fill="currentColor"
+                                    d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM8 9h8v10H8zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
+                                  />
+                                </svg>
+                                <p className="font-semibold">Delete</p>
+                              </button>
+                            </div>
+                          </div>
+                        )}
                         {isInChat && (
                           <>
                             {isReplying && (
@@ -856,85 +982,7 @@ export default function Main() {
                                 </button>
                               </div>
                             )}
-                            {isSelecting && (
-                              <div className="absolute left-1/2 -translate-x-1/2  bg-[#252525] flex gap-4 px-4 py-2 h-full rounded-2xl z-10 items-center w-[70%] justify-between">
-                                <div className="flex items-center">
-                                  <button
-                                    onClick={() => {
-                                      dispatch(setIsSelecting(false));
-                                      dispatch(setSelected([]));
-                                    }}
-                                    className="hover:bg-[#8675DC20] cursor-pointer transition-all p-2  rounded-full"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="18"
-                                      height="18"
-                                      viewBox="0 0 24 24"
-                                      className="text-[#ccc]"
-                                    >
-                                      <path
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeWidth="2"
-                                        d="M20 20L4 4m16 0L4 20"
-                                      />
-                                    </svg>
-                                  </button>
-                                  <p className="font-semibold flex-shrink-0">
-                                    {selected.length} Messages
-                                  </p>
-                                </div>
-                                <div className="w-1/2 flex">
-                                  <button
-                                    onClick={() => {
-                                      dispatch(
-                                        openModal("forward-to-channels")
-                                      );
-                                      dispatch(setMessageType("forward"));
-                                      dispatch(setMessage(selected));
-                                      dispatch(setForwardedChat(null));
-                                    }}
-                                    className="flex w-full py-2  px-2 items-center gap-4 rounded-md  hover:bg-[#303030] transition-all cursor-pointer"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="24"
-                                      height="24"
-                                      viewBox="0 0 32 32"
-                                      className="text-[#ccc] -scale-x-100"
-                                    >
-                                      <path
-                                        fill="currentColor"
-                                        d="M28.88 30a1 1 0 0 1-.88-.5A15.19 15.19 0 0 0 15 22v6a1 1 0 0 1-.62.92a1 1 0 0 1-1.09-.21l-12-12a1 1 0 0 1 0-1.42l12-12a1 1 0 0 1 1.09-.21A1 1 0 0 1 15 4v6.11a17.19 17.19 0 0 1 15 17a16 16 0 0 1-.13 2a1 1 0 0 1-.79.86ZM14.5 20A17.62 17.62 0 0 1 28 26a15.31 15.31 0 0 0-14.09-14a1 1 0 0 1-.91-1V6.41L3.41 16L13 25.59V21a1 1 0 0 1 1-1h.54Z"
-                                      />
-                                    </svg>
-                                    <p className="font-semibold">Forward</p>
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      dispatch(openModal("delete-message"));
-                                      dispatch(setMessage(selected));
-                                    }}
-                                    className="flex w-full py-2  px-2 items-center gap-4 text-red-500 hover:bg-red-500/10 rounded-md transition-all cursor-pointer"
-                                  >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      width="20"
-                                      height="20"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        fill="currentColor"
-                                        d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM8 9h8v10H8zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"
-                                      />
-                                    </svg>
-                                    <p className="font-semibold">Delete</p>
-                                  </button>
-                                </div>
-                              </div>
-                            )}
+
                             <input
                               value={value}
                               onChange={(e) => setValue(e.target.value)}

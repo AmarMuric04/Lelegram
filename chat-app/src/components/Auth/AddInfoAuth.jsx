@@ -47,7 +47,7 @@ export default function AddInfoAuth() {
 
   const { mutate: handleAuth, isPending } = useMutation({
     mutationFn: auth,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       localStorage.setItem("token", data.data.token);
       localStorage.setItem("userId", data.data.userId);
       localStorage.setItem(
@@ -55,8 +55,8 @@ export default function AddInfoAuth() {
         String(Date.now() + 1000 * 60 * 60 * 24)
       );
 
-      queryClient.invalidateQueries(["userData"]);
-      queryClient.invalidateQueries(["chats"]);
+      await queryClient.invalidateQueries(["userData"]);
+      await queryClient.invalidateQueries(["chats"]);
 
       navigate("/");
     },

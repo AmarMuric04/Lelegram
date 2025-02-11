@@ -35,17 +35,35 @@ export const sendMessage = async (req, res, next) => {
           const referencedMessage = await Message.findById(refId).populate(
             "chat"
           );
+
           if (!referencedMessage) continue;
           let forwardedMsg;
 
           if (referencedMessage.chat.type === "saved") {
-            forwardedMsg = new Message({
-              chat: chatId,
-              message: referencedMessage.message,
-              sender: req.userId,
-              type: "normal",
-              referenceMessageId: null,
-            });
+            if (
+              referencedMessage.type !== "reply" &&
+              referencedMessage.referenceMessageId
+            ) {
+              const message = await Message.findById(
+                referencedMessage.referenceMessageId
+              );
+
+              forwardedMsg = new Message({
+                chat: chatId,
+                message: message.message,
+                sender: req.userId,
+                type: "normal",
+                referenceMessageId: null,
+              });
+            } else {
+              forwardedMsg = new Message({
+                chat: chatId,
+                message: referencedMessage.message,
+                sender: req.userId,
+                type: "normal",
+                referenceMessageId: null,
+              });
+            }
           } else {
             if (referencedMessage.type === "forward") {
               forwardedMsg = new Message({
@@ -196,18 +214,7 @@ export const deleteMessage = async (req, res, next) => {
     const { messageId } = req.body;
 
     if (Array.isArray(messageId)) {
-      for (const id of messageId) {
-        const message = await Message.findById(id);
-
-        if (message.sender.toString() !== req.userId) {
-          const error = new Error("You are not the creator of this message.");
-          error.statusCode = 405;
-
-          throw error;
-        }
-      }
-    }
-    if (Array.isArray(messageId)) {
+      const chatId = await Message.findById(messageId[0]);
       for (const id of messageId) {
         const message = await Message.findById(id);
 
@@ -227,6 +234,11 @@ export const deleteMessage = async (req, res, next) => {
 
         await Message.findByIdAndDelete(id);
       }
+
+      getSocket().emit("messageSent", {
+        data: chatId,
+      });
+
       return res
         .status(200)
         .json({ message: "Messages successfully deleted." });
@@ -242,6 +254,10 @@ export const deleteMessage = async (req, res, next) => {
     }
 
     await Message.findByIdAndDelete(messageId);
+
+    getSocket().emit("messageSent", {
+      data: message.chat,
+    });
 
     res.status(200).json({ message: "Message successfully deleted." });
   } catch (err) {
@@ -330,6 +346,12 @@ export const getSearchedMessages = async (req, res, next) => {
     let messages = await Message.find({
       message: { $regex: input, $options: "i" },
     }).populate("chat");
+
+    if (messages.length === 0) {
+      return res.status(200).json({
+        data: messages,
+      });
+    }
 
     messages = messages.map((message) => ({
       ...message.chat._doc,

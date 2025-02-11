@@ -33,12 +33,6 @@ export default function Message({
   const { isSelecting, selected } = useSelector((state) => state.message);
 
   useEffect(() => {
-    if (selected.length === 0) {
-      dispatch(setIsSelecting(false));
-    }
-  }, [selected, dispatch]);
-
-  useEffect(() => {
     const unsetOpen = () => {
       setOpen(false);
       onClearContextMenu();
@@ -318,6 +312,9 @@ export default function Message({
         if (isSelected) {
           const newSelected = selected.filter((s) => s._id !== message._id);
           dispatch(setSelected(newSelected));
+          if (newSelected.length === 0) {
+            dispatch(setIsSelecting(false));
+          }
         } else dispatch(setSelected([...selected, message]));
       }}
       onContextMenu={handleContextMenu}

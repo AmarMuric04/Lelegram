@@ -94,15 +94,26 @@ export default function AsideChatWrapper() {
           const uniqueKey = chat._id + "-" + index;
           return <AsideChat key={uniqueKey} chat={chat} />;
         })}
-        {!isLoading && chats?.data?.length === 1 && (
+        {activeSelect === "users" &&
+          !isLoading &&
+          chats?.data?.length === 1 && (
+            <div className="flex items-center justify-center flex-col gap-2 h-full w-ful">
+              <img className="w-1/2" src={cat} alt="No chats available" />
+              <p className="text-[#ccc] text-sm font-semibold">
+                You are not in any chats yet
+              </p>
+              <p className="text-[#ccc] text-xs">
+                Try searching for one or check out all the chats
+              </p>
+            </div>
+          )}
+        {activeSelect === "all" && !isLoading && chats?.data?.length === 0 && (
           <div className="flex items-center justify-center flex-col gap-2 h-full w-ful">
             <img className="w-1/2" src={cat} alt="No chats available" />
             <p className="text-[#ccc] text-sm font-semibold">
-              You are not in any chats yet
+              There's no chats right now
             </p>
-            <p className="text-[#ccc] text-xs">
-              Try searching for one or check out all the chats
-            </p>
+            <p className="text-[#ccc] text-xs">Try creating one!</p>
           </div>
         )}
       </ul>

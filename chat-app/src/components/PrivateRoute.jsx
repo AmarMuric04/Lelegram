@@ -1,11 +1,13 @@
 import { useDispatch } from "react-redux";
 import { setUser } from "../store/authSlice";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { connectSocket, socket, disconnectSocket } from "../socket";
+import { checkIfSignedIn } from "../utility/util";
 
 const PrivateRoute = ({ children }) => {
   const dispatch = useDispatch();
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
   const token = localStorage.getItem("token");
 
@@ -23,6 +25,10 @@ const PrivateRoute = ({ children }) => {
       disconnectSocket();
     };
   }, []);
+
+  useEffect(() => {
+    setIsSignedIn(checkIfSignedIn(dispatch));
+  }, [dispatch]);
 
   const fetchUserData = async () => {
     const userId = localStorage.getItem("userId");
@@ -54,7 +60,7 @@ const PrivateRoute = ({ children }) => {
   useQuery({
     queryFn: fetchUserData,
     queryKey: ["userData"],
-    enabled: !!token,
+    enabled: isSignedIn,
   });
 
   return children;

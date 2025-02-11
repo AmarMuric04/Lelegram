@@ -54,8 +54,6 @@ export const checkIfSignedIn = (dispatch) => {
     return false;
   }
 
-  console.log("Sue");
-
   const timeLeftMs = expiresIn - Date.now();
   console.log(`Signing out in ${timeLeftMs / (1000 * 60 * 60 * 24)} days`);
 

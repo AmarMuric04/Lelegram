@@ -41,7 +41,7 @@ export default function CodeAuth({ setActivePage }) {
 
   const { mutate: signIn, isPending } = useMutation({
     mutationFn: handleSignIn,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       localStorage.setItem("token", data.data.token);
       localStorage.setItem("userId", data.data.userId);
       localStorage.setItem(
@@ -49,7 +49,7 @@ export default function CodeAuth({ setActivePage }) {
         String(Date.now() + 1000 * 60 * 60 * 24)
       );
 
-      queryClient.invalidateQueries(["userData"]);
+      await queryClient.invalidateQueries(["userData"]);
       navigate("/");
     },
   });

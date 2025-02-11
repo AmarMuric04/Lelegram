@@ -214,6 +214,21 @@ select:-webkit-autofill:focus {
   animation: interactInput 0.2s ease-in forwards;
 }
 
+@keyframes jumpIn {
+  0% {
+    bottom: -200%;
+    opacity: 0;
+  }
+  100% {
+    bottom: 0;
+    opacity: 1;
+  }
+}
+
+.jumpInAnimation {
+  animation: jumpIn 0.2s ease-in forwards;
+}
+
 .checkbox-wrapper-12 {
   position: relative;
 }

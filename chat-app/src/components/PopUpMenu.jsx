@@ -67,10 +67,10 @@ export default function PopUpMenu({
         ref={modalRef}
         className={`absolute min-w-max right-0 bg-[#252525] p-2 text-xs text-white rounded-md
         ${open ? "opacity-100 scale-100" : "opacity-0 scale-0"}
-        ${tl ? "bottom-full right-0" : ""}
-        ${tr ? "bottom-full left-0" : ""}
-        ${bl ? "top-full right-0" : ""}
-        ${br ? "top-full left-0" : ""}
+        ${tl ? "bottom-[130%] right-0" : ""}
+        ${tr ? "bottom-[130%] left-0" : ""}
+        ${bl ? "top-[130%] right-0" : ""}
+        ${br ? "top-[130%] left-0" : ""}
         transition-all shadow-md whitespace-nowrap`}
       >
         {children}
