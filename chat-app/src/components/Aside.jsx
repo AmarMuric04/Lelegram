@@ -263,7 +263,7 @@ export default function Aside() {
                   </PopUpMenuItem>
                   <PopUpMenuItem
                     action={() => signOut(dispatch)}
-                    itemClasses="bg-red-500/20 text-red-500 hover:bg-red-500/40"
+                    itemClasses="bg-red-500/20 text-red-500 hover:bg-red-500/40 w-full"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

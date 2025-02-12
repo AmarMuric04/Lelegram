@@ -28,6 +28,9 @@ const messageSchema = new mongoose.Schema(
       of: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
       default: {},
     },
+    imageUrl: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

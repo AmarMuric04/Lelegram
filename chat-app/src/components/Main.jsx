@@ -24,6 +24,7 @@ import {
   setSelected,
 } from "../store/messageSlice";
 import AsideChat from "./AsideChat";
+import { handlePostInput } from "../utility/util";
 
 const socket = io("http://localhost:3000");
 
@@ -33,6 +34,9 @@ export default function Main() {
   const [activeSelect, setActiveSelect] = useState("members");
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [deleteForAll, setDeleteForAll] = useState(false);
+
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [photoUrl, setPhotoUrl] = useState(null);
 
   const { chatId } = useParams();
 
@@ -609,6 +613,57 @@ export default function Main() {
           </Button>
         </div>
       </Modal>
+      <Modal id="send-photo">
+        <header className="flex gap-10 items-center text-lg font-semibold">
+          <button
+            onClick={() => {
+              dispatch(closeModal());
+            }}
+            className="hover:bg-[#303030] cursor-pointer transition-all p-2 rounded-full"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeWidth="2"
+                d="M20 20L4 4m16 0L4 20"
+              />
+            </svg>
+          </button>
+          <h1>Send Photo</h1>
+        </header>
+        {photoPreview && (
+          <img
+            className="max-w-[20rem] mx-auto max-h-[20rem] my-4"
+            src={photoPreview}
+          />
+        )}
+
+        <div className="flex gap-4">
+          <input
+            className="focus:outline-none py-2 w-full"
+            placeholder="Add a caption..."
+          />
+          <Button
+            onClick={() => dispatch(closeModal())}
+            sx={{
+              backgroundColor: "#8675DC",
+              padding: "4px",
+              borderRadius: "12px",
+              width: "30%",
+            }}
+            variant="contained"
+          >
+            SEND
+          </Button>
+        </div>
+      </Modal>
       <div className="w-[85vw] flex justify-between overflow-hidden">
         <Aside />
         <div
@@ -1119,6 +1174,76 @@ export default function Main() {
                                 </svg>
                               </button>
                             )}
+                            <div className="absolute right-20 top-1/2 -translate-y-1/2">
+                              <PopUpMenu
+                                tl={true}
+                                icon={
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <rect width="20" height="20" fill="none" />
+                                    <path
+                                      fill="currentColor"
+                                      d="M3.264 8.579a.683.683 0 0 1-.975 0a.704.704 0 0 1 0-.987L8.32 1.5C9.68.444 11.048-.063 12.41.006c1.716.088 3.052.742 4.186 1.815C17.752 2.915 18.5 4.476 18.5 6.368c0 1.452-.422 2.73-1.313 3.864l-8.503 8.76c-.86.705-1.816 1.046-2.84 1.005c-1.3-.054-2.267-.474-2.986-1.185c-.842-.831-1.358-1.852-1.358-3.225c0-1.092.377-2.1 1.155-3.046L10.139 4.9c.6-.64 1.187-1.02 1.787-1.112a2.49 2.49 0 0 1 2.2.755c.532.563.76 1.265.68 2.064c-.055.545-.278 1.047-.688 1.528l-6.88 7.048a.683.683 0 0 1-.974.006a.704.704 0 0 1-.006-.987l6.847-7.012c.2-.235.305-.472.33-.724c.04-.4-.056-.695-.305-.958a1.12 1.12 0 0 0-1-.34c-.243.037-.583.258-1.002.704l-7.453 7.607c-.537.655-.797 1.35-.797 2.109c0 .954.345 1.637.942 2.226c.475.47 1.12.75 2.08.79c.68.027 1.31-.198 1.858-.642l8.397-8.65c.645-.827.967-1.8.967-2.943c0-1.482-.577-2.684-1.468-3.528c-.91-.862-1.95-1.37-3.313-1.44c-1.008-.052-2.065.34-3.117 1.146z"
+                                    />
+                                  </svg>
+                                }
+                                buttonClasses="cursor-pointer z-50 text-[#ccc] p-2 rounded-full hover:bg-[#404040]"
+                              >
+                                <PopUpMenuItem itemClasses="w-[10rem] cursor-pointer">
+                                  <input
+                                    onChange={async (e) => {
+                                      await handlePostInput(
+                                        e.target.value,
+                                        e.target.files,
+                                        setPhotoPreview,
+                                        setPhotoUrl
+                                      );
+                                      dispatch(openModal("send-photo"));
+                                    }}
+                                    className="opacity-0 absolute left-0 cursor-pointer"
+                                    type="file"
+                                  />
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <rect width="24" height="24" fill="none" />
+                                    <path
+                                      fill="currentColor"
+                                      fillRule="evenodd"
+                                      d="M2 5a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v6.5a1 1 0 0 1-.032.25A1 1 0 0 1 22 12v7a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3v-3a1 1 0 0 1 .032-.25A1 1 0 0 1 2 15.5zm2.994 9.83q-.522.01-.994.046V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v6.016c-4.297.139-7.4 1.174-9.58 2.623c.826.293 1.75.71 2.656 1.256c1.399.84 2.821 2.02 3.778 3.583a1 1 0 1 1-1.706 1.044c-.736-1.203-1.878-2.178-3.102-2.913c-1.222-.734-2.465-1.192-3.327-1.392a15.5 15.5 0 0 0-3.703-.386h-.022zm1.984-8.342A2.67 2.67 0 0 1 8.5 6c.41 0 1.003.115 1.522.488c.57.41.978 1.086.978 2.012s-.408 1.601-.978 2.011A2.67 2.67 0 0 1 8.5 11c-.41 0-1.003-.115-1.522-.489C6.408 10.101 6 9.427 6 8.5c0-.926.408-1.601.978-2.012"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  <p className="font-semibold flex-shrink-0 cursor-pointer">
+                                    Photo
+                                  </p>
+                                </PopUpMenuItem>
+                                <PopUpMenuItem itemClasses="w-[10rem]">
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <rect width="24" height="24" fill="none" />
+                                    <path
+                                      fill="currentColor"
+                                      d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m0 16H5V5h14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"
+                                    />
+                                  </svg>
+                                  <p className="font-semibold flex-shrink-0">
+                                    Poll
+                                  </p>
+                                </PopUpMenuItem>
+                              </PopUpMenu>
+                            </div>
                             <button
                               onClick={() => {
                                 if (!messageToEdit) {
