@@ -17,15 +17,15 @@ A Telegram clone that includes:
 
 Things in consideration of being implemented:
 1. Voice Messages,
-2. Media Sharing (Images, GIFs, ...),
-3. Pinned Messages for chats,
-4. Mentions (@...),
+2. Media Sharing (Images, GIFs, ...), ✅
+3. Pinned Messages for chats, ✅
+4. Mentions (@...), 🔜
 5. Type Indicators,
 6. Read Receipts,
-7. Chat Themes,
-8. Polls & Surveys,
+7. Chat Themes, 🔜
+8. Polls & Surveys, 🔜
 9. User status,
-10. Message reactions
+10. Message reactions ✅
 
 To use the app, change the .env.test file's name to just .env
 Phone Number checking is not implemented, in the Code just write whatever you want.
