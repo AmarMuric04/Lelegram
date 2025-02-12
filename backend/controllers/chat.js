@@ -1,17 +1,40 @@
 import Chat from "../models/chat.js";
 import User from "../models/user.js";
+import Message from "../models/message.js";
 import mongoose from "mongoose";
 
 export const getChat = async (req, res, next) => {
   try {
     const { chatId } = req.params;
-    const chats = await Chat.findById(chatId)
+
+    const chat = await Chat.findById(chatId)
       .populate("users")
-      .populate("admins");
+      .populate("admins")
+      .populate({
+        path: "lastMessage",
+        populate: [{ path: "sender" }, { path: "referenceMessageId" }],
+      })
+      .populate({
+        path: "pinnedMessage",
+        populate: [{ path: "sender" }, { path: "referenceMessageId" }],
+      });
+
+    if (!chat) {
+      return res.status(404).json({ message: "Chat not found." });
+    }
+
+    const lastMessageId = chat.lastMessage ? chat.lastMessage._id : null;
+
+    if (lastMessageId) {
+      await Chat.updateOne(
+        { _id: chatId },
+        { $set: { [`lastReadMessages.${req.userId}`]: lastMessageId } }
+      );
+    }
 
     res.status(200).json({
-      message: "Successfully fetched chats.",
-      data: chats,
+      message: "Successfully fetched chat.",
+      data: chat,
     });
   } catch (err) {
     next(err);
@@ -35,9 +58,30 @@ export const getUserChats = async (req, res, next) => {
       return dateB - dateA;
     });
 
+    const chatsWithMissedCount = await Promise.all(
+      chats.map(async (chat) => {
+        const lastReadMessageId = chat.lastReadMessages?.get(req.userId);
+
+        let missedCount = 0;
+        if (lastReadMessageId) {
+          missedCount = await Message.countDocuments({
+            chat: chat._id,
+            _id: { $gt: lastReadMessageId },
+          });
+        }
+
+        const chatObj = chat.toObject();
+        chatObj.missedCount = missedCount;
+
+        return chatObj;
+      })
+    );
+
     res.status(200).json({
       message: "Successfully fetched chats.",
-      data: chats,
+      data: {
+        chats: chatsWithMissedCount,
+      },
     });
   } catch (err) {
     next(err);
@@ -61,9 +105,31 @@ export const getAllChats = async (req, res, next) => {
       return dateB - dateA;
     });
 
+    for (const chat of chats) {
+      const missedCounts = {};
+
+      for (const userId of chat.users) {
+        const lastReadMessageId = chat.lastReadMessages.get(userId);
+
+        if (lastReadMessageId) {
+          const missedCount = await Message.countDocuments({
+            chat: chat._id,
+            _id: { $gt: lastReadMessageId }, // Messages after the user's last read message
+          });
+          missedCounts[userId] = missedCount;
+        } else {
+          missedCounts[userId] = 0;
+        }
+      }
+
+      chat.missedCounts = missedCounts;
+    }
+
     res.status(200).json({
       message: "Successfully fetched chats.",
-      data: chats.filter((c) => c.type !== "saved"),
+      data: {
+        chats: chats.filter((c) => c.type !== "saved"),
+      },
     });
   } catch (err) {
     next(err);
@@ -87,7 +153,31 @@ export const getSearchedChats = async (req, res, next) => {
       populate: [{ path: "sender" }, { path: "referenceMessageId" }],
     });
 
-    res.status(200).json({ data: chats.filter((c) => c.type !== "saved") });
+    for (const chat of chats) {
+      const missedCounts = {};
+
+      for (const userId of chat.users) {
+        const lastReadMessageId = chat.lastReadMessages.get(userId);
+
+        if (lastReadMessageId) {
+          const missedCount = await Message.countDocuments({
+            chat: chat._id,
+            _id: { $gt: lastReadMessageId },
+          });
+          missedCounts[userId] = missedCount;
+        } else {
+          missedCounts[userId] = 0;
+        }
+      }
+
+      chat.missedCounts = missedCounts;
+    }
+
+    res.status(200).json({
+      data: {
+        chats: chats.filter((c) => c.type !== "saved"),
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -125,6 +215,41 @@ export const createChat = async (req, res, next) => {
 
     await chat.save();
     res.json(chat);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteChat = async (req, res, next) => {
+  try {
+    const { chatId } = req.body;
+
+    if (!chatId) {
+      const error = new Error("Invalid chatId provided.");
+      error.statusCode = 400;
+
+      throw error;
+    }
+
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      const error = new Error("Chat not found.");
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    if (chat.type !== "group" && chat.creator.toString() !== req.userId) {
+      const error = new Error("You are not allowed to delete this chat.");
+      error.statusCode = 403;
+
+      throw error;
+    }
+
+    await Chat.findByIdAndDelete(chatId);
+
+    res.status(200).json({ message: "Chat successfully deleted.", data: chat });
   } catch (err) {
     next(err);
   }
@@ -203,6 +328,41 @@ export const addUserToChat = async (req, res, next) => {
     res
       .status(200)
       .send({ message: "User added to chat successfully.", data: updatedChat });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const addPinnedMessage = async (req, res, next) => {
+  try {
+    const { chatId, messageId } = req.body;
+
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      const error = new Error("Could not find the chat.");
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    if (chat.pinnedMessage?.toString() === messageId) {
+      await Chat.findByIdAndUpdate(chatId, {
+        $set: { pinnedMessage: null },
+      });
+
+      return res
+        .status(201)
+        .json({ message: "Successfully removed a pinned message", data: chat });
+    }
+
+    await Chat.findByIdAndUpdate(chatId, {
+      $set: { pinnedMessage: messageId },
+    });
+
+    res
+      .status(201)
+      .json({ message: "Successfully added a pinned message", data: chat });
   } catch (err) {
     next(err);
   }

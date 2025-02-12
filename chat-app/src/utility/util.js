@@ -39,11 +39,6 @@ export const checkIfSignedIn = (dispatch) => {
   const userId = localStorage.getItem("userId");
   const expiresIn = Number(localStorage.getItem("expires-in"));
 
-  console.log(token);
-  console.log(userId);
-  console.log(expiresIn);
-  console.log(Date.now());
-
   if (!token || !userId) {
     dispatch(setUser(null));
     return false;

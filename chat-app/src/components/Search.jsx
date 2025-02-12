@@ -30,7 +30,9 @@ export default function Search({ select }) {
 
       const data = await response.json();
 
-      dispatch(setSearch(data.data));
+      if (select === "chats") {
+        dispatch(setSearch(data.data.chats));
+      } else dispatch(setSearch(data.data));
 
       return data;
     } catch (err) {

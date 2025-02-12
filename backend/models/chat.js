@@ -36,9 +36,18 @@ const chatSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "ChatMessage",
     },
+    pinnedMessage: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ChatMessage",
+    },
     type: {
       type: String,
       required: true,
+    },
+    lastReadMessages: {
+      type: Map,
+      of: mongoose.Schema.Types.ObjectId,
+      default: {},
     },
   },
   { timestamps: true }

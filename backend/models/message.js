@@ -23,6 +23,11 @@ const messageSchema = new mongoose.Schema(
     edited: {
       type: Boolean,
     },
+    reactions: {
+      type: Map,
+      of: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+      default: {},
+    },
   },
   { timestamps: true }
 );

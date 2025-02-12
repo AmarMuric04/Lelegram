@@ -4,6 +4,8 @@ import isAuth from "../middleware/is-auth.js";
 
 const router = express.Router();
 
+router.post("/add-reaction", isAuth, MessageController.addReaction);
+
 router.get("/get-messages/:chatId", isAuth, MessageController.getMessages);
 
 router.post("/send-message", isAuth, MessageController.sendMessage);

@@ -93,6 +93,7 @@ export const sendMessage = async (req, res, next) => {
           await chat.save();
         }
         getSocket().emit("messageSent", { data: chatId });
+        console.log("Emitted");
 
         return res.status(201).json({
           message: "Messages forwarded successfully!",
@@ -116,9 +117,10 @@ export const sendMessage = async (req, res, next) => {
           await commentMessage.save();
         }
 
-        const referencedMessage = await Message.findById(
-          referenceMessageId
-        ).populate("chat");
+        const referencedMessage = await Message.findById(referenceMessageId)
+          .populate("chat")
+          .populate("referenceMessageId");
+
         if (!referencedMessage) {
           const error = new Error("Referenced message not found.");
           error.statusCode = 404;
@@ -126,17 +128,28 @@ export const sendMessage = async (req, res, next) => {
         }
 
         if (referencedMessage.chat.type === "saved") {
-          newMessage = new Message({
-            chat: chatId,
-            message: referencedMessage.message,
-            sender: req.userId,
-            type: "normal",
-            referenceMessageId: null,
-          });
+          if (referencedMessage.type === "forward") {
+            newMessage = new Message({
+              chat: chatId,
+              message: referencedMessage.referenceMessageId.message,
+              sender: req.userId,
+              type: "normal",
+              referenceMessageId: null,
+            });
+          } else {
+            newMessage = new Message({
+              chat: chatId,
+              message: referencedMessage.message,
+              sender: req.userId,
+              type: "normal",
+              referenceMessageId: null,
+            });
+          }
         } else {
           if (referencedMessage.type === "forward") {
             newMessage = new Message({
               ...referencedMessage._doc,
+              sender: req.userId,
               _id: new mongoose.Types.ObjectId(),
               chat: chatId,
             });
@@ -157,6 +170,7 @@ export const sendMessage = async (req, res, next) => {
         await chat.save();
 
         getSocket().emit("messageSent", { data: chatId });
+        console.log("Emitted");
 
         return res.status(201).json({
           message: "Message forwarded successfully!",
@@ -193,6 +207,9 @@ export const sendMessage = async (req, res, next) => {
       chat.lastMessage = newMessage._id;
       await chat.save();
 
+      getSocket().emit("messageSent", { data: chatId });
+      console.log("Emitted");
+
       return res.status(201).json({
         message: "Message sent successfully!",
         data: {
@@ -214,30 +231,41 @@ export const deleteMessage = async (req, res, next) => {
     const { messageId } = req.body;
 
     if (Array.isArray(messageId)) {
-      const chatId = await Message.findById(messageId[0]);
       for (const id of messageId) {
         const message = await Message.findById(id);
+        console.log(message, id);
+        const chat = await Chat.findById(message.chat);
 
         if (!message) {
           const error = new Error("Message not found.");
           error.statusCode = 404;
-
           throw error;
         }
 
-        if (message.sender.toString() !== req.userId) {
+        if (
+          !chat.admins.some((a) => a.toString() === req.userId) &&
+          message.sender.toString() !== req.userId
+        ) {
           const error = new Error("You are not the creator of this message.");
           error.statusCode = 405;
-
           throw error;
         }
 
         await Message.findByIdAndDelete(id);
-      }
 
-      getSocket().emit("messageSent", {
-        data: chatId,
-      });
+        const newLastMessage = await Message.findOne({ chat: chat._id })
+          .sort({ createdAt: -1 })
+          .limit(1);
+
+        if (newLastMessage) {
+          chat.lastMessage = newLastMessage._id;
+          await chat.save();
+        }
+
+        getSocket().emit("messageSent", {
+          data: chat._id,
+        });
+      }
 
       return res
         .status(200)
@@ -245,18 +273,30 @@ export const deleteMessage = async (req, res, next) => {
     }
 
     const message = await Message.findById(messageId);
+    const chat = await Chat.findById(message.chat);
 
-    if (message.sender.toString() !== req.userId) {
+    if (
+      !chat.admins.some((a) => a.toString() === req.userId) &&
+      message.sender.toString() !== req.userId
+    ) {
       const error = new Error("You are not the creator of this message.");
       error.statusCode = 405;
-
       throw error;
     }
 
     await Message.findByIdAndDelete(messageId);
 
+    const newLastMessage = await Message.findOne({ chat: chat._id })
+      .sort({ createdAt: -1 })
+      .limit(1);
+
+    if (newLastMessage) {
+      chat.lastMessage = newLastMessage._id;
+      await chat.save();
+    }
+
     getSocket().emit("messageSent", {
-      data: message.chat,
+      data: chat,
     });
 
     res.status(200).json({ message: "Message successfully deleted." });
@@ -353,15 +393,65 @@ export const getSearchedMessages = async (req, res, next) => {
       });
     }
 
-    messages = messages.map((message) => ({
-      ...message.chat._doc,
-      message: message.message,
-      more: message,
-    }));
+    messages = messages.map((message) => {
+      if (!message.chat) return;
+      return {
+        ...message.chat._doc,
+        message: message.message,
+        more: message,
+      };
+    });
 
     res.status(200).json({
       data: messages,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const addReaction = async (req, res, next) => {
+  try {
+    const { reaction, messageId } = req.body;
+    const message = await Message.findById(messageId);
+
+    const chat = await Chat.findById(message.chat);
+
+    if (!message) {
+      const error = new Error("Message does not exist.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    let updatedMessage;
+    if (message.reactions.get(reaction)?.includes(req.userId)) {
+      updatedMessage = await Message.findOneAndUpdate(
+        { _id: messageId },
+        { $pull: { [`reactions.${reaction}`]: req.userId } },
+        { new: true }
+      );
+
+      getSocket().emit("messageSent", { data: chat._id });
+      console.log("Emitted");
+
+      return res.status(201).json({
+        message: "Reaction successfully removed.",
+        data: updatedMessage,
+      });
+    } else {
+      updatedMessage = await Message.findOneAndUpdate(
+        { _id: messageId },
+        { $addToSet: { [`reactions.${reaction}`]: req.userId } },
+        { new: true }
+      );
+    }
+
+    getSocket().emit("messageSent", { data: chat._id });
+    console.log("Emitted");
+
+    res
+      .status(201)
+      .json({ message: "Reaction successfully added.", data: updatedMessage });
   } catch (err) {
     next(err);
   }

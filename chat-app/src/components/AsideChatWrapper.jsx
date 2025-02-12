@@ -31,7 +31,7 @@ export default function AsideChatWrapper() {
         throw new Error("Couldn't fetch chats.");
       }
 
-      if (activeSelect === "users") dispatch(setUserChats(data.data));
+      if (activeSelect === "users") dispatch(setUserChats(data.data.chats));
 
       return data;
     } catch (err) {
@@ -90,13 +90,13 @@ export default function AsideChatWrapper() {
             </svg>
           </div>
         )}
-        {chats?.data?.map((chat, index) => {
+        {chats?.data?.chats?.map((chat, index) => {
           const uniqueKey = chat._id + "-" + index;
           return <AsideChat key={uniqueKey} chat={chat} />;
         })}
         {activeSelect === "users" &&
           !isLoading &&
-          chats?.data?.length === 1 && (
+          chats?.data?.chats?.length === 1 && (
             <div className="flex items-center justify-center flex-col gap-2 h-full w-ful">
               <img className="w-1/2" src={cat} alt="No chats available" />
               <p className="text-[#ccc] text-sm font-semibold">
@@ -111,7 +111,7 @@ export default function AsideChatWrapper() {
           <div className="flex items-center justify-center flex-col gap-2 h-full w-ful">
             <img className="w-1/2" src={cat} alt="No chats available" />
             <p className="text-[#ccc] text-sm font-semibold">
-              There's no chats right now
+              There{"'"}s no chats right now
             </p>
             <p className="text-[#ccc] text-xs">Try creating one!</p>
           </div>

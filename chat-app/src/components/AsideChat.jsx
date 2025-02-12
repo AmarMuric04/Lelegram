@@ -18,14 +18,21 @@ export default function AsideChat({ chat, action }) {
     link += "#" + chat.more._id;
   }
 
+  if (chat.missedCount && activeChat._id === chat._id) chat.missedCount = 0;
+
   return (
     <Link
       onClick={action}
       to={`/${link}`}
-      className={`flex items-center gap-5 text-white p-2 rounded-xl transition-all cursor-pointer ${
+      className={`flex relative items-center gap-5 text-white p-2 rounded-xl transition-all cursor-pointer ${
         condition ? "bg-[#8675DC] hover:bg-[#8765DC]" : "hover:bg-[#353535]"
       }`}
     >
+      {chat.missedCount > 0 && (
+        <p className="absolute right-4 top-1/2 -translate-y-1/2 bg-[#8675DC] h-6 w-6 grid place-items-center text-sm rounded-full font-bold">
+          {chat.missedCount}
+        </p>
+      )}
       {chat.imageUrl ? (
         <img
           src={`http://localhost:3000/${chat.imageUrl}`}

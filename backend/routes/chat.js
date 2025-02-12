@@ -14,6 +14,8 @@ router.post("/get-searched-chats", isAuth, ChatController.getSearchedChats);
 
 router.post("/create-chat", isAuth, ChatController.createChat);
 
+router.delete("/delete-chat", isAuth, ChatController.deleteChat);
+
 router.delete(
   "/remove-user/:chatId",
   isAuth,
@@ -21,5 +23,7 @@ router.delete(
 );
 
 router.post("/add-user/:chatId", isAuth, ChatController.addUserToChat);
+
+router.post("/add-pinned-message", isAuth, ChatController.addPinnedMessage);
 
 export default router;

@@ -190,7 +190,7 @@ const MessagesList = forwardRef(function MessagesList(
                 }
 
                 const isAdmin = activeChat?.admins?.some(
-                  (u) => u._id.toString() === message?.sender?._id
+                  (u) => u._id.toString() === user._id
                 );
 
                 return (
