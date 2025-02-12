@@ -15,7 +15,6 @@ import { copyToClipboard } from "../utility/util";
 import { openModal } from "../store/modalSlice";
 import { useMutation } from "@tanstack/react-query";
 import { setActiveChat } from "../store/chatSlice";
-import chat from "../../../backend/models/chat";
 
 export default function Message({
   message,
@@ -150,6 +149,8 @@ export default function Message({
   const { mutate: addReaction } = useMutation({
     mutationFn: handleAddReaction,
   });
+
+  if (message.imageUrl) console.log(message);
 
   const handlePinMessage = async () => {
     try {
@@ -741,6 +742,13 @@ export default function Message({
                   <p>{message.referenceMessageId.message}</p>
                 </div>
               </Link>
+            )}
+            {message.type !== "forward" && message.imageUrl && (
+              <img
+                className="max-w-[20rem] max-h-[20rem] self-center mx-auto rounded-lg"
+                src={`http://localhost:3000/${message.imageUrl}`}
+                alt="Message"
+              />
             )}
             <div className="flex flex-wrap items-baseline justify-end">
               {message.type !== "forward" && (

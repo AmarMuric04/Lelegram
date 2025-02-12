@@ -37,6 +37,7 @@ export default function Main() {
 
   const [photoPreview, setPhotoPreview] = useState(null);
   const [photoUrl, setPhotoUrl] = useState(null);
+  const [photoCaption, setPhotoCaption] = useState("");
 
   const { chatId } = useParams();
 
@@ -196,30 +197,37 @@ export default function Main() {
 
   const handleSendMessage = async () => {
     try {
-      let refIds;
-      if (Array.isArray(message)) {
-        refIds = message.map((m) => m._id);
+      const formData = new FormData();
+
+      formData.append("message", photoCaption ? photoCaption : value);
+      formData.append("chatId", activeChat._id);
+      formData.append("type", messageType);
+      if (photoUrl) {
+        formData.append("imageUrl", photoUrl);
       }
+
+      if (Array.isArray(message)) {
+        message.forEach((m, index) => {
+          formData.append(`referenceMessageId[${index}]`, m._id);
+        });
+      } else if (message?._id) {
+        formData.append("referenceMessageId", message._id);
+      }
+
       const response = await fetch(
         "http://localhost:3000/message/send-message",
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: "Bearer " + token,
           },
-          body: JSON.stringify({
-            message: value,
-            chatId: activeChat._id,
-            type: messageType,
-            referenceMessageId: Array.isArray(message)
-              ? refIds
-              : message?._id || null,
-          }),
+          body: formData,
         }
       );
 
       const data = await response.json();
+
+      console.log(data);
 
       if (!response.ok) {
         throw new Error("Sending a message failed.");
@@ -230,6 +238,9 @@ export default function Main() {
       setValue("");
       dispatch(setMessage(null));
       dispatch(setMessageType("normal"));
+      setPhotoUrl(null);
+      setPhotoPreview(null);
+      setPhotoCaption("");
       messagesListRef.current?.scrollToBottom();
 
       return data;
@@ -617,6 +628,9 @@ export default function Main() {
         <header className="flex gap-10 items-center text-lg font-semibold">
           <button
             onClick={() => {
+              setPhotoUrl(null);
+              setPhotoPreview(null);
+              setPhotoCaption("");
               dispatch(closeModal());
             }}
             className="hover:bg-[#303030] cursor-pointer transition-all p-2 rounded-full"
@@ -647,11 +661,16 @@ export default function Main() {
 
         <div className="flex gap-4">
           <input
+            onChange={(e) => setPhotoCaption(e.target.value)}
+            value={photoCaption}
             className="focus:outline-none py-2 w-full"
             placeholder="Add a caption..."
           />
           <Button
-            onClick={() => dispatch(closeModal())}
+            onClick={async () => {
+              await sendMessage();
+              dispatch(closeModal());
+            }}
             sx={{
               backgroundColor: "#8675DC",
               padding: "4px",
@@ -1196,12 +1215,26 @@ export default function Main() {
                                 <PopUpMenuItem itemClasses="w-[10rem] cursor-pointer">
                                   <input
                                     onChange={async (e) => {
+                                      if (
+                                        !e.target.files ||
+                                        e.target.files.length === 0
+                                      ) {
+                                        console.log(
+                                          "User canceled image selection."
+                                        );
+                                        setPhotoCaption("");
+                                        setPhotoUrl(null);
+                                        setPhotoPreview(null);
+                                        return;
+                                      }
+
                                       await handlePostInput(
                                         e.target.value,
                                         e.target.files,
                                         setPhotoPreview,
                                         setPhotoUrl
                                       );
+
                                       dispatch(openModal("send-photo"));
                                     }}
                                     className="opacity-0 absolute left-0 cursor-pointer"

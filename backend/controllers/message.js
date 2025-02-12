@@ -8,6 +8,30 @@ export const sendMessage = async (req, res, next) => {
     const { chatId, message, type, referenceMessageId, forwardToChat } =
       req.body;
 
+    let imageUrl;
+    if (req.file) imageUrl = req.file.path.replace("\\", "/");
+
+    if (type !== "forward" && imageUrl) {
+      const newMessage = new Message({
+        chat: chatId,
+        message,
+        sender: req.userId,
+        type: type,
+        referenceMessageId,
+        imageUrl,
+      });
+
+      getSocket().emit("messageSent", { data: chatId });
+      console.log("Emitted");
+
+      await newMessage.save();
+
+      return res.status(201).json({
+        message: "Message sent successfully!",
+        data: newMessage,
+      });
+    }
+
     if (type !== "forward" && !message) {
       const error = new Error("Message is required when not forwarding.");
       error.statusCode = 404;
