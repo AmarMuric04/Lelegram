@@ -31,6 +31,10 @@ const messageSchema = new mongoose.Schema(
     imageUrl: {
       type: String,
     },
+    poll: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Poll",
+    },
   },
   { timestamps: true }
 );

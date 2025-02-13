@@ -25,6 +25,7 @@ import {
 } from "../store/messageSlice";
 import AsideChat from "./AsideChat";
 import { handlePostInput } from "../utility/util";
+import Input from "./Input";
 
 const socket = io("http://localhost:3000");
 
@@ -111,7 +112,6 @@ export default function Main() {
       }
 
       dispatch(setActiveChat(data.data));
-      console.log(data);
 
       return data;
     } catch (error) {
@@ -415,6 +415,12 @@ export default function Main() {
   const isForwarding =
     messageType === "forward" && activeChat._id === forwardedChat?._id;
 
+  const [pollSettings, setPollSettings] = useState({
+    anon: false,
+    multiple: false,
+    quiz: false,
+  });
+
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center ">
       {activeChat && (
@@ -681,6 +687,139 @@ export default function Main() {
           >
             SEND
           </Button>
+        </div>
+      </Modal>
+      <Modal extraClasses="w-[30rem] py-8" id="send-poll">
+        <header className="flex justify-between items-center text-lg font-semibold">
+          <div className="flex gap-10 items-center">
+            <button
+              onClick={() => {
+                dispatch(closeModal());
+              }}
+              className="hover:bg-[#303030] cursor-pointer transition-all p-2 rounded-full"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeWidth="2"
+                  d="M20 20L4 4m16 0L4 20"
+                />
+              </svg>
+            </button>
+            <h1>New Poll</h1>
+          </div>
+
+          <Button
+            onClick={async () => {
+              await sendMessage();
+              dispatch(closeModal());
+            }}
+            sx={{
+              backgroundColor: "#8675DC",
+              padding: "4px",
+              borderRadius: "8px",
+              width: "30%",
+            }}
+            variant="contained"
+          >
+            CREATE
+          </Button>
+        </header>
+        <Input textClass="bg-[#151515]">Ask a Question</Input>
+        <h1 className="my-4 font-bold  text-[#ccc]">Poll options</h1>
+        <Input textClass="bg-[#151515]">Add an Option</Input>
+        <h1 className="my-4 font-bold  text-[#ccc]">Settings</h1>
+        <div className="flex flex-col gap-4">
+          <div className="cb4 flex">
+            <input
+              onClick={() =>
+                setPollSettings({
+                  ...pollSettings,
+                  anon: true,
+                })
+              }
+              checked={pollSettings.anon}
+              className="inp-cbx"
+              id="anonymous-voting"
+              type="checkbox"
+            />
+            <label className="cbx" htmlFor="anonymous-voting">
+              <span>
+                <svg width="12px" height="10px">
+                  <use xlinkHref="#check-4"></use>
+                </svg>
+              </span>
+              <span className="ml-4">Anonymous Voting</span>
+            </label>
+            <svg className="inline-svg">
+              <symbol id="check-4" viewBox="0 0 12 10">
+                <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+              </symbol>
+            </svg>
+          </div>
+          <div className="cb4 flex">
+            <input
+              onClick={() =>
+                setPollSettings({
+                  ...pollSettings,
+                  multiple: true,
+                  quiz: false,
+                })
+              }
+              checked={pollSettings.multiple}
+              className="inp-cbx"
+              id="multiple-answers"
+              type="checkbox"
+            />
+            <label className="cbx" htmlFor="multiple-answers">
+              <span>
+                <svg width="12px" height="10px">
+                  <use xlinkHref="#check-4"></use>
+                </svg>
+              </span>
+              <span className="ml-4">Multiple Answers</span>
+            </label>
+            <svg className="inline-svg">
+              <symbol id="check-4" viewBox="0 0 12 10">
+                <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+              </symbol>
+            </svg>
+          </div>
+          <div className="cb4 flex">
+            <input
+              onClick={() =>
+                setPollSettings({
+                  ...pollSettings,
+                  quiz: true,
+                  multiple: false,
+                })
+              }
+              checked={pollSettings.quiz}
+              className="inp-cbx"
+              id="quiz-mode"
+              type="checkbox"
+            />
+            <label className="cbx" htmlFor="quiz-mode">
+              <span>
+                <svg width="12px" height="10px">
+                  <use xlinkHref="#check-4"></use>
+                </svg>
+              </span>
+              <span className="ml-4">Quiz Mode</span>
+            </label>
+            <svg className="inline-svg">
+              <symbol id="check-4" viewBox="0 0 12 10">
+                <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+              </symbol>
+            </svg>
+          </div>
         </div>
       </Modal>
       <div className="w-[85vw] flex justify-between overflow-hidden">
@@ -1193,7 +1332,7 @@ export default function Main() {
                                 </svg>
                               </button>
                             )}
-                            <div className="absolute right-20 top-1/2 -translate-y-1/2">
+                            <div className="absolute z-50 right-20 top-1/2 -translate-y-1/2">
                               <PopUpMenu
                                 tl={true}
                                 icon={
@@ -1210,7 +1349,7 @@ export default function Main() {
                                     />
                                   </svg>
                                 }
-                                buttonClasses="cursor-pointer z-50 text-[#ccc] p-2 rounded-full hover:bg-[#404040]"
+                                buttonClasses="cursor-pointer z-10 text-[#ccc] p-2 rounded-full hover:bg-[#404040]"
                               >
                                 <PopUpMenuItem itemClasses="w-[10rem] cursor-pointer">
                                   <input
@@ -1258,7 +1397,12 @@ export default function Main() {
                                     Photo
                                   </p>
                                 </PopUpMenuItem>
-                                <PopUpMenuItem itemClasses="w-[10rem]">
+                                <PopUpMenuItem
+                                  action={() =>
+                                    dispatch(openModal("send-poll"))
+                                  }
+                                  itemClasses="w-[10rem]"
+                                >
                                   <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="20"

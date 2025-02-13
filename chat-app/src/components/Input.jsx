@@ -35,7 +35,7 @@ export default function Input({
         } ${inputClass && inputClass} ${hasError && "border-red-500"}`}
       />
       <p
-        className={`absolute pointer-events-none transition-all duration-400 ml-2 px-1 bg-[#202021] ${
+        className={`absolute pointer-events-none transition-all duration-400 ml-2 px-1  ${
           isFocused || inputValue
             ? "text-xs -top-[20%]"
             : "top-1/2 -translate-y-1/2"
