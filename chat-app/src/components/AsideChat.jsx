@@ -18,7 +18,7 @@ export default function AsideChat({ chat, action }) {
     link += "#" + chat.more._id;
   }
 
-  if (chat.missedCount && activeChat?._id === chat._id) chat.missedCount = 0;
+  // if (chat.missedCount && activeChat?._id === chat._id) chat.missedCount = 0;
 
   return (
     <Link

@@ -39,6 +39,8 @@ export default function Main() {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [photoUrl, setPhotoUrl] = useState(null);
   const [photoCaption, setPhotoCaption] = useState("");
+  const [pollQuestion, setPollQuestion] = useState("");
+  const [pollOptions, setPollOptions] = useState([""]);
 
   const { chatId } = useParams();
 
@@ -421,6 +423,8 @@ export default function Main() {
     quiz: false,
   });
 
+  console.log(123);
+
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center ">
       {activeChat && (
@@ -689,7 +693,10 @@ export default function Main() {
           </Button>
         </div>
       </Modal>
-      <Modal extraClasses="w-[30rem] py-8" id="send-poll">
+      <Modal
+        extraClasses="max-h-[40rem] overflow-auto w-[30rem] py-8"
+        id="send-poll"
+      >
         <header className="flex justify-between items-center text-lg font-semibold">
           <div className="flex gap-10 items-center">
             <button
@@ -717,6 +724,10 @@ export default function Main() {
           </div>
 
           <Button
+            disabled={
+              !pollQuestion ||
+              pollOptions.filter((opt) => opt.trim() !== "").length < 2
+            }
             onClick={async () => {
               await sendMessage();
               dispatch(closeModal());
@@ -732,9 +743,40 @@ export default function Main() {
             CREATE
           </Button>
         </header>
-        <Input textClass="bg-[#151515]">Ask a Question</Input>
+        <Input
+          onChange={(e) => setPollQuestion(e.target.value)}
+          textClass="bg-[#151515]"
+        >
+          Ask a Question
+        </Input>
         <h1 className="my-4 font-bold  text-[#ccc]">Poll options</h1>
-        <Input textClass="bg-[#151515]">Add an Option</Input>
+        {pollOptions.map((opt, index) => (
+          <Input
+            inputValue={opt}
+            value={opt}
+            onChange={(e) => {
+              setPollOptions((prevPollOptions) => {
+                const newOptions = [...prevPollOptions];
+                newOptions[index] = e.target.value;
+
+                if (
+                  index === newOptions.length - 1 &&
+                  e.target.value.trim() !== ""
+                ) {
+                  if (newOptions.length === 10) return newOptions;
+                  newOptions.push("");
+                }
+
+                return newOptions;
+              });
+            }}
+            key={index}
+            textClass="bg-[#151515]"
+          >
+            Add an Option
+          </Input>
+        ))}
+
         <h1 className="my-4 font-bold  text-[#ccc]">Settings</h1>
         <div className="flex flex-col gap-4">
           <div className="cb4 flex">
