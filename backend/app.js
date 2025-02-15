@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import ChatRoutes from "./routes/chat.js";
 import UserRoutes from "./routes/user.js";
 import MessageRoutes from "./routes/message.js";
+import PollRoutes from "./routes/poll.js";
 import multer from "multer";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
@@ -71,6 +72,7 @@ app.get("/api/messages", async (req, res) => {
 app.use("/chat", ChatRoutes);
 app.use("/user", UserRoutes);
 app.use("/message", MessageRoutes);
+app.use("poll", PollRoutes);
 
 app.use((error, req, res, next) => {
   console.log(error);

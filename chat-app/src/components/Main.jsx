@@ -216,6 +216,17 @@ export default function Main() {
         formData.append("referenceMessageId", message._id);
       }
 
+      if (messageType === "poll") {
+        formData.append("pollQuestion", pollQuestion);
+        pollOptions
+          .filter((p) => p.trim() !== "")
+          .forEach((option, index) => {
+            formData.append(`pollOptions[${index}]`, option);
+          });
+        formData.append("pollSettings", JSON.stringify(pollSettings));
+        formData.append("pollExplanation", pollExplanation);
+      }
+
       const response = await fetch(
         "http://localhost:3000/message/send-message",
         {
@@ -418,12 +429,12 @@ export default function Main() {
     messageType === "forward" && activeChat._id === forwardedChat?._id;
 
   const [pollSettings, setPollSettings] = useState({
-    anon: false,
-    multiple: false,
-    quiz: false,
+    anonymousVotes: false,
+    multipleAnswers: false,
+    quizMode: false,
   });
 
-  console.log(123);
+  const [pollExplanation, setPollExplanation] = useState("");
 
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center ">
@@ -729,6 +740,7 @@ export default function Main() {
               pollOptions.filter((opt) => opt.trim() !== "").length < 2
             }
             onClick={async () => {
+              dispatch(setMessageType("poll"));
               await sendMessage();
               dispatch(closeModal());
             }}
@@ -744,6 +756,7 @@ export default function Main() {
           </Button>
         </header>
         <Input
+          inputValue={pollQuestion}
           onChange={(e) => setPollQuestion(e.target.value)}
           textClass="bg-[#151515]"
         >
@@ -778,16 +791,16 @@ export default function Main() {
         ))}
 
         <h1 className="my-4 font-bold  text-[#ccc]">Settings</h1>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 my-8">
           <div className="cb4 flex">
             <input
               onClick={() =>
                 setPollSettings({
                   ...pollSettings,
-                  anon: true,
+                  anonymousVotes: true,
                 })
               }
-              checked={pollSettings.anon}
+              checked={pollSettings.anonymousVotes}
               className="inp-cbx"
               id="anonymous-voting"
               type="checkbox"
@@ -811,11 +824,11 @@ export default function Main() {
               onClick={() =>
                 setPollSettings({
                   ...pollSettings,
-                  multiple: true,
-                  quiz: false,
+                  multipleAnswers: true,
+                  quizMode: false,
                 })
               }
-              checked={pollSettings.multiple}
+              checked={pollSettings.multipleAnswers}
               className="inp-cbx"
               id="multiple-answers"
               type="checkbox"
@@ -839,11 +852,11 @@ export default function Main() {
               onClick={() =>
                 setPollSettings({
                   ...pollSettings,
-                  quiz: true,
-                  multiple: false,
+                  quizMode: true,
+                  multipleAnswers: false,
                 })
               }
-              checked={pollSettings.quiz}
+              checked={pollSettings.quizMode}
               className="inp-cbx"
               id="quiz-mode"
               type="checkbox"
@@ -863,6 +876,15 @@ export default function Main() {
             </svg>
           </div>
         </div>
+        {pollSettings.quizMode && (
+          <Input
+            inputValue={pollExplanation}
+            onChange={(e) => setPollExplanation(e.target.value)}
+            textClass="bg-[#151515]"
+          >
+            Add an explanation
+          </Input>
+        )}
       </Modal>
       <div className="w-[85vw] flex justify-between overflow-hidden">
         <Aside />

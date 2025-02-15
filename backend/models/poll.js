@@ -18,15 +18,9 @@ const pollSchema = mongoose.Schema({
     },
   ],
   settings: {
-    anonymousVoting: {
-      type: Boolean,
-    },
-    multipleAnswers: {
-      type: Boolean,
-    },
-    quizMode: {
-      type: Boolean,
-    },
+    anonymousVoting: Boolean,
+    multipleAnswers: Boolean,
+    quizMode: Boolean,
   },
   explanation: {
     type: String,

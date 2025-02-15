@@ -1,15 +1,64 @@
 import Message from "../models/message.js";
 import Chat from "../models/chat.js";
+import Poll from "../models/poll.js";
 import mongoose from "mongoose";
 import { getSocket } from "../socket.js";
 
 export const sendMessage = async (req, res, next) => {
   try {
-    const { chatId, message, type, referenceMessageId, forwardToChat } =
-      req.body;
+    const {
+      chatId,
+      message,
+      type,
+      referenceMessageId,
+      forwardToChat,
+      pollOptions,
+      pollQuestion,
+      pollSettings,
+      pollExplanation,
+    } = req.body;
+
+    console.log(pollSettings);
 
     let imageUrl;
     if (req.file) imageUrl = req.file.path.replace("\\", "/");
+
+    if (type === "poll") {
+      const poll = new Poll({
+        question: pollQuestion,
+        options: pollOptions.map((option) => ({
+          text: option,
+          votes: 0,
+          voters: [],
+        })),
+        chat: chatId,
+        settings: pollSettings,
+        explanation: pollExplanation,
+      });
+
+      await poll.save();
+
+      const newMessage = new Message({
+        chat: chatId,
+        message,
+        type,
+        referenceMessageId: null,
+        forwardedToChat: null,
+        sender: req.userId,
+        imageUrl: null,
+        poll,
+      });
+
+      await newMessage.save();
+
+      getSocket().emit("messageSent", { data: chatId });
+      console.log("Emitted");
+
+      return res.status(201).json({
+        message: "Poll created successfully!",
+        data: poll,
+      });
+    }
 
     if (type !== "forward" && imageUrl) {
       const newMessage = new Message({
@@ -379,7 +428,8 @@ export const getMessages = async (req, res, next) => {
       .populate({
         path: "referenceMessageId",
         populate: [{ path: "sender" }, { path: "chat" }],
-      });
+      })
+      .populate("poll");
 
     if (!messages) {
       const error = new Error("Something went wrong.");

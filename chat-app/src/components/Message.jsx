@@ -15,6 +15,7 @@ import { copyToClipboard } from "../utility/util";
 import { openModal } from "../store/modalSlice";
 import { useMutation } from "@tanstack/react-query";
 import { setActiveChat } from "../store/chatSlice";
+import poll from "../../../backend/models/poll";
 
 export default function Message({
   message,
@@ -749,6 +750,19 @@ export default function Message({
                 src={`http://localhost:3000/${message.imageUrl}`}
                 alt="Message"
               />
+            )}
+            {message.type === "poll" && (
+              <div>
+                <p>{message.poll.question}</p>
+                {message.poll.options.map((option, index) => (
+                  <p key={option.text + index}>{option.text}</p>
+                ))}
+                {Object.entries(message.poll.settings).map(([key, value]) => (
+                  <p key={key}>
+                    {key}: {value.toString()}
+                  </p>
+                ))}
+              </div>
             )}
             <div className="flex flex-wrap items-baseline justify-end">
               {message.type !== "forward" && (
