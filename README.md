@@ -23,7 +23,7 @@ Things in consideration of being implemented:
 5. Type Indicators,
 6. Read Receipts,
 7. Chat Themes, 🔜
-8. Polls & Surveys, 🔜
+8. Polls & Surveys, ✅
 9. User status,
 10. Message reactions ✅
 
