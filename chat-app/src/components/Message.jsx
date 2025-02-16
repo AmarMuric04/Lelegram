@@ -15,7 +15,6 @@ import { copyToClipboard } from "../utility/util";
 import { openModal } from "../store/modalSlice";
 import { useMutation } from "@tanstack/react-query";
 import { setActiveChat } from "../store/chatSlice";
-import poll from "../../../backend/models/poll";
 
 export default function Message({
   message,
@@ -33,6 +32,7 @@ export default function Message({
   const modalRef = useRef();
   const [showForward, setShowForward] = useState(false);
   const [open, setOpen] = useState(false);
+  const [votes, setVotes] = useState([]);
   const { isSelecting, selected } = useSelector((state) => state.message);
   const { user } = useSelector((state) => state.auth);
   const { activeChat } = useSelector((state) => state.chat);
@@ -116,6 +116,37 @@ export default function Message({
 
   const token = localStorage.getItem("token");
 
+  const handleAddVote = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/poll/add-vote", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pollId: message.poll,
+          options: votes,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add a vote");
+      }
+
+      const data = await response.json();
+
+      return data;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const { mutate: addVote } = useMutation({
+    mutationFn: handleAddVote,
+  });
+
   const handleAddReaction = async () => {
     try {
       const response = await fetch(
@@ -190,6 +221,19 @@ export default function Message({
   const { mutate: pinMessage } = useMutation({
     mutationFn: handlePinMessage,
   });
+
+  const hasVoted = message.poll?.options.some((opt) =>
+    opt.voters.includes(user._id)
+  );
+
+  const totalPollVotes = message.poll?.options.reduce(
+    (a, b) => (a += b.votes),
+    0
+  );
+
+  const votedOptions = message.poll?.options
+    .filter((opt) => opt.voters.includes(user._id))
+    .map((option) => option.text);
 
   const contextMenuPortal =
     open &&
@@ -752,16 +796,205 @@ export default function Message({
               />
             )}
             {message.type === "poll" && (
-              <div>
-                <p>{message.poll.question}</p>
-                {message.poll.options.map((option, index) => (
-                  <p key={option.text + index}>{option.text}</p>
-                ))}
-                {Object.entries(message.poll.settings).map(([key, value]) => (
-                  <p key={key}>
-                    {key}: {value.toString()}
-                  </p>
-                ))}
+              <div className="min-w-[20rem]">
+                <p className="font-semibold">{message.poll.question}</p>
+                <div className="text-sm flex items-center w-full">
+                  {message.poll.settings.anonymousVoting && (
+                    <p>Anonymous Voting</p>
+                  )}
+                  {hasVoted && message.poll.settings.quizMode && (
+                    <svg
+                      onClick={() =>
+                        alert(
+                          message.poll.explanation +
+                            " " +
+                            message.poll.correctAnswer
+                        )
+                      }
+                      className="self-end ml-auto cursor-pointer"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                    >
+                      <rect width="24" height="24" fill="none" />
+                      <g
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.5"
+                        color="currentColor"
+                      >
+                        <path d="M5.143 14A7.8 7.8 0 0 1 4 9.919C4 5.545 7.582 2 12 2s8 3.545 8 7.919A7.8 7.8 0 0 1 18.857 14" />
+                        <path d="M14 10c-.613.643-1.289 1-2 1s-1.387-.357-2-1m-2.617 7.098c-.092-.276-.138-.415-.133-.527a.6.6 0 0 1 .382-.53c.104-.041.25-.041.54-.041h7.656c.291 0 .436 0 .54.04a.6.6 0 0 1 .382.531c.005.112-.041.25-.133.527c-.17.511-.255.767-.386.974a2 2 0 0 1-1.2.869c-.238.059-.506.059-1.043.059h-3.976c-.537 0-.806 0-1.043-.06a2 2 0 0 1-1.2-.868c-.131-.207-.216-.463-.386-.974M15 19l-.13.647c-.14.707-.211 1.06-.37 1.34a2 2 0 0 1-1.113.912C13.082 22 12.72 22 12 22s-1.082 0-1.387-.1a2 2 0 0 1-1.113-.913c-.159-.28-.23-.633-.37-1.34L9 19m3-3.5V11" />
+                      </g>
+                    </svg>
+                  )}
+                </div>
+                {message.poll.options.map((option, index) => {
+                  return hasVoted ? (
+                    <div className="flex gap-4 w-full h-[40px] mt-2">
+                      <div className="flex flex-col justify-between w-[10%] h-full">
+                        <p className="font-semibold text-sm self-end">
+                          {(option.votes / totalPollVotes) * 100}%
+                        </p>
+
+                        {votedOptions.includes(option.text) ? (
+                          message.poll.settings.quizMode &&
+                          option.text !== message.poll.correctAnswer ? (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="15"
+                              height="15"
+                              viewBox="0 0 15 15"
+                              className="bg-red-500 rounded-full p-[2px] self-end"
+                            >
+                              <rect width="15" height="15" fill="none" />
+                              <path
+                                fill="currentColor"
+                                d="M3.64 2.27L7.5 6.13l3.84-3.84A.92.92 0 0 1 12 2a1 1 0 0 1 1 1a.9.9 0 0 1-.27.66L8.84 7.5l3.89 3.89A.9.9 0 0 1 13 12a1 1 0 0 1-1 1a.92.92 0 0 1-.69-.27L7.5 8.87l-3.85 3.85A.92.92 0 0 1 3 13a1 1 0 0 1-1-1a.9.9 0 0 1 .27-.66L6.16 7.5L2.27 3.61A.9.9 0 0 1 2 3a1 1 0 0 1 1-1c.24.003.47.1.64.27"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 32 32"
+                              className="self-end"
+                            >
+                              <rect width="32" height="32" fill="none" />
+                              <path
+                                fill="currentColor"
+                                d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2m-2 19.59l-5-5L10.59 15L14 18.41L21.41 11l1.596 1.586Z"
+                              />
+                              <path
+                                fill="none"
+                                d="m14 21.591l-5-5L10.591 15L14 18.409L21.41 11l1.595 1.585z"
+                              />
+                            </svg>
+                          )
+                        ) : option.text === message.poll.correctAnswer ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 32 32"
+                            className="self-end"
+                          >
+                            <rect width="32" height="32" fill="none" />
+                            <path
+                              fill="currentColor"
+                              d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2m-2 19.59l-5-5L10.59 15L14 18.41L21.41 11l1.596 1.586Z"
+                            />
+                            <path
+                              fill="none"
+                              d="m14 21.591l-5-5L10.591 15L14 18.409L21.41 11l1.595 1.585z"
+                            />
+                          </svg>
+                        ) : (
+                          <div className="h-[15px]"></div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col justify-between w-[90%] h-full">
+                        <p>{option.text}</p>
+                        <div
+                          className={`h-[3px] rounded-full transition-all ${
+                            votedOptions.includes(option.text) &&
+                            message.poll.settings.quizMode &&
+                            option.text !== message.poll.correctAnswer
+                              ? "bg-red-500"
+                              : "bg-white"
+                          }`}
+                          style={{
+                            width: `${(option.votes / totalPollVotes) * 100}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="flex items-center gap-2 my-4"
+                      key={option.text + index + message.poll._id}
+                    >
+                      <div
+                        onClick={() => {
+                          if (!message.poll.settings.multipleAnswers) {
+                            if (votes === option.text) setVotes([]);
+                            else setVotes([option.text]);
+                            addVote();
+                          } else if (votes.includes(option.text)) {
+                            setVotes(
+                              votes.filter((vote) => vote !== option.text)
+                            );
+                          } else {
+                            setVotes([...votes, option.text]);
+                          }
+                        }}
+                      >
+                        <div className="checkbox-wrapper-12">
+                          <div className="cbx">
+                            <input
+                              checked={
+                                (Array.isArray(votes) &&
+                                  votes.includes(option.text)) ||
+                                (!message.poll.multipleAnswers &&
+                                  votes === option.text)
+                              }
+                              id={option.text + index + message.poll._id}
+                              type="checkbox"
+                            />
+                            <label
+                              htmlFor={option.text + index + message.poll._id}
+                            ></label>
+                            <svg
+                              width="15"
+                              height="14"
+                              viewBox="0 0 15 14"
+                              fill="none"
+                            >
+                              <path d="M2 8.36364L6.23077 12L13 2"></path>
+                            </svg>
+                          </div>
+                          <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+                            <defs>
+                              <filter id="goo-12">
+                                <fegaussianblur
+                                  in="SourceGraphic"
+                                  stdDeviation="4"
+                                  result="blur"
+                                ></fegaussianblur>
+                                <fecolormatrix
+                                  in="blur"
+                                  mode="matrix"
+                                  values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -7"
+                                  result="goo-12"
+                                ></fecolormatrix>
+                                <feblend
+                                  in="SourceGraphic"
+                                  in2="goo-12"
+                                ></feblend>
+                              </filter>
+                            </defs>
+                          </svg>
+                        </div>
+                      </div>
+                      <label htmlFor={option.text + index + message.poll._id}>
+                        {option.text}
+                      </label>
+                    </div>
+                  );
+                })}
+                {message.poll.settings.multipleAnswers && (
+                  <button
+                    onClick={() => addVote()}
+                    className="font-semibold w-full mt-4 cursor-pointer"
+                  >
+                    Vote
+                  </button>
+                )}
               </div>
             )}
             <div className="flex flex-wrap items-baseline justify-end">

@@ -225,6 +225,7 @@ export default function Main() {
           });
         formData.append("pollSettings", JSON.stringify(pollSettings));
         formData.append("pollExplanation", pollExplanation);
+        formData.append("pollCorrectAnswer", pollCorrectAnswer);
       }
 
       const response = await fetch(
@@ -429,12 +430,14 @@ export default function Main() {
     messageType === "forward" && activeChat._id === forwardedChat?._id;
 
   const [pollSettings, setPollSettings] = useState({
-    anonymousVotes: false,
+    anonymousVoting: false,
     multipleAnswers: false,
     quizMode: false,
   });
 
   const [pollExplanation, setPollExplanation] = useState("");
+
+  const [pollCorrectAnswer, setPollCorrectAnswer] = useState("");
 
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center ">
@@ -712,6 +715,14 @@ export default function Main() {
           <div className="flex gap-10 items-center">
             <button
               onClick={() => {
+                setPollExplanation("");
+                setPollOptions([""]);
+                setPollQuestion("");
+                setPollSettings({
+                  anonymousVoting: false,
+                  quizMode: false,
+                  multipleAnswers: false,
+                });
                 dispatch(closeModal());
               }}
               className="hover:bg-[#303030] cursor-pointer transition-all p-2 rounded-full"
@@ -737,12 +748,24 @@ export default function Main() {
           <Button
             disabled={
               !pollQuestion ||
-              pollOptions.filter((opt) => opt.trim() !== "").length < 2
+              pollOptions.filter((opt) => opt.trim() !== "").length < 2 ||
+              new Set(pollOptions.filter((opt) => opt.trim() !== "")).size !==
+                pollOptions.filter((opt) => opt.trim() !== "").length ||
+              (pollSettings.quizMode &&
+                (!pollCorrectAnswer || !pollExplanation))
             }
             onClick={async () => {
               dispatch(setMessageType("poll"));
               await sendMessage();
               dispatch(closeModal());
+              setPollExplanation("");
+              setPollOptions([""]);
+              setPollQuestion("");
+              setPollSettings({
+                anonymousVoting: false,
+                quizMode: false,
+                multipleAnswers: false,
+              });
             }}
             sx={{
               backgroundColor: "#8675DC",
@@ -757,6 +780,7 @@ export default function Main() {
         </header>
         <Input
           inputValue={pollQuestion}
+          value={pollQuestion}
           onChange={(e) => setPollQuestion(e.target.value)}
           textClass="bg-[#151515]"
         >
@@ -764,43 +788,82 @@ export default function Main() {
         </Input>
         <h1 className="my-4 font-bold  text-[#ccc]">Poll options</h1>
         {pollOptions.map((opt, index) => (
-          <Input
-            inputValue={opt}
-            value={opt}
-            onChange={(e) => {
-              setPollOptions((prevPollOptions) => {
-                const newOptions = [...prevPollOptions];
-                newOptions[index] = e.target.value;
+          <div className="flex items-center gap-4 w-full" key={index}>
+            {pollSettings.quizMode && opt !== "" && (
+              <div
+                onClick={() => {
+                  setPollCorrectAnswer(opt);
+                }}
+                className="checkbox-wrapper-12 mt-4"
+              >
+                <div className="cbx">
+                  <input
+                    checked={pollCorrectAnswer === opt}
+                    id={opt}
+                    type="checkbox"
+                  />
+                  <label htmlFor={opt}></label>
+                  <svg width="15" height="14" viewBox="0 0 15 14" fill="none">
+                    <path d="M2 8.36364L6.23077 12L13 2"></path>
+                  </svg>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+                  <defs>
+                    <filter id="goo-12">
+                      <fegaussianblur
+                        in="SourceGraphic"
+                        stdDeviation="4"
+                        result="blur"
+                      ></fegaussianblur>
+                      <fecolormatrix
+                        in="blur"
+                        mode="matrix"
+                        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -7"
+                        result="goo-12"
+                      ></fecolormatrix>
+                      <feblend in="SourceGraphic" in2="goo-12"></feblend>
+                    </filter>
+                  </defs>
+                </svg>
+              </div>
+            )}
+            <Input
+              inputValue={opt}
+              value={opt}
+              onChange={(e) => {
+                setPollOptions((prevPollOptions) => {
+                  const newOptions = [...prevPollOptions];
+                  newOptions[index] = e.target.value;
 
-                if (
-                  index === newOptions.length - 1 &&
-                  e.target.value.trim() !== ""
-                ) {
-                  if (newOptions.length === 10) return newOptions;
-                  newOptions.push("");
-                }
+                  if (
+                    index === newOptions.length - 1 &&
+                    e.target.value.trim() !== ""
+                  ) {
+                    if (newOptions.length === 10) return newOptions;
+                    newOptions.push("");
+                  }
 
-                return newOptions;
-              });
-            }}
-            key={index}
-            textClass="bg-[#151515]"
-          >
-            Add an Option
-          </Input>
+                  return newOptions;
+                });
+              }}
+              textClass="bg-[#151515]"
+            >
+              Add an Option
+            </Input>
+          </div>
         ))}
 
-        <h1 className="my-4 font-bold  text-[#ccc]">Settings</h1>
+        <h1 className="my-4 font-bold text-[#ccc]">Settings</h1>
         <div className="flex flex-col gap-4 my-8">
           <div className="cb4 flex">
             <input
               onClick={() =>
                 setPollSettings({
                   ...pollSettings,
-                  anonymousVotes: true,
+                  anonymousVoting: true,
                 })
               }
-              checked={pollSettings.anonymousVotes}
+              checked={pollSettings.anonymousVoting}
               className="inp-cbx"
               id="anonymous-voting"
               type="checkbox"
@@ -821,13 +884,16 @@ export default function Main() {
           </div>
           <div className="cb4 flex">
             <input
-              onClick={() =>
+              onClick={() => {
                 setPollSettings({
                   ...pollSettings,
                   multipleAnswers: true,
                   quizMode: false,
-                })
-              }
+                });
+                setPollExplanation("");
+                setPollQuestion("");
+                setPollCorrectAnswer("");
+              }}
               checked={pollSettings.multipleAnswers}
               className="inp-cbx"
               id="multiple-answers"
@@ -877,13 +943,20 @@ export default function Main() {
           </div>
         </div>
         {pollSettings.quizMode && (
-          <Input
-            inputValue={pollExplanation}
-            onChange={(e) => setPollExplanation(e.target.value)}
-            textClass="bg-[#151515]"
-          >
-            Add an explanation
-          </Input>
+          <div>
+            <h1 className="my-4 font-bold text-[#ccc]">Explanation</h1>
+            <Input
+              inputValue={pollExplanation}
+              onChange={(e) => setPollExplanation(e.target.value)}
+              textClass="bg-[#151515]"
+            >
+              Add an explanation
+            </Input>
+            <p className="mt-4 text-[#ccc] text-sm">
+              Users will see this text after choosing the wrong answer, good for
+              educational purposes.
+            </p>
+          </div>
         )}
       </Modal>
       <div className="w-[85vw] flex justify-between overflow-hidden">
@@ -1396,7 +1469,11 @@ export default function Main() {
                                 </svg>
                               </button>
                             )}
-                            <div className="absolute z-50 right-20 top-1/2 -translate-y-1/2">
+                            <div
+                              className={`${
+                                isSelecting && "opacity-0 scale-0"
+                              } transition-all absolute z-50 right-20 top-1/2 -translate-y-1/2`}
+                            >
                               <PopUpMenu
                                 tl={true}
                                 icon={

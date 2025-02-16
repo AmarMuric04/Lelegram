@@ -25,6 +25,9 @@ const pollSchema = mongoose.Schema({
   explanation: {
     type: String,
   },
+  correctAnswer: {
+    type: String,
+  },
 });
 
 export default mongoose.model("Poll", pollSchema);

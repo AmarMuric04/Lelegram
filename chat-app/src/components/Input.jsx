@@ -24,7 +24,7 @@ export default function Input({
     }
   };
   return (
-    <div className="relative h-[3.5rem] z-0 mt-4">
+    <div className="relative h-[3.5rem] z-0 mt-4 w-full">
       <input
         {...props}
         onFocus={handleFocus}

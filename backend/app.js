@@ -72,7 +72,7 @@ app.get("/api/messages", async (req, res) => {
 app.use("/chat", ChatRoutes);
 app.use("/user", UserRoutes);
 app.use("/message", MessageRoutes);
-app.use("poll", PollRoutes);
+app.use("/poll", PollRoutes);
 
 app.use((error, req, res, next) => {
   console.log(error);

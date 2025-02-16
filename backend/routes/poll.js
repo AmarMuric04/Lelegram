@@ -4,6 +4,6 @@ import isAuth from "../middleware/is-auth.js";
 
 const router = express.Router();
 
-// router.post("/create-poll", isAuth, PollController.createPoll);
+router.post("/add-vote", isAuth, PollController.addVote);
 
 export default router;

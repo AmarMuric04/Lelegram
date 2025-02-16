@@ -16,6 +16,7 @@ export const sendMessage = async (req, res, next) => {
       pollQuestion,
       pollSettings,
       pollExplanation,
+      pollCorrectAnswer,
     } = req.body;
 
     console.log(pollSettings);
@@ -32,8 +33,9 @@ export const sendMessage = async (req, res, next) => {
           voters: [],
         })),
         chat: chatId,
-        settings: pollSettings,
+        settings: JSON.parse(req.body.pollSettings || "{}"),
         explanation: pollExplanation,
+        correctAnswer: pollCorrectAnswer,
       });
 
       await poll.save();
