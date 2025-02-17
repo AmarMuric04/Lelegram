@@ -429,7 +429,7 @@ export const getMessages = async (req, res, next) => {
       .populate("chat")
       .populate({
         path: "referenceMessageId",
-        populate: [{ path: "sender" }, { path: "chat" }],
+        populate: [{ path: "sender" }, { path: "chat" }, { path: "poll" }],
       })
       .populate("poll");
 

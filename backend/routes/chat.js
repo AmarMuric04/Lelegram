@@ -14,6 +14,8 @@ router.post("/get-searched-chats", isAuth, ChatController.getSearchedChats);
 
 router.post("/create-chat", isAuth, ChatController.createChat);
 
+router.post("/edit-chat/:chatId", isAuth, ChatController.editChat);
+
 router.delete("/delete-chat", isAuth, ChatController.deleteChat);
 
 router.delete(

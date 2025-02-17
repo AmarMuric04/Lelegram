@@ -11,14 +11,14 @@ export const generateBase64FromImage = (imageFile) => {
   return promise;
 };
 
-export const handlePostInput = async (value, files, cbPreview, cbImage) => {
+export const handlePostInput = async (value, files, setMsgImage, msgImage) => {
   try {
     if (files && files[0]) {
       const file = files[0];
 
       const b64 = await generateBase64FromImage(file);
-      if (cbPreview) cbPreview(b64);
-      if (cbImage) cbImage(file);
+
+      setMsgImage({ ...msgImage, url: file, preview: b64 });
     } else {
       console.error("No file selected.");
     }

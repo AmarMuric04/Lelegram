@@ -29,6 +29,11 @@ const messageSlice = createSlice({
     setSelected: (state, action) => {
       state.selected = action.payload;
     },
+    resetMessage: (state) => {
+      state.forwardedChat = null;
+      state.messageType = "normal";
+      state.message = null;
+    },
   },
 });
 
@@ -39,5 +44,6 @@ export const {
   setMessageToEdit,
   setIsSelecting,
   setSelected,
+  resetMessage,
 } = messageSlice.actions;
 export default messageSlice.reducer;

@@ -112,6 +112,7 @@ export default function Message({
   const handleClick = () => {
     dispatch(setMessage(message));
     dispatch(setMessageType("reply"));
+    console.log(message);
   };
 
   const token = localStorage.getItem("token");
@@ -784,7 +785,17 @@ export default function Message({
                   <p className="font-semibold">
                     {message.referenceMessageId.sender.firstName}
                   </p>
-                  <p>{message.referenceMessageId.message}</p>
+                  <div className="flex items-end gap-2">
+                    {message.referenceMessageId.imageUrl && (
+                      <img
+                        className="max-h-[16px]"
+                        src={`http://localhost:3000/${message.referenceMessageId.imageUrl}`}
+                      />
+                    )}
+                    {message.referenceMessageId.message}
+                    {message.referenceMessageId.type === "poll" &&
+                      "📊 " + message.referenceMessageId.poll.question}
+                  </div>
                 </div>
               </Link>
             )}
@@ -799,18 +810,14 @@ export default function Message({
               <div className="min-w-[20rem]">
                 <p className="font-semibold">{message.poll.question}</p>
                 <div className="text-sm flex items-center w-full">
-                  {message.poll.settings.anonymousVoting && (
-                    <p>Anonymous Voting</p>
-                  )}
+                  <p>
+                    {message.poll.settings.anonymousVoting && "Anonymous"}{" "}
+                    {message.poll.settings.quizMode ? " Quiz" : "Voting"}
+                  </p>
+
                   {hasVoted && message.poll.settings.quizMode && (
                     <svg
-                      onClick={() =>
-                        alert(
-                          message.poll.explanation +
-                            " " +
-                            message.poll.correctAnswer
-                        )
-                      }
+                      onClick={() => alert(message.poll.explanation)}
                       className="self-end ml-auto cursor-pointer"
                       xmlns="http://www.w3.org/2000/svg"
                       width="20"
@@ -837,7 +844,7 @@ export default function Message({
                     <div className="flex gap-4 w-full h-[40px] mt-2">
                       <div className="flex flex-col justify-between w-[10%] h-full">
                         <p className="font-semibold text-sm self-end">
-                          {(option.votes / totalPollVotes) * 100}%
+                          {((option.votes / totalPollVotes) * 100).toFixed(0)}%
                         </p>
 
                         {votedOptions.includes(option.text) ? (
@@ -1004,9 +1011,21 @@ export default function Message({
                 </p>
               )}
               {message.type === "forward" && (
-                <p className="flex-grow break-words break-all">
-                  {message.referenceMessageId.message}
-                </p>
+                <div className="flex-grow break-words break-all flex gap-2 items-center">
+                  {message.referenceMessageId.imageUrl && (
+                    <img
+                      className="h-[16px]"
+                      src={`http://localhost:3000/${message.referenceMessageId.imageUrl}`}
+                    />
+                  )}
+                  {message.referenceMessageId?.type === "poll" &&
+                    "📊 " + message.referenceMessageId?.poll.question}
+                  {message.referenceMessageId
+                    ? message.referenceMessageId.message
+                      ? message.referenceMessageId.message
+                      : message.message
+                    : message.message}
+                </div>
               )}
               <div className="flex-shrink-0 flex gap-2 whitespace-nowrap text-xs text-[#ccc] ml-2">
                 {message.edited && message.type !== "forward" && (

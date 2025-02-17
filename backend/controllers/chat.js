@@ -220,6 +220,37 @@ export const createChat = async (req, res, next) => {
   }
 };
 
+export const editChat = async (req, res, next) => {
+  try {
+    const { name, description } = req.body;
+
+    const { chatId } = req.params;
+
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      return res.status(404).json({ message: "Chat not found" });
+    }
+    if (!chat.admins.includes(req.userId)) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    let imageUrl = chat.imageUrl;
+    if (req.file) {
+      imageUrl = req.file.path.replace("\\", "/");
+    }
+
+    const updatedChat = await Chat.findByIdAndUpdate(
+      chatId,
+      { name, description, imageUrl },
+      { new: true }
+    );
+    res.json(updatedChat);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const deleteChat = async (req, res, next) => {
   try {
     const { chatId } = req.body;
