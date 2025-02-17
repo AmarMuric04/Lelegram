@@ -14,18 +14,18 @@ A Telegram clone that includes:
 12. Searching for chats,
 13. Searching for messages,
 14. Editing your chat room,
+15. Media Sharing (Images, GIFs, ...),
+16. Pinned Messages for chats,
+17. Polls & Surveys,
+18. Message reactions
 
 Things in consideration of being implemented:
 1. Voice Messages,
-2. Media Sharing (Images, GIFs, ...), ✅
-3. Pinned Messages for chats, ✅
-4. Mentions (@...), 🔜
-5. Type Indicators,
-6. Read Receipts,
-7. Chat Themes, 🔜
-8. Polls & Surveys, 🔜
-9. User status,
-10. Message reactions ✅
+2. Mentions (@...), 🔜
+3. Type Indicators,
+4. Read Receipts,
+5. Chat Themes, 🔜
+6. User status,
 
 To use the app, change the .env.test file's name to just .env
 Phone Number checking is not implemented, in the Code just write whatever you want.
