@@ -7,7 +7,7 @@ import AddInfoAuth from "./components/Auth/AddInfoAuth";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-function App() {
+function AuthPage() {
   const [activePage, setActivePage] = useState("landing");
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
@@ -39,4 +39,4 @@ function App() {
   );
 }
 
-export default App;
+export default AuthPage;

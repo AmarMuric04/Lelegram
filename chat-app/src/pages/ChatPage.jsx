@@ -3,18 +3,18 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { setActiveChat } from "../store/redux/chatSlice.js";
-import Aside from "./Aside";
+import Aside from "../components/aside/Aside.jsx";
 import { io } from "socket.io-client";
 
 import { resetMessage, setValue } from "../store/redux/messageSlice.js";
 
-import ConditionalModals from "./modal/ConditionalModals.jsx";
-import ChatBackground from "./chat/ChatBackground.jsx";
-import ActiveChat from "./chat/activeChat/ActiveChat.jsx";
+import ConditionalModals from "../components/modal/ConditionalModals.jsx";
+import ChatBackground from "../components/chat/ChatBackground.jsx";
+import ActiveChat from "../components/chat/activeChat/ActiveChat.jsx";
 
 const socket = io("http://localhost:3000");
 
-export default function Main() {
+export default function ChatPage() {
   const { chatId } = useParams();
   const queryClient = useQueryClient();
   const token = localStorage.getItem("token");

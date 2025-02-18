@@ -1,22 +1,14 @@
 import { createBrowserRouter } from "react-router-dom";
-import App from "./App";
-import Main from "./components/Main.jsx";
-import PrivateRoute from "./components/PrivateRoute.jsx";
+import PrivateRoute from "./components/misc/PrivateRoute.jsx";
+import ChatPage from "./pages/ChatPage.jsx";
+import AuthPage from "./pages/AuthPage.jsx";
 
 export const router = createBrowserRouter([
-  {
-    path: "/",
-    element: (
-      <PrivateRoute>
-        <Main />
-      </PrivateRoute>
-    ),
-  },
   {
     path: "/:chatId",
     element: (
       <PrivateRoute>
-        <Main />
+        <ChatPage />
       </PrivateRoute>
     ),
   },
@@ -24,7 +16,7 @@ export const router = createBrowserRouter([
     path: "/auth",
     element: (
       <PrivateRoute isAuthPage={true}>
-        <App />
+        <AuthPage />
       </PrivateRoute>
     ),
   },

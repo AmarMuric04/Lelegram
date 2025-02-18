@@ -1,11 +1,11 @@
-import { Telegram } from "../../assets/icons";
+import { Telegram } from "../../../assets/icons";
 import PhoneCountryWrapper from "../PhoneCountryWrapper";
 import { Button } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setIsSigningIn } from "../../store/redux/authSlice";
+import { setIsSigningIn } from "../../../store/redux/authSlice";
 
 export default function LandingAuth({ setActivePage }) {
   const { phoneNumber } = useSelector((state) => state.auth);

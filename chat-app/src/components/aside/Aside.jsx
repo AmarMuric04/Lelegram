@@ -1,14 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import PopUpMenu from "./PopUpMenu";
-import PopUpMenuItem from "./PopUpMenuItem";
-import Search from "./Search";
+import PopUpMenu from "../PopUpMenu";
+import PopUpMenuItem from "../PopUpMenuItem";
+import Search from "../Search";
 import AsideChatWrapper from "./AsideChatWrapper";
 import { useDispatch, useSelector } from "react-redux";
-import { setIsFocused, setSearch } from "../store/redux/searchSlice";
+import { setIsFocused, setSearch } from "../../store/redux/searchSlice";
 import AsideChat from "./AsideChat";
-import { signOut } from "../utility/util";
-import ModifyChat from "./chat/ModifyChat";
+import { signOut } from "../../utility/util";
+import ModifyChat from "../chat/ModifyChat";
 
 export default function Aside() {
   const [activeSelect, setActiveSelect] = useState("chats");

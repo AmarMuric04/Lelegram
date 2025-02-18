@@ -6,21 +6,21 @@ import {
   setMessageToEdit,
   setMessageType,
   setSelected,
-} from "../store/redux/messageSlice";
+} from "../../store/redux/messageSlice";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { openModal } from "../store/redux/modalSlice";
+import { openModal } from "../../store/redux/modalSlice";
 import { useMutation } from "@tanstack/react-query";
-import { setActiveChat } from "../store/redux/chatSlice";
+import { setActiveChat } from "../../store/redux/chatSlice";
 import {
   closeContextMenu,
   openContextMenu,
-} from "../store/redux/contextMenuSlice";
-import { LightbulbSVG } from "../../public/svgs";
-import CircleCheckbox from "./CircleCheckbox";
-import PollOptionsList from "./poll/PollOptionsList";
-import MessageContextMenu from "./message/MessageContextMenu";
+} from "../../store/redux/contextMenuSlice";
+import { LightbulbSVG } from "../../../public/svgs";
+import CircleCheckbox from "../misc/CircleCheckbox";
+import PollOptionsList from "../poll/PollOptionsList";
+import MessageContextMenu from "./MessageContextMenu";
 
 export default function Message({
   message,
@@ -153,7 +153,7 @@ export default function Message({
     .map((option) => option.text);
 
   const userDidReact = !Object.entries(message.reactions || {}).some(
-    ([_, users]) => users.includes(user._id)
+    ([, users]) => users.includes(user._id)
   );
 
   return (
@@ -421,7 +421,7 @@ export default function Message({
               ) && (
                 <div className="cursor-pointer rounded-lg bg-[#ffffff50] hover:bg-[#ffffff70] inline-flex">
                   {Object.entries(message.reactions)
-                    .filter(([_, users]) => users.length > 0)
+                    .filter(([, users]) => users.length > 0)
                     .map(([emoji, users]) => (
                       <p
                         onClick={addReaction}

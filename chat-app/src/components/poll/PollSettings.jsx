@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import Checkbox from "../Checkbox";
+import Checkbox from "../misc/Checkbox";
 
 export function PollSettings({ poll, setPoll }) {
   return (

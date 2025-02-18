@@ -11,7 +11,6 @@ const PhoneAuth = () => {
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [error, setError] = useState("");
 
-  // Send OTP
   const sendOTP = () => {
     setError("");
     window.recaptchaVerifier = new RecaptchaVerifier(
@@ -30,7 +29,6 @@ const PhoneAuth = () => {
       .catch((err) => setError(err.message));
   };
 
-  // Verify OTP
   const verifyOTP = () => {
     if (!confirmationResult) return;
     confirmationResult

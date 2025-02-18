@@ -8,7 +8,7 @@ import {
 import { closeModal } from "../../store/redux/modalSlice";
 import { CrossSVG } from "../../../public/svgs";
 import Modal from "../Modal";
-import AsideChat from "../AsideChat";
+import AsideChat from "../aside/AsideChat";
 import { setSelected } from "../../store/redux/authSlice";
 
 export default function ForwardMessageModal() {

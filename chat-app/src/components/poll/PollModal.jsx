@@ -4,7 +4,7 @@ import { closeModal } from "../../store/redux/modalSlice.js";
 import { CrossSVG } from "../../../public/svgs";
 import { Button } from "@mui/material";
 import { setMessageType } from "../../store/redux/messageSlice.js";
-import Input from "../Input";
+import Input from "../auth/Input.jsx";
 import { useDispatch } from "react-redux";
 import { PollSettings } from "./PollSettings.jsx";
 import { useMessageContext } from "../../store/context/MessageProvider.jsx";
