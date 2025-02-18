@@ -1,5 +1,5 @@
-import { setUser } from "../store/authSlice";
-import { setImage } from "../store/imageSlice";
+import { setUser } from "../store/redux/authSlice";
+import { setImage } from "../store/redux/imageSlice";
 
 export const generateBase64FromImage = (imageFile) => {
   const reader = new FileReader();

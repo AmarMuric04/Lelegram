@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { countries } from "../assets/countryCodes";
 import { useDispatch, useSelector } from "react-redux";
-import { setSelected, setValue } from "../store/authSlice";
+import { setSelected, setValue } from "../store/redux/authSlice";
 
 export default function CountryInput() {
   const [isFocused, setIsFocused] = useState(false);

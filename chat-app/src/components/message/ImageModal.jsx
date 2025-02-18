@@ -1,14 +1,15 @@
 import { useState } from "react";
 import Modal from "../Modal";
-import { closeModal } from "../../store/modalSlice";
+import { closeModal } from "../../store/redux/modalSlice";
 import { CrossSVG } from "../../../public/svgs";
 import { Button } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import PropTypes from "prop-types";
-import { setImage } from "../../store/imageSlice";
+import { setImage } from "../../store/redux/imageSlice";
+import { useMessageContext } from "../../store/context/MessageProvider";
 
-export default function ImageModal({ action }) {
+export default function ImageModal() {
   const dispatch = useDispatch();
+  const { sendMessage, isSendingMessage } = useMessageContext();
 
   const [caption, setCaption] = useState("");
   const { url, preview } = useSelector((state) => state.image);
@@ -48,7 +49,7 @@ export default function ImageModal({ action }) {
         />
         <Button
           onClick={() => {
-            action({ msgImage: { url, preview, caption } });
+            sendMessage({ msgImage: { url, preview, caption } });
             handleResetMWI();
             dispatch(closeModal());
           }}
@@ -60,13 +61,9 @@ export default function ImageModal({ action }) {
           }}
           variant="contained"
         >
-          SEND
+          {isSendingMessage ? "SENDING..." : "SEND"}
         </Button>
       </div>
     </Modal>
   );
 }
-
-ImageModal.propTypes = {
-  action: PropTypes.func.isRequired,
-};

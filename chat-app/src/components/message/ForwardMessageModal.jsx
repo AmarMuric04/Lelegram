@@ -4,12 +4,12 @@ import {
   resetMessage,
   setForwardedChat,
   setIsSelecting,
-} from "../../store/messageSlice";
-import { closeModal } from "../../store/modalSlice";
+} from "../../store/redux/messageSlice";
+import { closeModal } from "../../store/redux/modalSlice";
 import { CrossSVG } from "../../../public/svgs";
 import Modal from "../Modal";
 import AsideChat from "../AsideChat";
-import { setSelected } from "../../store/authSlice";
+import { setSelected } from "../../store/redux/authSlice";
 
 export default function ForwardMessageModal() {
   const dispatch = useDispatch();

@@ -1,9 +1,9 @@
 import { useSelector } from "react-redux";
 import Modal from "../Modal";
-import { closeModal } from "../../store/modalSlice";
+import { closeModal } from "../../store/redux/modalSlice";
 import { useDispatch } from "react-redux";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { setActiveChat } from "../../store/chatSlice";
+import { setActiveChat } from "../../store/redux/chatSlice";
 import { Button } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";

@@ -1,15 +1,17 @@
 import { useState } from "react";
 import Modal from "../Modal";
-import { closeModal } from "../../store/modalSlice";
+import { closeModal } from "../../store/redux/modalSlice.js";
 import { CrossSVG } from "../../../public/svgs";
 import { Button } from "@mui/material";
-import { setMessageType } from "../../store/messageSlice";
+import { setMessageType } from "../../store/redux/messageSlice.js";
 import Input from "../Input";
 import { useDispatch } from "react-redux";
-import PropTypes from "prop-types";
 import { PollSettings } from "./PollSettings.jsx";
+import { useMessageContext } from "../../store/context/MessageProvider.jsx";
 
-export default function PollModal({ action }) {
+export default function PollModal() {
+  const { sendMessage, isSendingMessage } = useMessageContext();
+
   const [poll, setPoll] = useState({
     question: "",
     explanation: "",
@@ -67,20 +69,8 @@ export default function PollModal({ action }) {
               (!poll.correctAnswer || !poll.explanation))
           }
           onClick={() => {
-            console.log("Button clicked");
-            console.log("Poll state:", poll);
-            console.log(
-              "Action function exists:",
-              typeof action === "function"
-            );
-
             dispatch(setMessageType("poll"));
-
-            if (typeof action === "function") {
-              action({ poll });
-            } else {
-              console.error("Action is not a function!");
-            }
+            sendMessage({ poll });
 
             handleResetPoll();
             dispatch(closeModal());
@@ -93,7 +83,7 @@ export default function PollModal({ action }) {
           }}
           variant="contained"
         >
-          CREATE
+          {isSendingMessage ? "CREATING..." : "CREATE"}
         </Button>
       </header>
       <Input
@@ -189,7 +179,3 @@ export default function PollModal({ action }) {
     </Modal>
   );
 }
-
-PollModal.propTypes = {
-  action: PropTypes.func.isRequired,
-};

@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { resetMessage } from "../../store/messageSlice";
+import { resetMessage } from "../../store/redux/messageSlice";
 import PropTypes from "prop-types";
 
 export default function SpecialMessage({ message, topMessage, icon }) {

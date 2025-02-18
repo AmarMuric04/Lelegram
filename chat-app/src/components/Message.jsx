@@ -6,15 +6,15 @@ import {
   setMessageToEdit,
   setMessageType,
   setSelected,
-} from "../store/messageSlice";
+} from "../store/redux/messageSlice";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import ReactDOM from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { copyToClipboard } from "../utility/util";
-import { openModal } from "../store/modalSlice";
+import { openModal } from "../store/redux/modalSlice";
 import { useMutation } from "@tanstack/react-query";
-import { setActiveChat } from "../store/chatSlice";
+import { setActiveChat } from "../store/redux/chatSlice";
 
 export default function Message({
   message,
@@ -170,7 +170,6 @@ export default function Message({
 
       const data = await response.json();
 
-      console.log(data);
       return data;
     } catch (err) {
       console.error(err);
@@ -181,8 +180,6 @@ export default function Message({
   const { mutate: addReaction } = useMutation({
     mutationFn: handleAddReaction,
   });
-
-  if (message.imageUrl) console.log(message);
 
   const handlePinMessage = async () => {
     try {
@@ -1004,7 +1001,7 @@ export default function Message({
               </div>
             )}
             <div className="flex flex-wrap items-baseline justify-end">
-              {message.type !== "forward" && (
+              {message.type !== "forward" && message.type !== "poll" && (
                 <p className="flex-grow break-words break-all">
                   {message.message}
                 </p>

@@ -7,7 +7,7 @@ export default function PopUpMenuItem({ itemClasses, action, children }) {
       onClick={action}
       className={`hover:bg-[#303030] relative z-50 ${
         itemClasses && itemClasses
-      }  cursor-pointer flex gap-2 items-center  transition-all p-2 rounded-md`}
+      }  cursor-pointer flex gap-2 items-center  transition-all p-2 rounded-md text-[16px]`}
     >
       {children}
     </button>

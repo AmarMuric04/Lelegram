@@ -5,7 +5,7 @@ import PopUpMenuItem from "./PopUpMenuItem";
 import Search from "./Search";
 import AsideChatWrapper from "./AsideChatWrapper";
 import { useDispatch, useSelector } from "react-redux";
-import { setIsFocused, setSearch } from "../store/searchSlice";
+import { setIsFocused, setSearch } from "../store/redux/searchSlice";
 import AsideChat from "./AsideChat";
 import { signOut } from "../utility/util";
 import ModifyChat from "./chat/ModifyChat";
@@ -19,8 +19,6 @@ export default function Aside() {
   const token = localStorage.getItem("token");
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-
-  console.log(addingChannel);
 
   const handleCreateChat = async (chat) => {
     try {

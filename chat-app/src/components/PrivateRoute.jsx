@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { setUser } from "../store/authSlice";
+import { setUser } from "../store/redux/authSlice";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { connectSocket, socket, disconnectSocket } from "../socket";

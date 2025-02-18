@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setPhoneNumber } from "../store/authSlice";
+import { setPhoneNumber } from "../store/redux/authSlice";
 import PropTypes from "prop-types";
 import Input from "./Input";
 

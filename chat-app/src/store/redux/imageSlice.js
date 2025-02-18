@@ -13,8 +13,9 @@ const imageSlice = createSlice({
       state.url = action.payload.url;
       state.preview = action.payload.preview;
     },
+    resetImage: () => initialState,
   },
 });
 
-export const { setImage } = imageSlice.actions;
+export const { setImage, resetImage } = imageSlice.actions;
 export default imageSlice.reducer;

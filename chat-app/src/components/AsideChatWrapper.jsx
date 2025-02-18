@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import cat from "../assets/undraw_cat_lqdj.svg";
 import { useDispatch } from "react-redux";
-import { setUserChats } from "../store/chatSlice";
+import { setUserChats } from "../store/redux/chatSlice";
 
 export default function AsideChatWrapper() {
   const token = localStorage.getItem("token");

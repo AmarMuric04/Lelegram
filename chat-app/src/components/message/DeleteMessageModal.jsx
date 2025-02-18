@@ -1,9 +1,9 @@
 import { useDispatch, useSelector } from "react-redux";
 import Modal from "../Modal";
-import { closeModal } from "../../store/modalSlice";
+import { closeModal } from "../../store/redux/modalSlice";
 import { Button } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
-import { resetMessage } from "../../store/messageSlice";
+import { resetMessage } from "../../store/redux/messageSlice";
 
 export default function DeleteMessageModal() {
   const { activeChat } = useSelector((state) => state.chat);

@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { setSearch, setIsFocused, setValue } from "../store/searchSlice";
+import { setSearch, setIsFocused, setValue } from "../store/redux/searchSlice";
 import PropTypes from "prop-types";
 import { useQuery } from "@tanstack/react-query";
 
