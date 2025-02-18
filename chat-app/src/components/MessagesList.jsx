@@ -6,7 +6,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import Message from "./Message";
 
@@ -19,6 +19,7 @@ const MessagesList = forwardRef(function MessagesList(
   const { messageType, forwardedChat, messageToEdit } = useSelector(
     (state) => state.message
   );
+  const dispatch = useDispatch();
 
   const bottomRef = useRef(null);
   const messagesRef = useRef(null);
@@ -27,7 +28,7 @@ const MessagesList = forwardRef(function MessagesList(
   const [activeContextMenu, setActiveContextMenu] = useState(null);
 
   const handleContextMenu = (messageId, x, y) => {
-    setActiveContextMenu({ id: messageId, x, y });
+    dispatch(setActiveContextMenu({ id: messageId, x, y }));
   };
 
   const clearContextMenu = () => {

@@ -5,6 +5,7 @@ import chatReducer from "./chatSlice.js";
 import searchReducer from "./searchSlice.js";
 import messageReducer from "./messageSlice.js";
 import imageReducer from "./imageSlice.js";
+import contextMenuReducer from "./contextMenuSlice.js";
 
 const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ const store = configureStore({
     search: searchReducer,
     message: messageReducer,
     image: imageReducer,
+    contextMenu: contextMenuReducer,
   },
 });
 

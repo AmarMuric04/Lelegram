@@ -6,12 +6,7 @@ import { setActiveChat } from "../store/redux/chatSlice.js";
 import Aside from "./Aside";
 import { io } from "socket.io-client";
 
-import {
-  resetMessage,
-  setMessage,
-  setMessageType,
-  setValue,
-} from "../store/redux/messageSlice.js";
+import { resetMessage, setValue } from "../store/redux/messageSlice.js";
 
 import ConditionalModals from "./modal/ConditionalModals.jsx";
 import ChatBackground from "./chat/ChatBackground.jsx";
