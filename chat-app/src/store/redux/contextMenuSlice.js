@@ -4,16 +4,17 @@ const contextMenuSlice = createSlice({
   name: "contextMenu",
   initialState: {
     open: false,
-    contextMenuPosition: null,
+    contextMenuInfo: null,
+    id: null,
   },
   reducers: {
     openContextMenu: (state, action) => {
       state.open = true;
-      state.contextMenuPosition = action.payload;
+      state.contextMenuInfo = action.payload;
     },
     closeContextMenu: (state) => {
       state.open = false;
-      state.contextMenuPosition = null;
+      state.contextMenuInfo = null;
     },
   },
 });

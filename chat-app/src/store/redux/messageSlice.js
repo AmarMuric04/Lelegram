@@ -35,6 +35,11 @@ const messageSlice = createSlice({
     setSelected: (state, action) => {
       state.selected = action.payload;
     },
+    startForwarding: (state) => {
+      state.messageType = "forward";
+      state.message = state.selected;
+      state.forwardedChat = null;
+    },
     resetMessage: () => initialState,
   },
 });
@@ -48,5 +53,6 @@ export const {
   setSelected,
   resetMessage,
   setValue,
+  startForwarding,
 } = messageSlice.actions;
 export default messageSlice.reducer;

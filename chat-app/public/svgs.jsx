@@ -357,3 +357,77 @@ LinkSVG.propTypes = {
   classes: PropTypes.string,
   dimensions: PropTypes.number,
 };
+
+export const LightbulbSVG = ({ classes, dimensions = 20 }) => (
+  <svg
+    className={`${classes && classes}`}
+    xmlns="http://www.w3.org/2000/svg"
+    width={dimensions}
+    height={dimensions}
+    viewBox="0 0 24 24"
+  >
+    <rect width="24" height="24" fill="none" />
+    <g
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.5"
+      color="currentColor"
+    >
+      <path d="M5.143 14A7.8 7.8 0 0 1 4 9.919C4 5.545 7.582 2 12 2s8 3.545 8 7.919A7.8 7.8 0 0 1 18.857 14" />
+      <path d="M14 10c-.613.643-1.289 1-2 1s-1.387-.357-2-1m-2.617 7.098c-.092-.276-.138-.415-.133-.527a.6.6 0 0 1 .382-.53c.104-.041.25-.041.54-.041h7.656c.291 0 .436 0 .54.04a.6.6 0 0 1 .382.531c.005.112-.041.25-.133.527c-.17.511-.255.767-.386.974a2 2 0 0 1-1.2.869c-.238.059-.506.059-1.043.059h-3.976c-.537 0-.806 0-1.043-.06a2 2 0 0 1-1.2-.868c-.131-.207-.216-.463-.386-.974M15 19l-.13.647c-.14.707-.211 1.06-.37 1.34a2 2 0 0 1-1.113.912C13.082 22 12.72 22 12 22s-1.082 0-1.387-.1a2 2 0 0 1-1.113-.913c-.159-.28-.23-.633-.37-1.34L9 19m3-3.5V11" />
+    </g>
+  </svg>
+);
+
+LightbulbSVG.propTypes = {
+  classes: PropTypes.string,
+  dimensions: PropTypes.number,
+};
+
+export const CheckmarkSVG = ({ classes, dimensions = 20 }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={dimensions}
+    height={dimensions}
+    viewBox="0 0 32 32"
+    className={`${classes && classes}`}
+  >
+    <rect width="32" height="32" fill="none" />
+    <path
+      fill="currentColor"
+      d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2m-2 19.59l-5-5L10.59 15L14 18.41L21.41 11l1.596 1.586Z"
+    />
+    <path
+      fill="none"
+      d="m14 21.591l-5-5L10.591 15L14 18.409L21.41 11l1.595 1.585z"
+    />
+  </svg>
+);
+
+CheckmarkSVG.propTypes = {
+  classes: PropTypes.string,
+  dimensions: PropTypes.number,
+};
+
+export const IncorrectSVG = ({ classes, dimensions = 20 }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={dimensions}
+    height={dimensions}
+    viewBox="0 0 15 15"
+    className={`${classes && classes}`}
+  >
+    <rect width="15" height="15" fill="none" />
+    <path
+      fill="currentColor"
+      d="M3.64 2.27L7.5 6.13l3.84-3.84A.92.92 0 0 1 12 2a1 1 0 0 1 1 1a.9.9 0 0 1-.27.66L8.84 7.5l3.89 3.89A.9.9 0 0 1 13 12a1 1 0 0 1-1 1a.92.92 0 0 1-.69-.27L7.5 8.87l-3.85 3.85A.92.92 0 0 1 3 13a1 1 0 0 1-1-1a.9.9 0 0 1 .27-.66L6.16 7.5L2.27 3.61A.9.9 0 0 1 2 3a1 1 0 0 1 1-1c.24.003.47.1.64.27"
+    />
+  </svg>
+);
+
+IncorrectSVG.propTypes = {
+  classes: PropTypes.string,
+  dimensions: PropTypes.number,
+};

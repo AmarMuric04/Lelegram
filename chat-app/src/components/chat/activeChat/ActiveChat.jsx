@@ -122,7 +122,7 @@ export default function ActiveChat() {
           >
             <div className="flex flex-col w-full items-center justify-end max-h-[100%]">
               <div
-                className={`transition-all flex h-full ${
+                className={`transition-all flex h-full overflow-y-auto ${
                   viewChatInfo ? "w-[80%]" : "w-[55%]"
                 } flex-col gap-2`}
               >

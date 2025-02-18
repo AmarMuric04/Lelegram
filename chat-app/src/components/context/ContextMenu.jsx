@@ -6,9 +6,7 @@ import { useEffect, useRef } from "react";
 
 export default function ContextMenu({ children }) {
   const dispatch = useDispatch();
-  const { open, contextMenuPosition } = useSelector(
-    (state) => state.contextMenu
-  );
+  const { open, contextMenuInfo } = useSelector((state) => state.contextMenu);
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -59,16 +57,16 @@ export default function ContextMenu({ children }) {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [dispatch]);
 
-  if (!open || !contextMenuPosition) return null;
+  if (!open || !contextMenuInfo) return null;
 
   return ReactDOM.createPortal(
     <div
       ref={modalRef}
-      className="appearAnimation text-white bg-[#202021] rounded-xl shadow-xl"
+      className="appearAnimation text-white bg-[#202021] rounded-xl shadow-md"
       style={{
         position: "absolute",
-        top: contextMenuPosition.y,
-        left: contextMenuPosition.x,
+        top: contextMenuInfo.y,
+        left: contextMenuInfo.x,
         padding: "10px",
         zIndex: 1000,
       }}

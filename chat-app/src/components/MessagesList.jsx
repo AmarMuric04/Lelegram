@@ -6,7 +6,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import Message from "./Message";
 
@@ -19,21 +19,12 @@ const MessagesList = forwardRef(function MessagesList(
   const { messageType, forwardedChat, messageToEdit } = useSelector(
     (state) => state.message
   );
-  const dispatch = useDispatch();
+  const { open } = useSelector((state) => state.contextMenu);
 
   const bottomRef = useRef(null);
   const messagesRef = useRef(null);
   const [messageId, setMessageId] = useState(null);
   const location = useLocation();
-  const [activeContextMenu, setActiveContextMenu] = useState(null);
-
-  const handleContextMenu = (messageId, x, y) => {
-    dispatch(setActiveContextMenu({ id: messageId, x, y }));
-  };
-
-  const clearContextMenu = () => {
-    setActiveContextMenu(null);
-  };
 
   useEffect(() => {
     const messageIdFromUrl = location.hash.replace("#", "");
@@ -114,7 +105,7 @@ const MessagesList = forwardRef(function MessagesList(
       className={`relative ${
         specialMessage && "bottom-10"
       } bottom-0 z-10 messages-list-container transition-all ${
-        activeContextMenu ? "overflow-hidden" : "overflow-y-auto"
+        open ? "overflow-hidden" : "overflow-y-auto"
       } ${viewInfo ? "w-full" : "w-[90%]"}`}
     >
       <div className="text-center my-2 flex flex-col items-center gap-2">
@@ -205,14 +196,6 @@ const MessagesList = forwardRef(function MessagesList(
                         showImage={showImage}
                         showSenderInfo={showSenderInfo}
                         messageId={messageId}
-                        isActiveContextMenu={
-                          activeContextMenu?.id === message._id
-                        }
-                        contextMenuPosition={activeContextMenu}
-                        onContextMenu={(x, y) =>
-                          handleContextMenu(message._id, x, y)
-                        }
-                        onClearContextMenu={clearContextMenu}
                       />
                     )}
                     <Message
@@ -223,14 +206,6 @@ const MessagesList = forwardRef(function MessagesList(
                       showImage={showImage}
                       showSenderInfo={showSenderInfo}
                       messageId={messageId}
-                      isActiveContextMenu={
-                        activeContextMenu?.id === message._id
-                      }
-                      contextMenuPosition={activeContextMenu}
-                      onContextMenu={(x, y) =>
-                        handleContextMenu(message._id, x, y)
-                      }
-                      onClearContextMenu={clearContextMenu}
                     />
                   </>
                 );
