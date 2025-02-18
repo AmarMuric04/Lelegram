@@ -5,8 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import PopUpMenu from "./PopUpMenu";
 import PopUpMenuItem from "./PopUpMenuItem";
-import { closeModal, openModal } from "../store/modalSlice";
-import Modal from "./Modal";
+import { openModal } from "../store/modalSlice";
 import { Button } from "@mui/material";
 import { setActiveChat } from "../store/chatSlice";
 import Aside from "./Aside";
@@ -14,22 +13,24 @@ import { setIsFocused } from "../store/searchSlice";
 import MessagesList from "./MessagesList";
 import { io } from "socket.io-client";
 import Gradient from "../assets/gradient.png";
-import cat from "../assets/undraw_cat_lqdj.svg";
 import {
   resetMessage,
   setForwardedChat,
   setIsSelecting,
   setMessage,
-  setMessageToEdit,
   setMessageType,
   setSelected,
 } from "../store/messageSlice";
-import AsideChat from "./AsideChat";
 import { handlePostInput } from "../utility/util";
-import { CrossSVG, EditSVG, ForwardSVG, ReplySVG } from "../../public/svgs.jsx";
+import { EditSVG, ForwardSVG, ReplySVG } from "../../public/svgs.jsx";
 import SpecialMessage from "./messages/SpecialMessage.jsx";
 import ModifyChat from "./chat/ModifyChat.jsx";
 import PollModal from "./poll/PollModal.jsx";
+import ImageModal from "./messages/ImageModal.jsx";
+import DeleteMessageModal from "./messages/DeleteMessageModal.jsx";
+import ForwardMessageModal from "./messages/ForwardMessageModal.jsx";
+import LeaveChatModal from "./chat/LeaveChatModal.jsx";
+import ChatImage from "./chat/ChatImage.jsx";
 
 const socket = io("http://localhost:3000");
 
@@ -38,17 +39,6 @@ export default function Main() {
   const [viewInfo, setViewInfo] = useState(false);
   const [activeSelect, setActiveSelect] = useState("members");
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const [deleteForAll, setDeleteForAll] = useState(false);
-
-  const initialMWI = {
-    url: null,
-    caption: "",
-    preview: null,
-  };
-
-  const [msgImage, setMsgImage] = useState(initialMWI);
-
-  const handleResetMWI = () => setMsgImage(initialMWI);
 
   const [editingChannel, setEditingChannel] = useState(false);
 
@@ -61,7 +51,7 @@ export default function Main() {
   const messagesListRef = useRef(null);
 
   const { user } = useSelector((state) => state.auth);
-  const { activeChat, userChats } = useSelector((state) => state.chat);
+  const { activeChat } = useSelector((state) => state.chat);
   const { select } = useSelector((state) => state.search);
   const {
     message,
@@ -202,63 +192,33 @@ export default function Main() {
     enabled: !!activeChat,
   });
 
-  const handleDeleteMessage = async () => {
-    try {
-      let refIds = message._id;
-      if (Array.isArray(message)) {
-        refIds = message.map((m) => m._id);
-      }
-      const response = await fetch(
-        "http://localhost:3000/message/delete-message",
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
-          },
-          body: JSON.stringify({
-            messageId: refIds,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error("Sending a message failed.");
-      }
-
-      queryClient.invalidateQueries(["messages", activeChat?._id]);
-      queryClient.invalidateQueries(["search", select]);
-
-      dispatch(setMessage(null));
-      dispatch(setIsSelecting(false));
-      dispatch(setSelected([]));
-      messagesListRef.current?.scrollToBottom();
-
-      return data;
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const { mutate: deleteMessage } = useMutation({
-    mutationFn: handleDeleteMessage,
-  });
-
-  const handleSendMessage = async () => {
+  const handleSendMessage = async ({ poll, msgImage }) => {
     try {
       const formData = new FormData();
 
-      formData.append(
-        "message",
-        msgImage.photoCaption ? msgImage.photoCaption : value
-      );
+      if (poll) {
+        formData.append("pollQuestion", poll.question);
+        poll.options
+          ?.filter((p) => p.trim() !== "")
+          .forEach((option, index) => {
+            formData.append(`pollOptions[${index}]`, option);
+          });
+        formData.append("pollSettings", JSON.stringify(poll.settings));
+        formData.append("pollExplanation", poll.explanation);
+        formData.append("pollCorrectAnswer", poll.correctAnswer);
+      }
+
+      if (msgImage) {
+        formData.append("message", msgImage.caption ? msgImage.caption : value);
+        if (msgImage.url) {
+          formData.append("imageUrl", msgImage.url);
+        }
+      }
+
+      if (!msgImage?.caption) formData.append("message", value);
+
       formData.append("chatId", activeChat._id);
       formData.append("type", messageType);
-      if (msgImage.photoUrl) {
-        formData.append("imageUrl", msgImage.photoUrl);
-      }
 
       if (Array.isArray(message)) {
         message.forEach((m, index) => {
@@ -266,18 +226,6 @@ export default function Main() {
         });
       } else if (message?._id) {
         formData.append("referenceMessageId", message._id);
-      }
-
-      if (messageType === "poll") {
-        formData.append("pollQuestion", poll.question);
-        poll.options
-          .filter((p) => p.trim() !== "")
-          .forEach((option, index) => {
-            formData.append(`pollOptions[${index}]`, option);
-          });
-        formData.append("pollSettings", JSON.stringify(poll.settings));
-        formData.append("pollExplanation", poll.explanation);
-        formData.append("pollCorrectAnswer", poll.correctAnswer);
       }
 
       const response = await fetch(
@@ -293,8 +241,6 @@ export default function Main() {
 
       const data = await response.json();
 
-      console.log(data);
-
       if (!response.ok) {
         throw new Error("Sending a message failed.");
       }
@@ -303,18 +249,21 @@ export default function Main() {
 
       setValue("");
       dispatch(resetMessage());
-      handleResetMWI();
 
       messagesListRef.current?.scrollToBottom();
 
       return data;
     } catch (error) {
       console.error(error);
+      throw error;
     }
   };
 
   const { mutate: sendMessage, isPending } = useMutation({
-    mutationFn: handleSendMessage,
+    mutationFn: (data = {}) => handleSendMessage(data),
+    onError: (data) => {
+      console.log(data);
+    },
   });
 
   const handleEditMessage = async () => {
@@ -344,9 +293,7 @@ export default function Main() {
       queryClient.invalidateQueries(["search", select]);
 
       setValue("");
-      dispatch(setMessage(null));
-      dispatch(setMessageType("normal"));
-      dispatch(setMessageToEdit(null));
+      dispatch(resetMessage());
 
       return data;
     } catch (error) {
@@ -396,72 +343,6 @@ export default function Main() {
     mutationFn: ({ userId }) => handleAddUserToChat(userId),
   });
 
-  const handleRemoveUserFromChat = async (userId) => {
-    try {
-      const response = await fetch(
-        "http://localhost:3000/chat/remove-user/" + activeChat._id,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: "Bearer " + token,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error("Couldn't remove user from the chat.");
-      }
-
-      queryClient.invalidateQueries(["chats"]);
-      dispatch(setActiveChat(null));
-      dispatch(closeModal());
-
-      return data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  };
-
-  const { mutate: removeUserFromChat, removeUserIsPending } = useMutation({
-    mutationFn: ({ userId }) => handleRemoveUserFromChat(userId),
-    onSuccess: () => dispatch(closeModal()),
-  });
-
-  const handleDeleteChat = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/chat/delete-chat", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify({ chatId: activeChat._id }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Deleting the chat failed.");
-      }
-
-      queryClient.invalidateQueries(["chats"]);
-      dispatch(setActiveChat(null));
-      dispatch(closeModal());
-
-      return await response.json();
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  };
-
-  const { mutate: deleteChat } = useMutation({
-    mutationFn: handleDeleteChat,
-  });
-
   const isAdmin = activeChat?.admins?.some(
     (u) => u._id.toString() === user._id
   );
@@ -481,245 +362,11 @@ export default function Main() {
 
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center ">
-      {activeChat && (
-        <Modal id="leave-channel">
-          <header className="flex items-center gap-5">
-            {activeChat?.imageUrl ? (
-              <img
-                src={`http://localhost:3000/${activeChat.imageUrl}`}
-                alt={activeChat.name}
-                className="min-h-8 max-h-8 min-w-8 max-w-8 rounded-full object-cover"
-              />
-            ) : (
-              <div
-                className="h-8 w-8 rounded-full text-xs grid place-items-center font-semibold text-white"
-                style={{
-                  background: `linear-gradient(${
-                    activeChat?.gradient?.direction
-                  }, ${activeChat?.gradient?.colors.join(", ")})`,
-                }}
-              >
-                {activeChat?.name?.slice(0, 3)}
-              </div>
-            )}
-            <p className="font-semibold text-xl">Delete channel</p>
-          </header>
-          <p className="mt-4 font-semibold">
-            Do you want to delete and leave the <br /> channel?
-          </p>
-          {isAdmin && (
-            <div className="checkbox-wrapper-4 w-full h-[4rem] flex items-center">
-              <input
-                onChange={() => setDeleteForAll(!deleteForAll)}
-                className="inp-cbx"
-                id="morning"
-                type="checkbox"
-              />
-              <label
-                className="cbx w-full h-full flex gap-8 items-center"
-                htmlFor="morning"
-              >
-                <span>
-                  <svg width="12px" height="10px">
-                    <use xlinkHref="#check-4"></use>
-                  </svg>
-                </span>
-                <span className="font-normal">Delete for all subscribers</span>
-              </label>
-              <svg className="inline-svg">
-                <symbol id="check-4" viewBox="0 0 12 10">
-                  <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
-                </symbol>
-              </svg>
-            </div>
-          )}
-          <div className="flex">
-            <Button
-              onClick={() => dispatch(closeModal())}
-              sx={{
-                backgroundColor: "transparent",
-                color: "#8675DC",
-                padding: "16px",
-                borderRadius: "12px",
-                width: "40%",
-              }}
-              variant="contained"
-            >
-              CANCEL
-            </Button>
-            <Button
-              onClick={() => {
-                if (deleteForAll) {
-                  deleteChat();
-                } else removeUserFromChat({ userId: userId });
-              }}
-              sx={{
-                backgroundColor: "transparent",
-                color: "#f56565",
-                width: "100%",
-                padding: "16px",
-                borderRadius: "12px",
-              }}
-              variant="contained"
-            >
-              {removeUserIsPending ? "PLEASE WAIT..." : "DELETE CHANNEL"}
-            </Button>
-          </div>
-        </Modal>
-      )}
-      <Modal extraClasses="w-[30rem]" id="forward-to-channels">
-        <div className=" text-[#ccc] flex gap-4 items-center">
-          <button
-            onClick={() => {
-              dispatch(closeModal());
-              dispatch(resetMessage());
-            }}
-            className="hover:bg-[#303030] cursor-pointer transition-all p-2 rounded-full"
-          >
-            <CrossSVG />
-          </button>
-          <h1 className="font-semibold text-xl">Forward to</h1>
-        </div>
-        {userChats?.length === 1 && (
-          <div className="flex py-20 items-center justify-center flex-col gap-2 h-full w-ful">
-            <img className="w-1/2" src={cat} alt="No chats available" />
-            <p className="text-[#ccc] text-sm font-semibold">
-              You are not in any chats yet
-            </p>
-            <p className="text-[#ccc] text-xs">
-              Try searching for one or check out all the chats
-            </p>
-          </div>
-        )}
-        {userChats.map((chat) => {
-          if (chat?._id === activeChat?._id) return;
-          return (
-            <AsideChat
-              key={chat._id}
-              action={() => {
-                dispatch(setForwardedChat(chat));
-                dispatch(closeModal());
-
-                if (isSelecting) {
-                  dispatch(setIsSelecting(false));
-                  dispatch(setSelected([]));
-                }
-              }}
-              chat={chat}
-            />
-          );
-        })}
-      </Modal>
-      <Modal id="delete-message">
-        <header className="flex items-center gap-5">
-          {activeChat?.imageUrl ? (
-            <img
-              src={`http://localhost:3000/${activeChat.imageUrl}`}
-              alt={activeChat.name}
-              className="min-h-8 max-h-8 min-w-8 max-w-8 rounded-full object-cover"
-            />
-          ) : (
-            <div
-              className="h-8 w-8 rounded-full text-xs grid place-items-center font-semibold text-white"
-              style={{
-                background: `linear-gradient(${
-                  activeChat?.gradient?.direction
-                }, ${activeChat?.gradient?.colors.join(", ")})`,
-              }}
-            >
-              {activeChat?.name?.slice(0, 3)}
-            </div>
-          )}
-          <p className="font-semibold text-xl">
-            Delete {Array.isArray && message?.length} message
-            {Array.isArray(message) && message.length > 1 && "s"}
-          </p>
-        </header>
-        <p className="mt-4 font-semibold">
-          Are you sure you want to delete{" "}
-          {Array.isArray(message) ? "these" : "this"} <br /> message
-          {Array.isArray(message) && message.length > 1 && "s"}{" "}
-          {Array.isArray(message) && "for everyone"}?
-        </p>
-
-        <div className="flex items-center justify-end">
-          <Button
-            onClick={() => dispatch(closeModal())}
-            sx={{
-              backgroundColor: "transparent",
-              color: "#8675DC",
-              padding: "16px",
-              borderRadius: "12px",
-              width: "40%",
-            }}
-            variant="contained"
-          >
-            CANCEL
-          </Button>
-          <Button
-            onClick={() => {
-              deleteMessage();
-              dispatch(closeModal());
-            }}
-            sx={{
-              backgroundColor: "transparent",
-              color: "#f56565",
-              padding: "16px",
-              borderRadius: "12px",
-            }}
-            variant="contained"
-          >
-            {removeUserIsPending ? "PLEASE WAIT..." : "DELETE"}
-          </Button>
-        </div>
-      </Modal>
-      <Modal id="send-photo">
-        <header className="flex gap-10 items-center text-lg font-semibold">
-          <button
-            onClick={() => {
-              handleResetMWI();
-              dispatch(closeModal());
-            }}
-            className="hover:bg-[#303030] cursor-pointer transition-all p-2 rounded-full"
-          >
-            <CrossSVG />
-          </button>
-          <h1>Send Photo</h1>
-        </header>
-        {msgImage.photoPreview && (
-          <img
-            className="max-w-[20rem] mx-auto max-h-[20rem] my-4"
-            src={msgImage.photoPreview}
-          />
-        )}
-
-        <div className="flex gap-4">
-          <input
-            onChange={(e) =>
-              setMsgImage({ ...msgImage, caption: e.target.value })
-            }
-            value={msgImage.photoCaption}
-            className="focus:outline-none py-2 w-full"
-            placeholder="Add a caption..."
-          />
-          <Button
-            onClick={async () => {
-              await sendMessage();
-              dispatch(closeModal());
-            }}
-            sx={{
-              backgroundColor: "#8675DC",
-              padding: "4px",
-              borderRadius: "12px",
-              width: "30%",
-            }}
-            variant="contained"
-          >
-            SEND
-          </Button>
-        </div>
-      </Modal>
-      <PollModal action={async () => await sendMessage()} />
+      <LeaveChatModal isAdmin={isAdmin} />
+      <ForwardMessageModal />
+      <DeleteMessageModal />
+      <ImageModal action={sendMessage} />
+      <PollModal action={sendMessage} />
 
       <div className="w-[85vw] flex justify-between overflow-hidden">
         <Aside />
@@ -747,24 +394,7 @@ export default function Main() {
                   className="relative z-210 border-x-2 border-[#151515] bg-[#252525] w-full px-5 py-2 flex justify-between items-center gap-5 h-[5%] cursor-pointer"
                 >
                   <div className="flex gap-5 items-center">
-                    {activeChat?.imageUrl ? (
-                      <img
-                        src={`http://localhost:3000/${activeChat.imageUrl}`}
-                        alt={activeChat.name}
-                        className="min-h-10 max-h-10 min-w-10 max-w-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div
-                        className="h-10 w-10 rounded-full text-xs grid place-items-center font-semibold text-white"
-                        style={{
-                          background: `linear-gradient(${
-                            activeChat?.gradient.direction
-                          }, ${activeChat?.gradient.colors.join(", ")})`,
-                        }}
-                      >
-                        {activeChat?.name.slice(0, 3)}
-                      </div>
-                    )}
+                    <ChatImage dimensions={10} />
                     <div>
                       <p className="font-semibold">{activeChat.name}</p>
                       <p className="text-[#ccc] text-sm -mt-1">
@@ -933,13 +563,13 @@ export default function Main() {
                         />
                       )}
                       <div
-                        className={`relative z-10 flex justify-between gap-2 w-full`}
+                        className={`relative h-[3.5rem] z-10 flex justify-between gap-2 w-full`}
                       >
                         {isSelecting && (
                           <div
                             className={`${
                               !isInChat && "jumpInAnimation"
-                            } absolute left-1/2 -translate-x-1/2  bg-[#252525] flex gap-4 px-4 py-2 h-full rounded-2xl z-10 items-center w-[70%] justify-between`}
+                            } absolute left-1/2 -translate-x-1/2 transition-all bg-[#252525] flex gap-4 px-4 py-2 h-full rounded-2xl z-10 items-center w-[70%] justify-between`}
                           >
                             <div className="flex items-center">
                               <button
@@ -1071,8 +701,9 @@ export default function Main() {
                               value={value}
                               onChange={(e) => setValue(e.target.value)}
                               placeholder={!isSelecting && "Broadcast"}
-                              className={`bg-[#252525] transition-all duration-300 ease-in-out relative focus:outline-none py-2 rounded-2xl px-4
-                              ${isSelecting ? "w-[70%]" : "w-[89%]"} mx-auto`}
+                              className={`bg-[#252525] transition-all ease-in-out relative focus:outline-none py-2 rounded-2xl px-4 ${
+                                isSelecting ? "w-[70%]" : "w-[89%]"
+                              } mx-auto`}
                             />
 
                             {showScrollButton && (
@@ -1131,14 +762,14 @@ export default function Main() {
                                         console.log(
                                           "User canceled image selection."
                                         );
-                                        handleResetMWI();
+                                        dispatch(resetMessage());
                                         return;
                                       }
 
                                       await handlePostInput(
                                         e.target.value,
                                         e.target.files,
-                                        setMsgImage
+                                        dispatch
                                       );
 
                                       dispatch(openModal("send-photo"));
@@ -1335,24 +966,7 @@ export default function Main() {
               )}
             </header>
             <div className="mx-2 flex flex-col items-center mt-6 w-full">
-              {activeChat?.imageUrl ? (
-                <img
-                  src={`http://localhost:3000/${activeChat.imageUrl}`}
-                  alt={activeChat.name}
-                  className="min-h-28 max-h-28 min-w-28 max-w-28 rounded-full object-cover"
-                />
-              ) : (
-                <div
-                  className="h-28 w-28 rounded-full text-2xl grid place-items-center font-semibold text-white"
-                  style={{
-                    background: `linear-gradient(${
-                      activeChat?.gradient.direction
-                    }, ${activeChat?.gradient.colors.join(", ")})`,
-                  }}
-                >
-                  {activeChat?.name.slice(0, 3)}
-                </div>
-              )}
+              <ChatImage dimensions={20} />
               <p className="mx-2 mt-4 font-semibold text-lg">
                 {activeChat?.name}
               </p>
@@ -1377,7 +991,7 @@ export default function Main() {
                   <div className="flex flex-col max-w-[90%]">
                     <p>
                       {activeChat?.description
-                        ? activeChat?.description
+                        ? activeChat.description
                         : "No description given."}
                     </p>
                     <span className="text-[#ccc] text-sm mt-2">Info</span>

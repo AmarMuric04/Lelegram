@@ -1,15 +1,17 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const initialState = {
+  message: null,
+  messageType: "normal",
+  forwardedChat: null,
+  messageToEdit: null,
+  isSelecting: false,
+  selected: [],
+};
+
 const messageSlice = createSlice({
   name: "message",
-  initialState: {
-    message: null,
-    messageType: "normal",
-    forwardedChat: null,
-    messageToEdit: null,
-    isSelecting: false,
-    selected: [],
-  },
+  initialState,
   reducers: {
     setMessage: (state, action) => {
       state.message = action.payload;
@@ -29,11 +31,7 @@ const messageSlice = createSlice({
     setSelected: (state, action) => {
       state.selected = action.payload;
     },
-    resetMessage: (state) => {
-      state.forwardedChat = null;
-      state.messageType = "normal";
-      state.message = null;
-    },
+    resetMessage: () => initialState,
   },
 });
 

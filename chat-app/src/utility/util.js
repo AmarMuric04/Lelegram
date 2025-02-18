@@ -1,4 +1,5 @@
 import { setUser } from "../store/authSlice";
+import { setImage } from "../store/imageSlice";
 
 export const generateBase64FromImage = (imageFile) => {
   const reader = new FileReader();
@@ -11,14 +12,14 @@ export const generateBase64FromImage = (imageFile) => {
   return promise;
 };
 
-export const handlePostInput = async (value, files, setMsgImage, msgImage) => {
+export const handlePostInput = async (value, files, dispatch) => {
   try {
     if (files && files[0]) {
       const file = files[0];
 
       const b64 = await generateBase64FromImage(file);
 
-      setMsgImage({ ...msgImage, url: file, preview: b64 });
+      dispatch(setImage({ url: file, preview: b64 }));
     } else {
       console.error("No file selected.");
     }

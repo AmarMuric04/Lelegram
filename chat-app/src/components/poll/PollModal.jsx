@@ -67,8 +67,21 @@ export default function PollModal({ action }) {
               (!poll.correctAnswer || !poll.explanation))
           }
           onClick={() => {
+            console.log("Button clicked");
+            console.log("Poll state:", poll);
+            console.log(
+              "Action function exists:",
+              typeof action === "function"
+            );
+
             dispatch(setMessageType("poll"));
-            action();
+
+            if (typeof action === "function") {
+              action({ poll });
+            } else {
+              console.error("Action is not a function!");
+            }
+
             handleResetPoll();
             dispatch(closeModal());
           }}

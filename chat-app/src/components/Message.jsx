@@ -112,7 +112,6 @@ export default function Message({
   const handleClick = () => {
     dispatch(setMessage(message));
     dispatch(setMessageType("reply"));
-    console.log(message);
   };
 
   const token = localStorage.getItem("token");
