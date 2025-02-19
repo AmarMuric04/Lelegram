@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setIsSigningIn } from "../../../store/redux/authSlice";
 import { postData } from "../../../utility/async";
+import OTPAuth from "../OTPAuth";
 
 export default function LandingAuth({ setActivePage }) {
   const { phoneNumber } = useSelector((state) => state.auth);
@@ -35,6 +36,7 @@ export default function LandingAuth({ setActivePage }) {
             color="#202021"
             bgColor="#8675DC"
           />
+          <OTPAuth />
           <h1 className="font-semibold text-3xl mt-8">Sign in to Telegram</h1>
           <p className="text-gray-400 w-[70%] mt-4">
             Please confirm your coutry code and enter your phone number.
