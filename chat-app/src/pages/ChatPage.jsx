@@ -54,7 +54,7 @@ export default function ChatPage() {
     };
   }, [queryClient]);
 
-  const { data,  error } = useQuery({
+  const { data, error } = useQuery({
     queryFn: () => protectedFetchData(`/chat/get-chat/${chatId}`, token),
     queryKey: ["chat", chatId],
     enabled: !!chatId,
@@ -63,7 +63,6 @@ export default function ChatPage() {
   useEffect(() => {
     if (data) {
       console.log(data, "Chat data fetched successfully.");
-      queryClient.invalidateQueries(["chats"]);
       dispatch(setActiveChat(data.data));
     }
   }, [data, dispatch, queryClient]);
@@ -73,7 +72,6 @@ export default function ChatPage() {
       console.error("Error fetching chat data:", error);
     }
   }, [error]);
-
 
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center ">

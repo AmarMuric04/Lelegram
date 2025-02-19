@@ -91,9 +91,6 @@ export default function ActiveChat() {
 
   if (!user) return;
 
-  if (!activeChat)
-    return <p className="relative z-10 text-white text-4xl">No chat found</p>;
-
   return (
     <div className="flex w-[63.5vw] overflow-hidden">
       <div
