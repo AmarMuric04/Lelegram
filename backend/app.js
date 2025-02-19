@@ -11,7 +11,7 @@ import multer from "multer";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import { fileURLToPath } from "url";
-import { initSocket, getSocket } from "./socket.js";
+import { initSocket } from "./socket.js";
 import { createServer } from "http";
 
 dotenv.config();
@@ -23,7 +23,10 @@ const port = process.env.PORT || 3000;
 const server = createServer(app);
 
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "https://telegram-xi-olive.vercel.app"
+  );
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, PATCH, DELETE"
