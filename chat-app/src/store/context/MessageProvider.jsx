@@ -55,7 +55,7 @@ export const MessageProvider = ({ children }) => {
       }
 
       const response = await fetch(
-        "http://localhost:3000/message/send-message",
+        "import.meta.env.VITE_SERVER_PORT/message/send-message",
         {
           method: "POST",
           headers: {

@@ -29,7 +29,7 @@ export default function DeleteMessageModal() {
       <header className="flex items-center gap-5">
         {activeChat?.imageUrl ? (
           <img
-            src={`http://localhost:3000/${activeChat.imageUrl}`}
+            src={`import.meta.env.VITE_SERVER_PORT/${activeChat.imageUrl}`}
             alt={activeChat.name}
             className="min-h-8 max-h-8 min-w-8 max-w-8 rounded-full object-cover"
           />

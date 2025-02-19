@@ -35,14 +35,17 @@ export default function LeaveChatModal({ isAdmin }) {
 
   const handleDeleteChat = async () => {
     try {
-      const response = await fetch("http://localhost:3000/chat/delete-chat", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify({ chatId: activeChat._id }),
-      });
+      const response = await fetch(
+        "import.meta.env.VITE_SERVER_PORT/chat/delete-chat",
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify({ chatId: activeChat._id }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Deleting the chat failed.");

@@ -12,7 +12,7 @@ import ConditionalModals from "../components/modal/ConditionalModals.jsx";
 import ChatBackground from "../components/chat/ChatBackground.jsx";
 import ActiveChat from "../components/chat/activeChat/ActiveChat.jsx";
 
-const socket = io("http://localhost:3000");
+const socket = io("import.meta.env.VITE_SERVER_PORT");
 
 export default function ChatPage() {
   const { chatId } = useParams();
@@ -55,7 +55,7 @@ export default function ChatPage() {
   const handleGetChat = async () => {
     try {
       const response = await fetch(
-        "http://localhost:3000/chat/get-chat/" + chatId,
+        "import.meta.env.VITE_SERVER_PORT/chat/get-chat/" + chatId,
         {
           method: "GET",
           headers: {

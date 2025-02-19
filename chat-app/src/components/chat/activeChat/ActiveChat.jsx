@@ -341,7 +341,7 @@ export default function ActiveChat() {
                 </svg>
                 <div className="flex flex-col">
                   <p className="max-w-[90%] overflow-clip truncate">
-                    http://localhost:5173/
+                    https://telegram-xi-olive.vercel.app/
                     {activeChat?._id}
                   </p>
                   <span className="text-[#ccc] text-sm mt-2">Link</span>
@@ -380,7 +380,7 @@ export default function ActiveChat() {
                       className="flex items-center gap-2 transition-all hover:bg-[#303030] p-2 rounded-lg cursor-pointer"
                     >
                       <img
-                        src={`http://localhost:3000/${user.imageUrl}`}
+                        src={`import.meta.env.VITE_SERVER_PORT/${user.imageUrl}`}
                         alt={`${user.firstName} ${user.lastName}`}
                         className="h-10 w-10 rounded-full mt-1"
                       />

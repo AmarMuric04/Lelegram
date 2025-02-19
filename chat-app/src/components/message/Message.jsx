@@ -224,7 +224,7 @@ export default function Message({
                   <div className="flex items-center gap-1">
                     {message.referenceMessageId.chat?.imageUrl ? (
                       <img
-                        src={`http://localhost:3000/${message.referenceMessageId.chat.imageUrl}`}
+                        src={`import.meta.env.VITE_SERVER_PORT/${message.referenceMessageId.chat.imageUrl}`}
                         alt={message.referenceMessageId.chat.name}
                         className="min-h-6 max-h-6 min-w-6 max-w-6 rounded-full object-cover"
                       />
@@ -275,7 +275,7 @@ export default function Message({
                     {message.referenceMessageId.imageUrl && (
                       <img
                         className="max-h-[16px]"
-                        src={`http://localhost:3000/${message.referenceMessageId.imageUrl}`}
+                        src={`import.meta.env.VITE_SERVER_PORT/${message.referenceMessageId.imageUrl}`}
                       />
                     )}
                     {message.referenceMessageId.message
@@ -290,7 +290,7 @@ export default function Message({
             {message.type !== "forward" && message.imageUrl && (
               <img
                 className="max-w-[25rem] max-h-[25rem] self-center mx-auto rounded-lg"
-                src={`http://localhost:3000/${message.imageUrl}`}
+                src={`import.meta.env.VITE_SERVER_PORT/${message.imageUrl}`}
                 alt="Message"
               />
             )}
@@ -342,7 +342,7 @@ export default function Message({
                   {message.referenceMessageId.imageUrl && (
                     <img
                       className="max-h-[25rem] max-w-[25rem]"
-                      src={`http://localhost:3000/${message.referenceMessageId.imageUrl}`}
+                      src={`import.meta.env.VITE_SERVER_PORT/${message.referenceMessageId.imageUrl}`}
                     />
                   )}
                   {message.referenceMessageId?.type === "poll" &&
@@ -390,7 +390,7 @@ export default function Message({
         </div>
         {showImage && !isMe && (
           <img
-            src={`http://localhost:3000/${message.sender.imageUrl}`}
+            src={`import.meta.env.VITE_SERVER_PORT/${message.sender.imageUrl}`}
             alt={`${message.sender.firstName} ${message.sender.lastName}`}
             className="w-10 h-10 rounded-full mt-1"
           />

@@ -60,7 +60,7 @@ export default function ModifyChat({
             {activeChat?.imageUrl && !chat.imagePreview && (
               <img
                 className="w-full h-full rounded-full object-cover absolute"
-                src={`http://localhost:3000/${activeChat?.imageUrl}`}
+                src={`import.meta.env.VITE_SERVER_PORT/${activeChat?.imageUrl}`}
                 alt="Chosen profile picture."
               />
             )}

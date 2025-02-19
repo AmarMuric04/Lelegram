@@ -32,7 +32,7 @@ export default function MessageContextMenu({
   const handlePinMessage = async () => {
     try {
       const response = await fetch(
-        "http://localhost:3000/chat/add-pinned-message",
+        "import.meta.env.VITE_SERVER_PORT/chat/add-pinned-message",
         {
           method: "POST",
           headers: {
@@ -189,7 +189,7 @@ export default function MessageContextMenu({
               <ContextMenuItem
                 action={() =>
                   copyToClipboard(
-                    "http://localhost:5173/" +
+                    "https://telegram-xi-olive.vercel.app/" +
                       message.chat._id +
                       "#" +
                       message._id

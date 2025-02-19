@@ -15,7 +15,7 @@ export default function SpecialMessage({ message, topMessage, icon }) {
           {message.imageUrl && (
             <img
               className="max-h-[16px]"
-              src={`http://localhost:3000/${message.imageUrl}`}
+              src={`import.meta.env.VITE_SERVER_PORT/${message.imageUrl}`}
             />
           )}
           {message.type === "poll" && "📊 " + message.poll.question}
