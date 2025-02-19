@@ -89,7 +89,7 @@ export default function ActiveChat() {
     (u) => u._id.toString() === user._id
   );
 
-  if (!user) return;
+  if (!user || !activeChat) return;
 
   return (
     <div className="flex w-[63.5vw] overflow-hidden">
