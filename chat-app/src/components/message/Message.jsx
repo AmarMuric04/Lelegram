@@ -3,7 +3,6 @@ import {
   setForwardedChat,
   setIsSelecting,
   setMessage,
-  setMessageToEdit,
   setMessageType,
   setSelected,
 } from "../../store/redux/messageSlice";
@@ -12,7 +11,6 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { openModal } from "../../store/redux/modalSlice";
 import { useMutation } from "@tanstack/react-query";
-import { setActiveChat } from "../../store/redux/chatSlice";
 import {
   closeContextMenu,
   openContextMenu,
@@ -21,6 +19,7 @@ import { LightbulbSVG } from "../../../public/svgs";
 import CircleCheckbox from "../misc/CircleCheckbox";
 import PollOptionsList from "../poll/PollOptionsList";
 import MessageContextMenu from "./MessageContextMenu";
+import { protectedPostData } from "../../utility/async";
 
 export default function Message({
   message,
@@ -35,7 +34,6 @@ export default function Message({
   const [votes, setVotes] = useState([]);
   const { isSelecting, selected } = useSelector((state) => state.message);
   const { user } = useSelector((state) => state.auth);
-  const { activeChat } = useSelector((state) => state.chat);
   const { open } = useSelector((state) => state.contextMenu);
 
   useEffect(() => {
@@ -74,69 +72,24 @@ export default function Message({
 
   const token = localStorage.getItem("token");
 
-  const handleAddVote = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/poll/add-vote", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + token,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+  const { mutate: addVote } = useMutation({
+    mutationFn: () =>
+      protectedPostData(
+        "/poll/add-vote",
+        {
           pollId: message.poll,
           options: votes,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add a vote");
-      }
-
-      const data = await response.json();
-
-      return data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  };
-
-  const { mutate: addVote } = useMutation({
-    mutationFn: handleAddVote,
+        },
+        token
+      ),
   });
 
-  const handleAddReaction = async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:3000/message/add-reaction",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
-          },
-          body: JSON.stringify({
-            reaction: "❤️",
-            messageId: message._id,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Couldn't add the reaction.");
-      }
-
-      const data = await response.json();
-
-      return data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  };
-
   const { mutate: addReaction } = useMutation({
-    mutationFn: handleAddReaction,
+    mutationFn: () =>
+      protectedPostData("/message/add-reaction", {
+        reaction: "❤️",
+        messageId: message._id,
+      }),
   });
 
   const hasVoted = message.poll?.options.some((opt) =>

@@ -1,54 +1,37 @@
 import { useDispatch, useSelector } from "react-redux";
-import { setSearch, setIsFocused, setValue } from "../../store/redux/searchSlice";
+import {
+  setSearch,
+  setIsFocused,
+  setValue,
+} from "../../store/redux/searchSlice";
 import PropTypes from "prop-types";
 import { useQuery } from "@tanstack/react-query";
+import { protectedPostData } from "../../utility/async";
 
 export default function Search({ select }) {
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
   const { value } = useSelector((state) => state.search);
 
-  const fetchSearchResults = async () => {
-    if (value === "") return null;
-    try {
-      let url = "http://localhost:3000";
-      if (select === "chats") url += "/chat/get-searched-chats";
-      else if (select === "messages") url += "/message/get-searched-messages";
+  const { refetch } = useQuery({
+    queryFn: () => {
+      let url;
+      if (select === "chats") url = "/chat/get-searched-chats";
+      else if (select === "messages") url = "/message/get-searched-messages";
 
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + token,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ input: value }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Searching failed.");
-      }
-
-      const data = await response.json();
-
+      return protectedPostData(url, { input: value }, token);
+    },
+    onSuccess: ({ data }) => {
       if (select === "chats") {
         dispatch(setSearch(data.data.chats));
       } else dispatch(setSearch(data.data));
-
-      return data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  };
-
-  const { refetch } = useQuery({
+    },
+    onError: (error) => console.error(error),
     queryKey: ["search", select],
-    queryFn: fetchSearchResults,
-    enabled: true,
+    enabled: false,
   });
 
   const handleSearch = () => {
-    console.log("Refetching...");
     refetch();
   };
 

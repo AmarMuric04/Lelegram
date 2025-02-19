@@ -6,43 +6,22 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setIsSigningIn } from "../../../store/redux/authSlice";
+import { postData } from "../../../utility/async";
 
 export default function LandingAuth({ setActivePage }) {
   const { phoneNumber } = useSelector((state) => state.auth);
   const [error, setError] = useState({});
   const dispatch = useDispatch();
 
-  const handleCheckPhoneNumber = async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:3000/user/check-phoneNumber",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ phoneNumber }),
-        }
-      );
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data);
-        throw new Error("Validation failed.");
-      }
-
-      return data;
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  };
-
   const { mutate: checkNumber, isPending } = useMutation({
-    mutationFn: handleCheckPhoneNumber,
-    onSuccess: (data) => {
+    mutationFn: () => postData("/user/check-phoneNumber", { phoneNumber }),
+    onSuccess: ({ data }) => {
       setActivePage("codeSent");
-      dispatch(setIsSigningIn(data.data));
+      dispatch(setIsSigningIn(data));
+    },
+    onError: (error) => {
+      setError(error);
+      console.error(error);
     },
   });
 

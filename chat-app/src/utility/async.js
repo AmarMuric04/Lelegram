@@ -5,7 +5,7 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use((config) => {
-  // console.log("Request made with config:", config);
+  console.log("Request made with config:", config);
   return config;
 });
 
@@ -17,6 +17,8 @@ const baseFetchData = async (URL, options = {}) => {
         ...options.headers,
       },
     });
+
+    console.log(response);
 
     return response.data;
   } catch (error) {
@@ -74,6 +76,28 @@ export const putData = async (URL, body) => basePutData(URL, body);
 
 export const protectedPutData = async (URL, body, token) =>
   basePutData(URL, body, {
+    headers: {
+      Authorization: "Bearer " + token,
+    },
+  });
+
+const baseDeleteData = async (URL, options = {}) => {
+  try {
+    const response = await axiosInstance.delete(URL, {
+      headers: {
+        ...options.headers,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response;
+  }
+};
+
+export const deleteData = async (URL) => baseDeleteData(URL);
+
+export const protectedDeleteData = async (URL, token) =>
+  baseDeleteData(URL, {
     headers: {
       Authorization: "Bearer " + token,
     },

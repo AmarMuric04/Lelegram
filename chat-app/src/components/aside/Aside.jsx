@@ -10,6 +10,7 @@ import AsideChat from "./AsideChat";
 import { signOut } from "../../utility/util";
 import ModifyChat from "../chat/ModifyChat";
 import { CrossSVG, MegaphoneSVG, PenSVG } from "../../../public/svgs";
+import { protectedPostData } from "../../utility/async";
 
 export default function Aside() {
   const [activeSelect, setActiveSelect] = useState("chats");
@@ -21,35 +22,18 @@ export default function Aside() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
 
-  const handleCreateChat = async (chat) => {
-    try {
+  const { mutate: addChat } = useMutation({
+    mutationFn: ({ chat }) => {
       const formData = new FormData();
       formData.append("name", chat.name);
       formData.append("description", chat.desc);
       formData.append("imageUrl", chat.imageUrl);
-
-      const response = await fetch("http://localhost:3000/chat/create-chat", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-        body: formData,
-      });
-
-      const data = await response.json();
+      return protectedPostData("/chat/create-chat", formData, token);
+    },
+    onSuccess: () => {
       setAddingChannel(false);
-
       queryClient.invalidateQueries(["userData"]);
-
-      return data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  };
-
-  const { mutate: addChat } = useMutation({
-    mutationFn: ({ chat: chat }) => handleCreateChat(chat),
+    },
   });
 
   return (

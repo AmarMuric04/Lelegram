@@ -28,9 +28,8 @@ export default function ChatPage() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!user) navigate("/auth");
-    console.log(user);
-  }, [user, navigate]);
+    if (!token) navigate("/auth");
+  }, [user, navigate, token]);
 
   useEffect(() => {
     if (messageType === "reply" && message.chat._id !== activeChat._id)

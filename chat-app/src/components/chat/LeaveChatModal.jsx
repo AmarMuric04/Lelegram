@@ -8,6 +8,7 @@ import { Button } from "@mui/material";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import ChatImage from "./ChatImage";
+import { protectedDeleteData } from "../../utility/async";
 
 export default function LeaveChatModal({ isAdmin }) {
   const { activeChat } = useSelector((state) => state.chat);
@@ -18,40 +19,18 @@ export default function LeaveChatModal({ isAdmin }) {
   const queryClient = useQueryClient();
   const token = localStorage.getItem("token");
 
-  const handleRemoveUserFromChat = async (userId) => {
-    try {
-      const response = await fetch(
-        "http://localhost:3000/chat/remove-user/" + activeChat._id,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: "Bearer " + token,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error("Couldn't remove user from the chat.");
-      }
-
+  const { mutate: removeUserFromChat, removeUserIsPending } = useMutation({
+    mutationFn: ({ userId }) =>
+      protectedDeleteData(
+        `/chat/remove-user/${activeChat._id}`,
+        { userId },
+        token
+      ),
+    onSuccess: () => {
       queryClient.invalidateQueries(["chats"]);
       dispatch(setActiveChat(null));
       dispatch(closeModal());
-
-      return data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  };
-
-  const { mutate: removeUserFromChat, removeUserIsPending } = useMutation({
-    mutationFn: ({ userId }) => handleRemoveUserFromChat(userId),
-    onSuccess: () => dispatch(closeModal()),
+    },
   });
 
   const handleDeleteChat = async () => {

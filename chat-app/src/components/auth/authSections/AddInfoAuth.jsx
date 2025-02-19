@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { handlePostInput } from "../../../utility/util";
 import { useNavigate } from "react-router-dom";
+import { postData } from "../../../utility/async";
 
 export default function AddInfoAuth() {
   const [email, setEmail] = useState("");
@@ -16,37 +17,16 @@ export default function AddInfoAuth() {
   const queryClient = useQueryClient();
   const navigate = useNavigate("/");
 
-  const auth = async () => {
-    try {
+  const { mutate: handleAuth, isPending } = useMutation({
+    mutationFn: () => {
       const formData = new FormData();
       formData.append("phoneNumber", phoneNumber);
       formData.append("email", email);
       formData.append("firstName", fname);
       formData.append("lastName", lname);
       formData.append("imageUrl", imageUrl);
-
-      const response = await fetch("http://localhost:3000/user/create-user", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        const error = new Error("Validation error");
-        setError(data);
-        throw error;
-      }
-
-      return data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  };
-
-  const { mutate: handleAuth, isPending } = useMutation({
-    mutationFn: auth,
+      return postData("/user/create-user", formData);
+    },
     onSuccess: async (data) => {
       localStorage.setItem("token", data.data.token);
       localStorage.setItem("userId", data.data.userId);
@@ -59,6 +39,9 @@ export default function AddInfoAuth() {
       await queryClient.invalidateQueries(["chats"]);
 
       navigate("/");
+    },
+    onError: (error) => {
+      setError(error);
     },
   });
 

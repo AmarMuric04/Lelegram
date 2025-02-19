@@ -4,6 +4,7 @@ import { closeModal } from "../../store/redux/modalSlice";
 import { Button } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
 import { resetMessage } from "../../store/redux/messageSlice";
+import { protectedDeleteData } from "../../utility/async";
 
 export default function DeleteMessageModal() {
   const { activeChat } = useSelector((state) => state.chat);
@@ -11,42 +12,16 @@ export default function DeleteMessageModal() {
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
 
-  const handleDeleteMessage = async () => {
-    try {
+  const { mutate: deleteMessage } = useMutation({
+    mutationFn: () => {
       let refIds = message._id;
       if (Array.isArray(message)) {
         refIds = message.map((m) => m._id);
       }
-      const response = await fetch(
-        "http://localhost:3000/message/delete-message",
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
-          },
-          body: JSON.stringify({
-            messageId: refIds,
-          }),
-        }
-      );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error("Sending a message failed.");
-      }
-
-      dispatch(resetMessage);
-
-      return data;
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const { mutate: deleteMessage } = useMutation({
-    mutationFn: handleDeleteMessage,
+      return protectedDeleteData("/message/delete-message", { refIds }, token);
+    },
+    onSuccess: () => dispatch(resetMessage),
   });
 
   return (

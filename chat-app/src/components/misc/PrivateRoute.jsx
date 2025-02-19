@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { connectSocket, socket, disconnectSocket } from "../../socket";
 import { checkIfSignedIn } from "../../utility/util";
+import { protectedFetchData } from "../../utility/async";
+import PropTypes from "prop-types";
 
 const PrivateRoute = ({ children }) => {
   const dispatch = useDispatch();
@@ -14,11 +16,11 @@ const PrivateRoute = ({ children }) => {
   useEffect(() => {
     connectSocket();
     socket.on("connect", () => {
-      console.log("Connected to Socket.IO with ID:", socket.id);
+      // console.log("Connected to Socket.IO with ID:", socket.id);
     });
 
     socket.on("disconnect", () => {
-      console.log("Disconnected from Socket.IO");
+      // console.log("Disconnected from Socket.IO");
     });
 
     return () => {
@@ -30,40 +32,32 @@ const PrivateRoute = ({ children }) => {
     setIsSignedIn(checkIfSignedIn(dispatch));
   }, [dispatch]);
 
-  const fetchUserData = async () => {
-    const userId = localStorage.getItem("userId");
-
-    try {
-      const response = await fetch(
-        "http://localhost:3000/user/get-user/" + userId,
-        {
-          method: "GET",
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch the user.");
-      }
-
-      const data = await response.json();
-      dispatch(setUser(data.data));
-
-      return data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  };
-
-  useQuery({
-    queryFn: fetchUserData,
+  const { data, error, isLoading } = useQuery({
+    queryFn: () => {
+      const userId = localStorage.getItem("userId");
+      const token = localStorage.getItem("token");
+      return protectedFetchData(`/user/get-user/${userId}`, token);
+    },
     queryKey: ["userData"],
-    enabled: isSignedIn,
+    enabled: !!token && isSignedIn,
   });
+
+  useEffect(() => {
+    if (data) {
+      if (data?.data) {
+        console.log(data.data, " User Data Successfully Fetched");
+        dispatch(setUser(data.data));
+      }
+    } else if (error) {
+      console.error("Error fetching user data:", error);
+    }
+  }, [data, error, dispatch]);
 
   return children;
 };
 
 export default PrivateRoute;
+
+PrivateRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};

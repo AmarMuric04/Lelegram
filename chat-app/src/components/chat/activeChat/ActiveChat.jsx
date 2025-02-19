@@ -16,6 +16,10 @@ import ActiveChatHeader from "./ActiveChatHeader";
 import ModifyChat from "../ModifyChat.jsx";
 import ChatImage from "../ChatImage.jsx";
 import ActiveChatInput from "./ActiveChatInput.jsx";
+import {
+  protectedFetchData,
+  protectedPostData,
+} from "../../../utility/async.js";
 
 export default function ActiveChat() {
   const [viewChatInfo, setViewChatInfo] = useState(false);
@@ -34,39 +38,16 @@ export default function ActiveChat() {
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
 
-  const handleEditChannel = async (chat) => {
-    try {
+  const { mutate: editChannel } = useMutation({
+    mutationFn: ({ chat }) => {
       const formData = new FormData();
-
       formData.append("name", chat.name);
       formData.append("description", chat.desc);
       formData.append("imageUrl", chat.imageUrl);
-
-      const response = await fetch(
-        "http://localhost:3000/chat/edit-chat/" + activeChat._id,
-        {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Couldn't edit the channel");
-      }
-
-      queryClient.invalidateQueries(["chat"]);
-
-      const data = await response.json();
-
-      return data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  };
+      return protectedPostData(`/chat/edit-chat/${activeChat._id}`);
+    },
+    onSuccess: () => queryClient.invalidateQueries(["chat"]),
+  });
 
   queryClient.setQueryData(["chats", "users"], (oldChats) => {
     // Check if oldChats and its nested properties exist
@@ -91,28 +72,8 @@ export default function ActiveChat() {
     };
   });
 
-  const { mutate: editChannel } = useMutation({
-    mutationFn: ({ chat: chat }) => handleEditChannel(chat),
-  });
-
-  const handleGetMessages = async () => {
-    const response = await fetch(
-      "http://localhost:3000/message/get-messages/" + chatId,
-      {
-        method: "GET",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      }
-    );
-
-    const data = await response.json();
-
-    return data;
-  };
-
   const { data: messages, msgIsLoading } = useQuery({
-    queryFn: handleGetMessages,
+    queryFn: () => protectedFetchData(`/message/get-messages/${chatId}`, token),
     queryKey: ["messages", activeChat?._id],
     enabled: !!activeChat,
   });
@@ -128,7 +89,7 @@ export default function ActiveChat() {
     (u) => u._id.toString() === user._id
   );
 
-  if (!activeChat) return;
+  if (!activeChat || !user) return;
 
   return (
     <div className="flex w-[63.5vw] overflow-hidden">

@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import Input from "../../misc/Input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { postData } from "../../../utility/async";
 
 export default function CodeAuth({ setActivePage }) {
   const [code, setCode] = useState("");
@@ -16,31 +17,8 @@ export default function CodeAuth({ setActivePage }) {
     setCode(value);
   };
 
-  const handleSignIn = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/user/signin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ phoneNumber }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error("Validation failed.");
-      }
-
-      return data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  };
-
   const { mutate: signIn, isPending } = useMutation({
-    mutationFn: handleSignIn,
+    mutationFn: () => postData("/user/signin", { phoneNumber }),
     onSuccess: async (data) => {
       localStorage.setItem("token", data.data.token);
       localStorage.setItem("userId", data.data.userId);

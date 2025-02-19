@@ -9,11 +9,12 @@ import { useNavigate } from "react-router-dom";
 function AuthPage() {
   const [activePage, setActivePage] = useState("landing");
   const { user } = useSelector((state) => state.auth);
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) navigate("/");
-  }, [user, navigate]);
+    if (token) navigate("/");
+  }, [user, navigate, token]);
 
   let move;
 
