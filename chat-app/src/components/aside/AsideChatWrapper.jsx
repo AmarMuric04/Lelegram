@@ -6,6 +6,7 @@ import cat from "../../assets/undraw_cat_lqdj.svg";
 import { useDispatch } from "react-redux";
 import { setUserChats } from "../../store/redux/chatSlice";
 import ItemSkeleton from "../misc/ItemSkeleton";
+import { protectedFetchData } from "../../utility/async";
 
 export default function AsideChatWrapper() {
   const token = localStorage.getItem("token");
@@ -13,40 +14,21 @@ export default function AsideChatWrapper() {
 
   const dispatch = useDispatch();
 
-  const handleGetChats = async () => {
-    try {
-      let url = "http://localhost:3000/chat";
+  const { data: chats, isLoading } = useQuery({
+    queryFn: () => {
+      let url = "/chat";
       if (activeSelect === "users") url += "/get-user-chats";
       if (activeSelect === "all") url += "/get-all-chats";
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error("Couldn't fetch chats.");
-      }
-
+      return protectedFetchData(url, token);
+    },
+    onSuccess: ({ data }) => {
       if (activeSelect === "users") dispatch(setUserChats(data.data.chats));
-
-      return data;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  };
-
-  const { data: chats, isLoading } = useQuery({
-    queryFn: handleGetChats,
+    },
+    onError: (error) => {
+      console.error(error);
+    },
     queryKey: ["chats", activeSelect],
   });
-
-  console.log(chats);
 
   const length = activeSelect === "all" ? 15 : 7;
 
