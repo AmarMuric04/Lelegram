@@ -1,8 +1,8 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
-import Image from "../../assets/mnky.png";
+import Image from "../../../assets/mnky.png";
 import { useSelector } from "react-redux";
-import Input from "../Input";
+import Input from "../../misc/Input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 

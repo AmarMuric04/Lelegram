@@ -52,6 +52,9 @@ export const sendMessage = async (req, res, next) => {
       });
 
       await newMessage.save();
+      const chat = await Chat.findById(chatId);
+      chat.lastMessage = newMessage._id;
+      await chat.save();
 
       getSocket().emit("messageSent", { data: chatId });
       console.log("Emitted");
@@ -75,6 +78,9 @@ export const sendMessage = async (req, res, next) => {
       getSocket().emit("messageSent", { data: chatId });
       console.log("Emitted");
 
+      const chat = await Chat.findById(chatId);
+      chat.lastMessage = newMessage._id;
+      await chat.save();
       await newMessage.save();
 
       return res.status(201).json({

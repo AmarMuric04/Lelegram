@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import AsideChat from "./AsideChat";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import cat from "../assets/undraw_cat_lqdj.svg";
+import cat from "../../assets/undraw_cat_lqdj.svg";
 import { useDispatch } from "react-redux";
 import { setUserChats } from "../../store/redux/chatSlice";
 import ItemSkeleton from "../misc/ItemSkeleton";
@@ -45,6 +45,8 @@ export default function AsideChatWrapper() {
     queryFn: handleGetChats,
     queryKey: ["chats", activeSelect],
   });
+
+  console.log(chats);
 
   const length = activeSelect === "all" ? 15 : 7;
 

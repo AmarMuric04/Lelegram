@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { setPhoneNumber } from "../../store/redux/authSlice";
 import PropTypes from "prop-types";
-import Input from "./Input";
+import Input from "../misc/Input";
 
 export default function PhoneNumberInput({ error, setError }) {
   const dispatch = useDispatch();

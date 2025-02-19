@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 export default function ChatImage({ dimensions = 12 }) {
   const { activeChat } = useSelector((state) => state.chat);
 
-  // Convert dimensions to pixels (assuming 1 unit = 0.25rem = 4px)
   const sizeInPx = dimensions * 4;
 
   return (

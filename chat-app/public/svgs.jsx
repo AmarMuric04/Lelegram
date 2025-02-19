@@ -1,10 +1,11 @@
 import PropTypes from "prop-types";
 
-export const CrossSVG = () => (
+export const CrossSVG = ({ classes, dimensions }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
+    width={dimensions}
+    height={dimensions}
+    className={`${classes && classes}`}
     viewBox="0 0 24 24"
   >
     <path
@@ -17,13 +18,18 @@ export const CrossSVG = () => (
   </svg>
 );
 
+CrossSVG.propTypes = {
+  classes: PropTypes.string,
+  dimensions: PropTypes.number,
+};
+
 export const ReplySVG = ({ classes, dimension = 20 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={dimension}
     height={dimension}
-    viewBox="0 0 32 32"
     className={`${classes && classes}`}
+    viewBox="0 0 32 32"
   >
     <path
       fill="currentColor"
@@ -428,6 +434,48 @@ export const IncorrectSVG = ({ classes, dimensions = 20 }) => (
 );
 
 IncorrectSVG.propTypes = {
+  classes: PropTypes.string,
+  dimensions: PropTypes.number,
+};
+
+export const PenSVG = ({ classes, dimensions = 20 }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={dimensions}
+    height={dimensions}
+    className={`${classes && classes}`}
+    viewBox="0 0 24 24"
+  >
+    <path
+      fill="currentColor"
+      d="M3 21v-4.25L16.2 3.575q.3-.275.663-.425t.762-.15t.775.15t.65.45L20.425 5q.3.275.438.65T21 6.4q0 .4-.137.763t-.438.662L7.25 21zM17.6 7.8L19 6.4L17.6 5l-1.4 1.4z"
+    />
+  </svg>
+);
+
+PenSVG.propTypes = {
+  classes: PropTypes.string,
+  dimensions: PropTypes.number,
+};
+
+export const MegaphoneSVG = ({ classes, dimensions = 20 }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={dimensions}
+    height={dimensions}
+    className={`${classes && classes}`}
+    viewBox="0 0 24 24"
+  >
+    <path
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      d="M14 14V6m0 8l6.102 3.487a.6.6 0 0 0 .898-.52V3.033a.6.6 0 0 0-.898-.521L14 6m0 8H7a4 4 0 1 1 0-8h7M7.757 19.3L7 14h4l.677 4.74a1.98 1.98 0 0 1-3.92.56Z"
+    />
+  </svg>
+);
+
+MegaphoneSVG.propTypes = {
   classes: PropTypes.string,
   dimensions: PropTypes.number,
 };

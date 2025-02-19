@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import Modal from "../Modal";
+import Modal from "../modal/Modal";
 import { closeModal } from "../../store/redux/modalSlice";
 import { useDispatch } from "react-redux";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

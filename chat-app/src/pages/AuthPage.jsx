@@ -1,9 +1,8 @@
-// import Chat from "./Chat";
-import LandingAuth from "./components/Auth/LandingAuth";
+import LandingAuth from "../components/auth/authSections/LandingAuth";
 import { useEffect, useState } from "react";
-import QRAuth from "./components/Auth/QRAuth";
-import CodeAuth from "./components/Auth/CodeAuth";
-import AddInfoAuth from "./components/Auth/AddInfoAuth";
+import QRAuth from "../components/auth/authSections/QRAuth";
+import CodeAuth from "../components/auth/authSections/CodeAuth";
+import AddInfoAuth from "../components/auth/authSections/AddInfoAuth";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 

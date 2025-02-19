@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Modal from "../Modal";
+import Modal from "../modal/Modal";
 import { closeModal } from "../../store/redux/modalSlice";
 import { CrossSVG } from "../../../public/svgs";
 import { Button } from "@mui/material";

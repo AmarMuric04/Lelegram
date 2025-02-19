@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import Modal from "../Modal";
+import Modal from "../modal/Modal";
 import { closeModal } from "../../store/redux/modalSlice";
 import { Button } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";

@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import Image from "../../assets/qr.png";
+import Image from "../../../assets/qr.png";
 import { Button } from "@mui/material";
 
 export default function QRAuth({ setActivePage }) {

@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import MessagesList from "../../MessagesList";
+import MessagesList from "../../message/MessagesList";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   setForwardedChat,
@@ -67,6 +67,29 @@ export default function ActiveChat() {
       throw err;
     }
   };
+
+  queryClient.setQueryData(["chats", "users"], (oldChats) => {
+    // Check if oldChats and its nested properties exist
+    if (!oldChats?.data?.chats || !activeChat?._id) return oldChats;
+
+    const chatIndex = oldChats.data.chats.findIndex(
+      (c) => c._id === activeChat._id
+    );
+
+    if (chatIndex === -1) return oldChats;
+
+    const updatedChats = oldChats.data.chats.map((chat, index) =>
+      index === chatIndex ? { ...chat, missedCount: 0 } : chat
+    );
+
+    return {
+      ...oldChats,
+      data: {
+        ...oldChats.data,
+        chats: updatedChats,
+      },
+    };
+  });
 
   const { mutate: editChannel } = useMutation({
     mutationFn: ({ chat: chat }) => handleEditChannel(chat),

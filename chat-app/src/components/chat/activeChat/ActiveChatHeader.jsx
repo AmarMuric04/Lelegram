@@ -1,8 +1,8 @@
 import { useDispatch, useSelector } from "react-redux";
 import ChatImage from "../ChatImage";
-import PopUpMenu from "../../PopUpMenu";
+import PopUpMenu from "../../misc/PopUpMenu";
 import { SelectSVG, TrashSVG, VerticalDotsSVG } from "../../../../public/svgs";
-import PopUpMenuItem from "../../PopUpMenuItem";
+import PopUpMenuItem from "../../misc/PopUpMenuItem";
 import { setSelected } from "../../../store/redux/authSlice";
 import { setIsSelecting } from "../../../store/redux/messageSlice";
 import { openModal } from "../../../store/redux/modalSlice";

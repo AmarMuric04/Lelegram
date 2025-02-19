@@ -16,8 +16,8 @@ import { openModal } from "../../../store/redux/modalSlice";
 import { handlePostInput } from "../../../utility/util";
 import ActionButton from "../../button/ActionButton";
 import SpecialMessage from "../../message/SpecialMessage";
-import PopUpMenu from "../../PopUpMenu";
-import PopUpMenuItem from "../../PopUpMenuItem";
+import PopUpMenu from "../../misc/PopUpMenu";
+import PopUpMenuItem from "../../misc/PopUpMenuItem";
 import { useDispatch, useSelector } from "react-redux";
 import { useMessageContext } from "../../../store/context/MessageProvider";
 import { setActiveChat } from "../../../store/redux/chatSlice";
@@ -25,6 +25,7 @@ import { setIsFocused } from "../../../store/redux/searchSlice";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import PropTypes from "prop-types";
+import { protectedPostData } from "../../../utility/async";
 
 export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
   const {
@@ -42,81 +43,52 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
   const queryClient = useQueryClient();
-
   const messagesListRef = useRef(null);
 
-  const handleEditMessage = async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:3000/message/edit-message",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
-          },
-          body: JSON.stringify({
-            message: value,
-            messageId: messageToEdit._id,
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error("Sending a message failed.");
-      }
-
-      dispatch(resetMessage());
-
-      return data;
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const { mutate: editMessage, isLoading: editIsPending } = useMutation({
-    mutationFn: handleEditMessage,
+  const { mutate: editMessage, isLoading: isEditPending } = useMutation({
+    mutationFn: () => {
+      const body = {
+        message: value,
+        messageId: messageToEdit._id,
+      };
+      return protectedPostData("/message/edit-message", body, token);
+    },
+    onSuccess: () => dispatch(resetMessage()),
   });
 
-  const handleAddUserToChat = async (userId) => {
-    try {
-      const response = await fetch(
-        "http://localhost:3000/chat/add-user/" + activeChat._id,
-        {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + token,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId }),
-        }
-      );
-
-      const data = await response.json();
-
+  const { mutate: addUser, isLoading: isAddUserPending } = useMutation({
+    mutationFn: ({ userId }) =>
+      protectedPostData(`/chat/add-user/${activeChat._id}`, { userId }, token),
+    onSuccess: (data) => {
       dispatch(setActiveChat(data.data));
       dispatch(setIsFocused(false));
-
-      console.log(data);
-
-      if (!response.ok) {
-        throw new Error("Couldn't add user to the chat.");
-      }
-
       queryClient.invalidateQueries(["chats"]);
+    },
+  });
 
-      return data;
-    } catch (err) {
-      console.error(err);
-      throw err;
+  const handlePickImage = async (e) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      console.log("User canceled image selection.");
+      dispatch(resetMessage());
+      return;
     }
+
+    await handlePostInput(e.target.value, e.target.files, dispatch);
+
+    dispatch(openModal("send-photo"));
   };
 
-  const { mutate: addUser, addUserIsPending } = useMutation({
-    mutationFn: ({ userId }) => handleAddUserToChat(userId),
-  });
+  const handleSendMessage = () => {
+    if (!messageToEdit) {
+      if (messageType === "forward" || message !== "") {
+        sendMessage({ value });
+      } else {
+        console.log("Voice message.");
+      }
+    } else {
+      editMessage();
+    }
+  };
 
   const isReplying =
     messageType === "reply" && message.chat._id === activeChat._id;
@@ -127,6 +99,13 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
   const isInChat = activeChat?.users?.some(
     (u) => u._id.toString() === user._id
   );
+
+  const isInputInvalid = value === "" && !isForwarding;
+
+  const isInputValid =
+    !isSendingMessage && !isEditPending && (value !== "" || isForwarding);
+
+  const isLoading = isSendingMessage || isEditPending;
 
   return (
     <>
@@ -189,24 +168,9 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
             >
               <PopUpMenuItem itemClasses="w-[10rem] cursor-pointer">
                 <input
-                  className="opacity-0 absolute left-0
-                                  cursor-pointer"
+                  className="opacity-0 absolute left-0 cursor-pointer"
                   type="file"
-                  onChange={async (e) => {
-                    if (!e.target.files || e.target.files.length === 0) {
-                      console.log("User canceled image selection.");
-                      dispatch(resetMessage());
-                      return;
-                    }
-
-                    await handlePostInput(
-                      e.target.value,
-                      e.target.files,
-                      dispatch
-                    );
-
-                    dispatch(openModal("send-photo"));
-                  }}
+                  onChange={handlePickImage}
                 />
                 <PhotoSVG />
                 <p className="font-semibold flex-shrink-0 cursor-pointer">
@@ -222,24 +186,10 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
               </PopUpMenuItem>
             </PopUpMenu>
           </div>
-          <ActionButton
-            action={() => {
-              if (!messageToEdit) {
-                if (messageType === "forward" || message !== "") {
-                  sendMessage({ value });
-                } else {
-                  console.log("Voice message.");
-                }
-              } else {
-                editMessage();
-              }
-            }}
-          >
-            {value === "" && !isForwarding && <MicrophoneSVG />}
-            {!isSendingMessage &&
-              !editIsPending &&
-              (value !== "" || isForwarding) && <SendSVG />}
-            {(isSendingMessage || editIsPending) && <ThrobberSVG />}
+          <ActionButton action={handleSendMessage}>
+            {isInputInvalid && <MicrophoneSVG />}
+            {isInputValid && <SendSVG />}
+            {isLoading && <ThrobberSVG />}
           </ActionButton>
         </>
       )}
@@ -260,7 +210,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
             }}
             variant="contained"
           >
-            {addUserIsPending ? "PLEASE WAIT..." : "JOIN"}
+            {isAddUserPending ? "JOINING..." : "JOIN"}
           </Button>
         </div>
       )}

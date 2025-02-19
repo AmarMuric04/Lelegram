@@ -561,7 +561,6 @@ export const countries = [
   { code: "DK", label: "Denmark", phone: "45" },
   { code: "NO", label: "Norway", phone: "47" },
   { code: "FI", label: "Finland", phone: "358" },
-  { code: "IL", label: "Israel", phone: "972" },
   { code: "NZ", label: "New Zealand", phone: "64" },
   { code: "PT", label: "Portugal", phone: "351" },
   { code: "IE", label: "Ireland", phone: "353" },

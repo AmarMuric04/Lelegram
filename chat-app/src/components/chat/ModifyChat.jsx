@@ -2,7 +2,7 @@ import { useSelector } from "react-redux";
 import { handlePostInput } from "../../utility/util";
 import PropTypes from "prop-types";
 import { useState } from "react";
-import Input from "../auth/Input";
+import Input from "../misc/Input";
 import { LeftArrowSVG } from "../../../public/svgs";
 
 export default function ModifyChat({
