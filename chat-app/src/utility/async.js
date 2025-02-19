@@ -5,12 +5,11 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use((config) => {
-  console.log("Request made with config:", config);
+  // console.log("Request made with config:", config);
   return config;
 });
 
 const baseFetchData = async (URL, options = {}) => {
-  console.log(URL);
   try {
     const response = await axiosInstance.get(URL, {
       headers: {
@@ -18,7 +17,6 @@ const baseFetchData = async (URL, options = {}) => {
       },
     });
 
-    console.log(response);
 
     return response.data;
   } catch (error) {

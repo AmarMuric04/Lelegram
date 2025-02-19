@@ -11,8 +11,10 @@ import { resetMessage, setValue } from "../store/redux/messageSlice.js";
 import ConditionalModals from "../components/modal/ConditionalModals.jsx";
 import ChatBackground from "../components/chat/ChatBackground.jsx";
 import ActiveChat from "../components/chat/activeChat/ActiveChat.jsx";
+import { protectedFetchData } from "../utility/async.js";
 
-const socket = io("import.meta.env.VITE_SERVER_PORT");
+// Correctly use the environment variable and provide fallback
+const socket = io(import.meta.env.VITE_SERVER_PORT || "http://localhost:3000");
 
 export default function ChatPage() {
   const { chatId } = useParams();
@@ -52,40 +54,26 @@ export default function ChatPage() {
     };
   }, [queryClient]);
 
-  const handleGetChat = async () => {
-    try {
-      const response = await fetch(
-        "import.meta.env.VITE_SERVER_PORT/chat/get-chat/" + chatId,
-        {
-          method: "GET",
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error("Couldn't fetch chat.");
-      }
-
-      dispatch(setActiveChat(data.data));
-
-      return data;
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  };
-
-  useQuery({
-    queryFn: handleGetChat,
+  const { data,  error } = useQuery({
+    queryFn: () => protectedFetchData(`/chat/get-chat/${chatId}`, token),
     queryKey: ["chat", chatId],
     enabled: !!chatId,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["chats"]);
-    },
   });
+
+  useEffect(() => {
+    if (data) {
+      console.log(data, "Chat data fetched successfully.");
+      queryClient.invalidateQueries(["chats"]);
+      dispatch(setActiveChat(data.data));
+    }
+  }, [data, dispatch, queryClient]);
+
+  useEffect(() => {
+    if (error) {
+      console.error("Error fetching chat data:", error);
+    }
+  }, [error]);
+
 
   return (
     <main className="bg-[#202021] w-screen h-screen flex justify-center ">

@@ -8,8 +8,9 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "import.meta.env.VITE_SERVER_PORT",
+        target: "https://telegram-93jb.onrender.com",
         secure: false,
+        changeOrigin: true,
       },
     },
   },
