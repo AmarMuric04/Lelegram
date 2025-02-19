@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   auth,
   RecaptchaVerifier,
@@ -10,43 +10,46 @@ const OTPAuth = () => {
   const [otp, setOtp] = useState("");
   const [confirmation, setConfirmation] = useState(null);
 
-  // Set up reCAPTCHA for production
-  const setUpRecaptcha = () => {
-    if (window.recaptchaVerifier) return;
+  useEffect(() => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        auth,
+        "recaptcha-container",
+        {
+          size: "invisible",
+          callback: (response) => {
+            console.log("reCAPTCHA solved", response);
+          },
+        }
+      );
+    }
+  }, []);
 
-    window.recaptchaVerifier = new RecaptchaVerifier(
-      "recaptcha-container",
-      {
-        size: "invisible",
-        callback: (response) => {
-          console.log("reCAPTCHA solved", response);
-        },
-      },
-      auth
-    );
-  };
-
-  // Send OTP to the user's phone
   const sendOTP = async () => {
     try {
-      setUpRecaptcha(); // Set up reCAPTCHA
+      const recaptcha = window.recaptchaVerifier;
+      if (!recaptcha) {
+        throw new Error("reCAPTCHA not initialized");
+      }
 
       const confirmationResult = await signInWithPhoneNumber(
         auth,
         phone,
-        window.recaptchaVerifier
+        recaptcha
       );
-      setConfirmation(confirmationResult); // Store confirmation result
+      setConfirmation(confirmationResult);
       alert("OTP sent!");
     } catch (error) {
       console.error("Error sending OTP:", error);
-      alert("Failed to send OTP. Please try again. " + error);
+      alert("Failed to send OTP. Please try again. " + error.message);
     }
   };
 
-  // Verify OTP
   const verifyOTP = async () => {
     try {
+      if (!confirmation) {
+        throw new Error("No OTP confirmation available");
+      }
       await confirmation.confirm(otp);
       alert("Phone number verified!");
     } catch (error) {
