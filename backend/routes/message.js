@@ -10,6 +10,8 @@ router.get("/get-messages/:chatId", isAuth, MessageController.getMessages);
 
 router.post("/send-message", isAuth, MessageController.sendMessage);
 
+router.post("/send-voice-message", isAuth, MessageController.sendVoiceMessage);
+
 router.delete("/delete-message", isAuth, MessageController.deleteMessage);
 
 router.post("/edit-message", isAuth, MessageController.editMessage);

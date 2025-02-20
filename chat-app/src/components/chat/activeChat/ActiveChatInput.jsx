@@ -4,7 +4,6 @@ import {
   ClipSVG,
   EditSVG,
   ForwardSVG,
-  MicrophoneSVG,
   PhotoSVG,
   PollSVG,
   ReplySVG,
@@ -29,6 +28,7 @@ import { protectedPostData } from "../../../utility/async";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { io } from "socket.io-client";
+import VoiceRecorder from "../../misc/VoiceRecorder";
 
 const socket = io(import.meta.env.VITE_SERVER_PORT);
 export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
@@ -205,7 +205,6 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
               </g>
             </svg>
           </button>
-
           <input
             value={value}
             onChange={(e) => dispatch(setValue(e.target.value))}
@@ -252,11 +251,13 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
               </PopUpMenuItem>
             </PopUpMenu>
           </div>
-          <ActionButton action={handleSendMessage}>
-            {isInputInvalid && <MicrophoneSVG />}
-            {isInputValid && <SendSVG />}
-            {isLoading && <ThrobberSVG />}
-          </ActionButton>
+          {isInputInvalid && <VoiceRecorder />}
+          {isInputValid && (
+            <ActionButton action={handleSendMessage}>
+              {isInputValid && <SendSVG />}
+              {isLoading && <ThrobberSVG />}
+            </ActionButton>
+          )}
         </>
       )}
       {!isInChat && (

@@ -379,12 +379,14 @@ export default function Message({
                     )}
                   </div>
                 )}
-                <div className="flex flex-wrap items-baseline justify-end px-2 py-1">
-                  {message.type !== "forward" && message.type !== "poll" && (
-                    <p className="flex-grow break-words break-all">
-                      {message.message}
-                    </p>
-                  )}
+                <div className="flex flex-wrap items-baseline px-2 py-1">
+                  {message.message &&
+                    message.type !== "forward" &&
+                    message.type !== "poll" && (
+                      <p className="flex-grow break-words break-all">
+                        {message.message}
+                      </p>
+                    )}
                   {message.type === "forward" && (
                     <p className="flex-grow break-words break-all">
                       {message.referenceMessageId?.type === "poll" &&
@@ -395,6 +397,14 @@ export default function Message({
                           : message.message
                         : message.message}
                     </p>
+                  )}
+                  {message.type === "voice" && (
+                    <audio
+                      controls
+                      src={`${import.meta.env.VITE_SERVER_PORT}${
+                        message.audioUrl
+                      }`}
+                    />
                   )}
 
                   <div className="flex-shrink-0 flex gap-2 whitespace-nowrap text-xs text-[#ccc] ml-2">

@@ -231,13 +231,13 @@ export const createChat = async (req, res, next) => {
     const systemMessage = new Message({
       message: `created the chat`,
       sender: req.userId,
-      chat: chatId,
+      chat: chat._id,
       type: "system",
     });
 
     await systemMessage.save();
 
-    getSocket().emit("messageSent", { data: chatId });
+    getSocket().emit("messageSent", { data: chat._id });
 
     res.status(200).json(chat);
   } catch (err) {

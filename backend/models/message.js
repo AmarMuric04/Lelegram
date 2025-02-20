@@ -35,6 +35,9 @@ const messageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Poll",
     },
+    audioUrl: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

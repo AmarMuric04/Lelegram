@@ -1,5 +1,4 @@
 import express from "express";
-import { Server } from "socket.io";
 import mongoose from "mongoose";
 import Message from "./message.js";
 import dotenv from "dotenv";
@@ -14,7 +13,6 @@ import { fileURLToPath } from "url";
 import { initSocket } from "./socket.js";
 import { createServer } from "http";
 import nodemailer from "nodemailer";
-import chat from "./models/chat.js";
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -36,7 +34,13 @@ app.use((req, res, next) => {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "images");
+    if (file.fieldname === "imageUrl") {
+      cb(null, "images");
+    } else if (file.fieldname === "audioUrl") {
+      cb(null, "voices");
+    } else {
+      cb(new Error("Invalid field name"), null);
+    }
   },
   filename: function (req, file, cb) {
     const fileExtension = file.mimetype.split("/")[1];
@@ -46,19 +50,24 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
   if (
-    file.mimetype === "image/png" ||
-    file.mimetype === "image/jpg" ||
-    file.mimetype === "image/jpeg"
+    file.mimetype.startsWith("image/") ||
+    file.mimetype.startsWith("audio/")
   ) {
     cb(null, true);
   } else {
-    cb(new Error("Only .png, .jpg, and .jpeg formats are allowed"), false);
+    cb(new Error("Only image and audio formats are allowed"), false);
   }
 };
 
-app.use(multer({ storage, fileFilter }).single("imageUrl"));
+app.use(
+  multer({ storage, fileFilter }).fields([
+    { name: "imageUrl", maxCount: 1 },
+    { name: "audioUrl", maxCount: 1 },
+  ])
+);
 
 app.use("/images", express.static(path.join(__dirname, "images")));
+app.use("/voices", express.static(path.join(__dirname, "voices")));
 
 app.use(express.json());
 
@@ -122,7 +131,6 @@ app.post("/verify-otp", (req, res, next) => {
     } else {
       const error = new Error("Incorrect code. Please Try again.");
       error.statusCode = 400;
-
       error.data = [{ path: "code" }];
       throw error;
     }
@@ -137,7 +145,7 @@ app.use("/message", MessageRoutes);
 app.use("/poll", PollRoutes);
 
 app.use((error, req, res, next) => {
-  console.log(error);
+  console.error(error);
   const status = error.statusCode || 500;
   const message = error.message;
   const data = error.data;
@@ -160,13 +168,10 @@ mongoose
       console.log("User connected:", socket.id);
 
       socket.on("userTyping", ({ user, chatId }) => {
-        // Use a consistent user identifier.
         if (!typingUsers[chatId]) {
           typingUsers[chatId] = new Set();
         }
         typingUsers[chatId].add(user._id);
-
-        // Emit the typing event to all connected clients.
         io.emit("userTyping", { chatId, user });
       });
 

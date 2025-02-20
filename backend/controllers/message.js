@@ -306,6 +306,39 @@ export const sendMessage = async (req, res, next) => {
   }
 };
 
+export const sendVoiceMessage = async (req, res, next) => {
+  try {
+    if (!req.files || !req.files.audioUrl || !req.files.audioUrl[0]) {
+      return res.status(400).json({ error: "No audio file uploaded" });
+    }
+
+    const audioFile = req.files.audioUrl[0];
+    const { senderId, chatId } = req.body;
+
+    const newMessage = new Message({
+      chat: chatId,
+      sender: senderId,
+      content: null,
+      type: "voice",
+      audioUrl: `/voices/${audioFile.filename}`,
+      imageUrl: null,
+      repliedTo: null,
+      forwardedFrom: null,
+      timestamp: new Date(),
+    });
+
+    const savedMessage = await newMessage.save();
+
+    getSocket().emit("messageSent", {
+      data: chatId,
+    });
+    res.json({ success: true, message: savedMessage });
+  } catch (error) {
+    console.error("Upload Error:", error);
+    res.status(500).json({ error: "Failed to upload file" });
+  }
+};
+
 export const deleteMessage = async (req, res, next) => {
   try {
     const { messageId } = req.body;
