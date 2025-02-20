@@ -6,40 +6,93 @@ import Input from "../../misc/Input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { postData } from "../../../utility/async";
+import { verifyOTP } from "../../../utility/util";
 
 export default function CodeAuth({ setActivePage }) {
   const [code, setCode] = useState("");
-  const { phoneNumber, isSigningIn } = useSelector((state) => state.auth);
+  const [error, setError] = useState(null);
+
+  const {
+    email,
+    url,
+    phoneNumber,
+    firstName,
+    lastName,
+    isSigningIn,
+    staySignedIn,
+  } = useSelector((state) => state.auth);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const handleChange = (value) => {
-    setCode(value);
-  };
+  const handleChange = (value) => setCode(value);
 
-  const { mutate: signIn, isPending } = useMutation({
-    mutationFn: () => postData("/user/signin", { phoneNumber }),
-    onSuccess: async (data) => {
-      localStorage.setItem("token", data.data.token);
-      localStorage.setItem("userId", data.data.userId);
-      localStorage.setItem(
-        "expires-in",
-        String(Date.now() + 1000 * 60 * 60 * 24)
-      );
+  const signUpMutation = useMutation({
+    mutationFn: () => {
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("phoneNumber", phoneNumber);
+      formData.append("firstName", firstName);
+      formData.append("lastName", lastName);
+      formData.append("imageUrl", url);
 
-      await queryClient.invalidateQueries(["userData"]);
+      return postData("/user/create-user", formData);
+    },
+    onSuccess: ({ data }) => {
+      let expiryDate = 1000 * 60 * 60 * 24;
+
+      if (staySignedIn) expiryDate *= 7;
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data.userId);
+      localStorage.setItem("expires-in", String(Date.now() + expiryDate));
+
+      queryClient.invalidateQueries(["userData"]);
       navigate("/");
     },
+    onError: (error) => {
+      console.log(error);
+      setError(error);
+    },
   });
+
+  const signInMutation = useMutation({
+    mutationFn: () => postData("/user/signin", { phoneNumber }),
+    onSuccess: async ({ data }) => {
+      let expiryDate = 1000 * 60 * 60 * 24;
+
+      if (staySignedIn) expiryDate *= 7;
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data.userId);
+      localStorage.setItem("expires-in", String(Date.now() + expiryDate));
+
+      queryClient.invalidateQueries(["userData"]);
+      navigate("/");
+    },
+    onError: (error) => {
+      console.log(error);
+      setError(error);
+    },
+  });
+
+  const handleSubmit = async () => {
+    try {
+      await verifyOTP(email, code);
+      isSigningIn ? signInMutation.mutate() : signUpMutation.mutate();
+    } catch (err) {
+      console.log(err);
+      setError(err);
+    }
+  };
+
+  console.log(error);
 
   return (
     <div className="min-w-[500px] flex justify-center mt-28 h-screen">
       <div className="flex flex-col items-center w-[360px] text-center">
         <img src={Image} alt="monkey" className="w-[160px]" />
         <div className="text-3xl font-semibold flex items-center gap-2">
-          <p>{phoneNumber}</p>
+          <p>{email}</p>
           <svg
-            onClick={() => setActivePage("landing")}
+            onClick={() => setActivePage("addInfo")}
             xmlns="http://www.w3.org/2000/svg"
             width="32"
             height="32"
@@ -57,22 +110,24 @@ export default function CodeAuth({ setActivePage }) {
         </p>
         <div className="flex gap-4 my-4 flex-col w-full">
           <Input
+            error={error}
+            value={code}
             inputValue={code}
+            setError={setError}
+            name="code"
+            textClass="bg-[#202021]"
             onChange={(e) => handleChange(e.target.value)}
             type="text"
           >
             Code
           </Input>
         </div>
-        {code !== "" && (
+        {code && (
           <button
-            onClick={() => {
-              if (isSigningIn) signIn();
-              else setActivePage("addInfo");
-            }}
+            onClick={handleSubmit}
             className="bg-[#8675DC] w-full rounded-lg cursor-pointer hover:bg-[#8765DC] py-4"
           >
-            {isPending ? "PLEASE WAIT..." : "NEXT"}
+            NEXT
           </button>
         )}
       </div>

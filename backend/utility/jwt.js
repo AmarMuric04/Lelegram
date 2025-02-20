@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-export const createJWT = (user) => {
+export const createJWT = (user, time) => {
   const token = jwt.sign(
     {
       email: user.email,
@@ -8,7 +8,7 @@ export const createJWT = (user) => {
     },
     process.env.JWT_TOKEN,
     {
-      expiresIn: "7d",
+      expiresIn: time,
     }
   );
 

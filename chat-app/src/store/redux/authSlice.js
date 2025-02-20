@@ -8,10 +8,19 @@ const authSlice = createSlice({
     phoneNumber: "",
     isSigningIn: false,
     user: {},
+    email: "",
+    firstName: "",
+    lastName: "",
+    staySignedIn: false,
+    countryCode: "",
+    countryName: "",
   },
   reducers: {
-    setSelected: (state, action) => {
-      state.selected = action.payload;
+    setCountryCode: (state, action) => {
+      state.countryCode = action.payload;
+    },
+    setCountryName: (state, action) => {
+      state.countryName = action.payload;
     },
     setValue: (state, action) => {
       state.value = action.payload;
@@ -25,6 +34,18 @@ const authSlice = createSlice({
     setUser: (state, action) => {
       state.user = action.payload;
     },
+    setEmail: (state, action) => {
+      state.email = action.payload;
+    },
+    setFirstName: (state, action) => {
+      state.firstName = action.payload;
+    },
+    setLastName: (state, action) => {
+      state.lastName = action.payload;
+    },
+    setStaySignedIn: (state, action) => {
+      state.staySignedIn = action.payload;
+    },
   },
 });
 
@@ -34,5 +55,11 @@ export const {
   setUser,
   setSelected,
   setValue,
+  setEmail,
+  setFirstName,
+  setLastName,
+  setStaySignedIn,
+  setCountryCode,
+  setCountryName,
 } = authSlice.actions;
 export default authSlice.reducer;

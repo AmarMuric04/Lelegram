@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { resetMessage } from "../redux/messageSlice";
 import PropTypes from "prop-types";
 import { resetImage } from "../redux/imageSlice";
+import { protectedPostData } from "../../utility/async";
 
 const MessageContext = createContext();
 
@@ -17,10 +18,9 @@ export const MessageProvider = ({ children }) => {
   const token = localStorage.getItem("token");
   const messagesListRef = useRef();
 
-  const handleSendMessage = async ({ poll, msgImage, value }) => {
-    try {
+  const { mutate: sendMessage, isSendingMessage } = useMutation({
+    mutationFn: ({ poll, msgImage, value }) => {
       const formData = new FormData();
-      console.log(msgImage);
 
       if (poll) {
         formData.append("pollQuestion", poll.question);
@@ -53,42 +53,13 @@ export const MessageProvider = ({ children }) => {
       } else if (message?._id) {
         formData.append("referenceMessageId", message._id);
       }
-
-      const response = await fetch(
-        "import.meta.env.VITE_SERVER_PORT/message/send-message",
-        {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-          body: formData,
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error("Sending a message failed.");
-      }
-
-      queryClient.invalidateQueries(["search", select]);
-
-      dispatch(resetMessage());
-
-      messagesListRef.current?.scrollToBottom();
-
-      return data;
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  };
-
-  const { mutate: sendMessage, isSendingMessage } = useMutation({
-    mutationFn: (data = {}) => handleSendMessage(data),
+      return protectedPostData("/message/send-message", formData, token);
+    },
     onSuccess: () => {
+      queryClient.invalidateQueries(["search", select]);
       dispatch(resetMessage());
       dispatch(resetImage());
+      messagesListRef.current?.scrollToBottom();
     },
   });
 

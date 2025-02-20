@@ -11,6 +11,7 @@ import { signOut } from "../../utility/util";
 import ModifyChat from "../chat/ModifyChat";
 import { CrossSVG, MegaphoneSVG, PenSVG } from "../../../public/svgs";
 import { protectedPostData } from "../../utility/async";
+import { useNavigate } from "react-router-dom";
 
 export default function Aside() {
   const [activeSelect, setActiveSelect] = useState("chats");
@@ -21,13 +22,14 @@ export default function Aside() {
   const token = localStorage.getItem("token");
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const { mutate: addChat } = useMutation({
     mutationFn: ({ chat }) => {
       const formData = new FormData();
       formData.append("name", chat.name);
-      formData.append("description", chat.desc);
-      formData.append("imageUrl", chat.imageUrl);
+      formData.append("description", chat.description);
+      formData.append("imageUrl", chat.url);
       return protectedPostData("/chat/create-chat", formData, token);
     },
     onSuccess: () => {
@@ -205,7 +207,10 @@ export default function Aside() {
                     </p>
                   </PopUpMenuItem>
                   <PopUpMenuItem
-                    action={() => signOut(dispatch)}
+                    action={() => {
+                      signOut(dispatch);
+                      navigate("/auth");
+                    }}
                     itemClasses="bg-red-500/20 text-red-500 hover:bg-red-500/40 w-full"
                   >
                     <svg

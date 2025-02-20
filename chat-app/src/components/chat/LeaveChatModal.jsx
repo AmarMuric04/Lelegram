@@ -33,37 +33,18 @@ export default function LeaveChatModal({ isAdmin }) {
     },
   });
 
-  const handleDeleteChat = async () => {
-    try {
-      const response = await fetch(
-        "import.meta.env.VITE_SERVER_PORT/chat/delete-chat",
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
-          },
-          body: JSON.stringify({ chatId: activeChat._id }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Deleting the chat failed.");
-      }
-
+  const { mutate: deleteChat } = useMutation({
+    mutationFn: () =>
+      protectedDeleteData(
+        "/chat/delete-chat",
+        { chatId: activeChat._id },
+        token
+      ),
+    onSuccess: () => {
       queryClient.invalidateQueries(["chats"]);
       dispatch(setActiveChat(null));
       dispatch(closeModal());
-
-      return await response.json();
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  };
-
-  const { mutate: deleteChat } = useMutation({
-    mutationFn: handleDeleteChat,
+    },
   });
 
   return (

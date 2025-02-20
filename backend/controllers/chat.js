@@ -2,6 +2,7 @@ import Chat from "../models/chat.js";
 import User from "../models/user.js";
 import Message from "../models/message.js";
 import mongoose from "mongoose";
+import { getSocket } from "../socket.js";
 
 export const getChat = async (req, res, next) => {
   try {
@@ -240,6 +241,17 @@ export const editChat = async (req, res, next) => {
       imageUrl = req.file.path.replace("\\", "/");
     }
 
+    const systemMessage = new Message({
+      message: `modified the chat's look`,
+      sender: req.userId,
+      chat: chatId,
+      type: "system",
+    });
+
+    await systemMessage.save();
+
+    getSocket().emit("messageSent", { data: chatId });
+
     const updatedChat = await Chat.findByIdAndUpdate(
       chatId,
       { name, description, imageUrl },
@@ -290,6 +302,7 @@ export const removeUserFromChat = async (req, res, next) => {
   try {
     const { chatId } = req.params;
     const { userId } = req.body;
+    console.log(req.body);
 
     const chat = await Chat.findById(chatId)
       .populate("users")
@@ -312,6 +325,17 @@ export const removeUserFromChat = async (req, res, next) => {
     chat.users.pull(userId);
 
     await chat.save();
+
+    const systemMessage = new Message({
+      message: `left the chat`,
+      sender: userId,
+      chat: chatId,
+      type: "system",
+    });
+
+    await systemMessage.save();
+
+    getSocket().emit("messageSent", { data: chatId });
 
     res
       .status(200)
@@ -352,13 +376,25 @@ export const addUserToChat = async (req, res, next) => {
 
     await chat.save();
 
+    const systemMessage = new Message({
+      message: `joined the chat`,
+      sender: userId,
+      chat: chatId,
+      type: "system",
+    });
+
+    await systemMessage.save();
+
+    getSocket().emit("messageSent", { data: chatId });
+
     const updatedChat = await Chat.findById(chatId)
       .populate("users")
       .populate("admins");
 
-    res
-      .status(200)
-      .send({ message: "User added to chat successfully.", data: updatedChat });
+    res.status(200).send({
+      message: "User added to chat successfully.",
+      data: updatedChat,
+    });
   } catch (err) {
     next(err);
   }

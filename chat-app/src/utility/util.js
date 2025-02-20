@@ -72,3 +72,30 @@ export const signOut = (dispatch) => {
   localStorage.removeItem("userId");
   localStorage.removeItem("expires-in");
 };
+
+export const sendOTP = async (email) => {
+  await fetch("http://localhost:3000/send-otp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+};
+
+export const verifyOTP = async (email, otp) => {
+  const response = await fetch("http://localhost:3000/verify-otp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, otp }),
+  });
+
+  const data = await response.json();
+
+  if (data.success !== true) {
+    const error = new Error(data.message);
+    error.data = data.data;
+
+    throw error;
+  }
+
+  return data;
+};

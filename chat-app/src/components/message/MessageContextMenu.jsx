@@ -189,7 +189,7 @@ export default function MessageContextMenu({
               <ContextMenuItem
                 action={() =>
                   copyToClipboard(
-                    "https://telegram-xi-olive.vercel.app/" +
+                    "{import.meta.env.VITE_SERVER_PORT}" +
                       message.chat._id +
                       "#" +
                       message._id

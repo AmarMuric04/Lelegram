@@ -17,7 +17,6 @@ const baseFetchData = async (URL, options = {}) => {
       },
     });
 
-
     return response.data;
   } catch (error) {
     console.error(error);
@@ -79,12 +78,14 @@ export const protectedPutData = async (URL, body, token) =>
     },
   });
 
-const baseDeleteData = async (URL, options = {}) => {
+const baseDeleteData = async (URL, body, options = {}) => {
+  console.log(body);
   try {
     const response = await axiosInstance.delete(URL, {
       headers: {
         ...options.headers,
       },
+      data: body,
     });
     return response.data;
   } catch (error) {
@@ -92,10 +93,10 @@ const baseDeleteData = async (URL, options = {}) => {
   }
 };
 
-export const deleteData = async (URL) => baseDeleteData(URL);
+export const deleteData = async (URL, body) => baseDeleteData(URL, body);
 
-export const protectedDeleteData = async (URL, token) =>
-  baseDeleteData(URL, {
+export const protectedDeleteData = async (URL, body, token) =>
+  baseDeleteData(URL, body, {
     headers: {
       Authorization: "Bearer " + token,
     },

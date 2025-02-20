@@ -1,9 +1,11 @@
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { handlePostInput } from "../../utility/util";
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Input from "../misc/Input";
-import { LeftArrowSVG } from "../../../public/svgs";
+import { LeftArrowSVG, TrashSVG } from "../../../public/svgs";
+import { setImage } from "../../store/redux/imageSlice";
+import { openModal } from "../../store/redux/modalSlice";
 
 export default function ModifyChat({
   isModifying,
@@ -13,22 +15,33 @@ export default function ModifyChat({
   type,
 }) {
   const { activeChat } = useSelector((state) => state.chat);
-
+  const { url, preview } = useSelector((state) => state.image);
+  const dispatch = useDispatch();
   const [chat, setChat] = useState({
-    url: "",
     name: "",
     description: "",
-    preview: null,
   });
+
+  useEffect(() => {
+    if (type === "edit")
+      setChat({
+        name: activeChat.name,
+        description: activeChat.description,
+      });
+    dispatch(setImage({ url: activeChat?.imageUrl }));
+  }, [activeChat, type, dispatch]);
 
   const isNameDifferent = chat.name !== activeChat?.name && chat.name !== "";
   const isDescDifferent =
     chat.description !== activeChat?.description && chat.description !== "";
+  const isImageDifferent = url !== activeChat?.imageUrl;
 
   let btnCondition;
   if (type === "edit")
     btnCondition =
-      isNameDifferent || isDescDifferent ? "bottom-5" : "-bottom-20";
+      isNameDifferent || isDescDifferent || isImageDifferent
+        ? "bottom-5"
+        : "-bottom-20";
   else if (type === "add")
     btnCondition = chat.name && chat.description ? "bottom-5" : "-bottom-20";
 
@@ -50,17 +63,19 @@ export default function ModifyChat({
         </div>
         <div className="flex items-center flex-col">
           <div className="relative bg-[#8675DC] hover:bg-[#8765DC] h-32 w-32 text-white rounded-full my-12 group cursor-pointer">
-            {chat.imagePreview && (
+            {preview && (
               <img
                 className="w-full h-full rounded-full object-cover absolute"
-                src={chat.imagePreview}
+                src={preview}
                 alt="Chosen profile picture."
               />
             )}
-            {activeChat?.imageUrl && !chat.imagePreview && (
+            {activeChat?.imageUrl && !preview && (
               <img
                 className="w-full h-full rounded-full object-cover absolute"
-                src={`import.meta.env.VITE_SERVER_PORT/${activeChat?.imageUrl}`}
+                src={`${import.meta.env.VITE_SERVER_PORT}/${
+                  activeChat?.imageUrl
+                }`}
                 alt="Chosen profile picture."
               />
             )}
@@ -80,7 +95,7 @@ export default function ModifyChat({
             </div>
             <input
               onChange={(e) =>
-                handlePostInput(e.target.value, e.target.files, setChat, chat)
+                handlePostInput(e.target.value, e.target.files, dispatch)
               }
               type="file"
               className="h-full w-full opacity-0 cursor-pointer"
@@ -111,12 +126,27 @@ export default function ModifyChat({
           </div>
         </div>
       </div>
-      <p className="text-[#ccc] text-sm text-center mt-2">
+      <p className="text-[#ccc] text-sm text-center my-2">
         You can provide an optional description for your channel.
       </p>
+      {type === "edit" && (
+        <div className="bg-[#242424] p-4">
+          <button
+            onClick={() => dispatch(openModal("leave-channel"))}
+            className="flex w-full items-center gap-8 cursor-pointer transition-all text-red-400 hover:bg-red-500/10 p-4 rounded-lg"
+          >
+            <TrashSVG dimensions={24} />
+            <p>Delete Channel</p>
+          </button>
+        </div>
+      )}
       <div className={`absolute z-50 right-5 transition-all ${btnCondition}`}>
         <button
-          onClick={() => action({ chat: chat })}
+          onClick={() => {
+            console.log({ ...chat, url });
+            action({ chat: { ...chat, url, preview } });
+            setIsModifying(false);
+          }}
           className="bg-[#8675DC] cursor-pointer hover:bg-[#8765DC] transition-all p-4 text-white rounded-full"
         >
           <svg

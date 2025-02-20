@@ -10,7 +10,7 @@ router.get("/get-user/:userId", isAuth, UserController.getUser);
 router.post("/signin", UserController.signIn);
 
 router.post(
-  "/create-user",
+  "/check-input",
   [
     body("firstName")
       .not()
@@ -22,8 +22,10 @@ router.post(
       .withMessage("Please provide your first name."),
     body("email").isEmail().withMessage("Provide a valid email."),
   ],
-  UserController.createUser
+  UserController.checkInput
 );
+
+router.post("/create-user", UserController.createUser);
 
 router.post("/check-phoneNumber", UserController.checkPhoneNumber);
 

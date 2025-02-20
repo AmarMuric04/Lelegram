@@ -1,22 +1,32 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setPhoneNumber } from "../../store/redux/authSlice";
+import { setCountryName, setPhoneNumber } from "../../store/redux/authSlice";
 import PropTypes from "prop-types";
 import Input from "../misc/Input";
+import { countries } from "../../assets/countryCodes";
 
 export default function PhoneNumberInput({ error, setError }) {
   const dispatch = useDispatch();
-  const { selected, phoneNumber } = useSelector((state) => state.auth);
+  const { countryCode, phoneNumber } = useSelector((state) => state.auth);
 
   const handleChange = (value) => {
     const newValue = "+" + value.replace(/\D/g, "");
     dispatch(setPhoneNumber(newValue));
   };
 
+  const phoneWithoutPlus = phoneNumber.replace("+", "");
+  const isValidCountryCode = countries.find((country) =>
+    country.phone.startsWith(phoneWithoutPlus)
+  );
+
+  if (phoneWithoutPlus && isValidCountryCode) {
+    dispatch(setCountryName(isValidCountryCode.label));
+  }
+
   useEffect(() => {
-    if (selected.phone) dispatch(setPhoneNumber("+" + selected.phone + " "));
+    if (countryCode) dispatch(setPhoneNumber("+" + countryCode + " "));
     else dispatch(setPhoneNumber(""));
-  }, [selected, dispatch]);
+  }, [countryCode, dispatch]);
 
   return (
     <Input
@@ -29,6 +39,7 @@ export default function PhoneNumberInput({ error, setError }) {
       autoComplete="new-password"
       name="not-a-phone"
       inputMode="text"
+      textClass="bg-[#202021]"
     >
       Phone Number
     </Input>

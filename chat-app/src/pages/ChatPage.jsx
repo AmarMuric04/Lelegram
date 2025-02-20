@@ -45,7 +45,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     socket.on("messageSent", (message) => {
-      console.log("New message:", message);
+      // console.log("New message:", message);
       queryClient.invalidateQueries(["messages", message.data]);
     });
 

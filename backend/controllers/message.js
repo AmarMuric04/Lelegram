@@ -57,7 +57,6 @@ export const sendMessage = async (req, res, next) => {
       await chat.save();
 
       getSocket().emit("messageSent", { data: chatId });
-      console.log("Emitted");
 
       return res.status(201).json({
         message: "Poll created successfully!",

@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import AsideChat from "./AsideChat";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import cat from "../../assets/undraw_cat_lqdj.svg";
 import { useDispatch } from "react-redux";
 import { setUserChats } from "../../store/redux/chatSlice";
@@ -21,14 +21,14 @@ export default function AsideChatWrapper() {
       if (activeSelect === "all") url += "/get-all-chats";
       return protectedFetchData(url, token);
     },
-    onSuccess: ({ data }) => {
-      if (activeSelect === "users") dispatch(setUserChats(data.data.chats));
-    },
-    onError: (error) => {
-      console.error(error);
-    },
     queryKey: ["chats", activeSelect],
   });
+
+  useEffect(() => {
+    if (chats) {
+      dispatch(setUserChats(chats.data.chats));
+    }
+  }, [chats, dispatch]);
 
   const length = activeSelect === "all" ? 15 : 7;
 

@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 
-export const CrossSVG = ({ classes, dimensions }) => (
+export const CrossSVG = ({ classes, dimensions = 20 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={dimensions}
@@ -185,11 +185,12 @@ export const SelectSVG = () => (
   </svg>
 );
 
-export const TrashSVG = () => (
+export const TrashSVG = ({ classes, dimensions = 20 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="20"
-    height="20"
+    width={dimensions}
+    height={dimensions}
+    className={`${classes && classes}`}
     viewBox="0 0 24 24"
   >
     <path
@@ -198,6 +199,11 @@ export const TrashSVG = () => (
     />
   </svg>
 );
+
+TrashSVG.propTypes = {
+  classes: PropTypes.string,
+  dimensions: PropTypes.number,
+};
 
 export const ArrowUpSVG = () => (
   <svg

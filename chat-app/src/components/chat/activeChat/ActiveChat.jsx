@@ -42,9 +42,13 @@ export default function ActiveChat() {
     mutationFn: ({ chat }) => {
       const formData = new FormData();
       formData.append("name", chat.name);
-      formData.append("description", chat.desc);
-      formData.append("imageUrl", chat.imageUrl);
-      return protectedPostData(`/chat/edit-chat/${activeChat._id}`);
+      formData.append("description", chat.description);
+      formData.append("imageUrl", chat.url);
+      return protectedPostData(
+        `/chat/edit-chat/${activeChat._id}`,
+        formData,
+        token
+      );
     },
     onSuccess: () => queryClient.invalidateQueries(["chat"]),
   });
@@ -78,6 +82,8 @@ export default function ActiveChat() {
     enabled: !!activeChat,
   });
 
+  if (!user || !activeChat) return;
+
   const isInChat = activeChat?.users?.some(
     (u) => u._id.toString() === user._id
   );
@@ -88,8 +94,6 @@ export default function ActiveChat() {
   const isAdmin = activeChat?.admins?.some(
     (u) => u._id.toString() === user._id
   );
-
-  if (!user || !activeChat) return;
 
   return (
     <div className="flex w-[63.5vw] overflow-hidden">
@@ -293,7 +297,7 @@ export default function ActiveChat() {
             )}
           </header>
           <div className="flex flex-col items-center mt-6 w-full">
-            <ChatImage dimensions={20} />
+            <ChatImage dimensions={30} />
             <p className="mt-4 font-semibold text-lg">{activeChat?.name}</p>
             <p className="text-[#ccc]">
               {activeChat?.users?.length} member
@@ -341,7 +345,7 @@ export default function ActiveChat() {
                 </svg>
                 <div className="flex flex-col">
                   <p className="max-w-[90%] overflow-clip truncate">
-                    https://telegram-xi-olive.vercel.app/
+                    {import.meta.env.VITE_SERVER_PORT}
                     {activeChat?._id}
                   </p>
                   <span className="text-[#ccc] text-sm mt-2">Link</span>
@@ -380,7 +384,9 @@ export default function ActiveChat() {
                       className="flex items-center gap-2 transition-all hover:bg-[#303030] p-2 rounded-lg cursor-pointer"
                     >
                       <img
-                        src={`import.meta.env.VITE_SERVER_PORT/${user.imageUrl}`}
+                        src={`${import.meta.env.VITE_SERVER_PORT}/${
+                          user.imageUrl
+                        }`}
                         alt={`${user.firstName} ${user.lastName}`}
                         className="h-10 w-10 rounded-full mt-1"
                       />

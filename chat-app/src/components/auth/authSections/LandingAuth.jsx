@@ -5,24 +5,25 @@ import { useMutation } from "@tanstack/react-query";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setIsSigningIn } from "../../../store/redux/authSlice";
+import {
+  setIsSigningIn,
+  setStaySignedIn,
+} from "../../../store/redux/authSlice";
 import { postData } from "../../../utility/async";
-import OTPAuth from "../OTPAuth";
 
 export default function LandingAuth({ setActivePage }) {
-  const { phoneNumber } = useSelector((state) => state.auth);
+  const { phoneNumber, staySignedIn } = useSelector((state) => state.auth);
   const [error, setError] = useState({});
   const dispatch = useDispatch();
 
   const { mutate: checkNumber, isPending } = useMutation({
     mutationFn: () => postData("/user/check-phoneNumber", { phoneNumber }),
     onSuccess: ({ data }) => {
-      setActivePage("codeSent");
+      setActivePage("addInfo");
       dispatch(setIsSigningIn(data));
     },
     onError: (error) => {
       setError(error);
-      console.error(error);
     },
   });
 
@@ -36,7 +37,6 @@ export default function LandingAuth({ setActivePage }) {
             color="#202021"
             bgColor="#8675DC"
           />
-          <OTPAuth />
           <h1 className="font-semibold text-3xl mt-8">Sign in to Telegram</h1>
           <p className="text-gray-400 w-[70%] mt-4">
             Please confirm your coutry code and enter your phone number.
@@ -45,7 +45,13 @@ export default function LandingAuth({ setActivePage }) {
         <PhoneCountryWrapper error={error} setError={setError} />
 
         <div className="checkbox-wrapper-4 w-full h-[4rem] flex items-center">
-          <input className="inp-cbx" id="morning" type="checkbox" />
+          <input
+            checked={staySignedIn}
+            onClick={() => dispatch(setStaySignedIn(!staySignedIn))}
+            className="inp-cbx"
+            id="morning"
+            type="checkbox"
+          />
           <label
             className="cbx w-full h-full flex gap-8 items-center"
             htmlFor="morning"
@@ -78,7 +84,7 @@ export default function LandingAuth({ setActivePage }) {
               {isPending ? "Checking..." : "Next"}
             </Button>
           )}
-          <Button
+          {/* <Button
             sx={{
               backgroundColor: "#8675DC05",
               width: "100%",
@@ -90,7 +96,7 @@ export default function LandingAuth({ setActivePage }) {
             onClick={() => setActivePage("qrSent")}
           >
             LOG IN BY QR CODE
-          </Button>
+          </Button> */}
         </div>
       </div>
     </div>

@@ -22,9 +22,9 @@ export const getUser = async (req, res, next) => {
   }
 };
 
-export const createUser = async (req, res, next) => {
+export const checkInput = async (req, res, next) => {
   try {
-    const { phoneNumber, email, firstName, lastName } = req.body;
+    const { email, firstName, lastName } = req.body;
     const errors = validationResult(req);
     const validationError = errors.array();
 
@@ -46,6 +46,16 @@ export const createUser = async (req, res, next) => {
       throw error;
     }
 
+    res.status(200).json({ message: "Input is valid" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const createUser = async (req, res, next) => {
+  try {
+    const { phoneNumber, email, firstName, lastName, staySignedIn } = req.body;
+
     let imageUrl;
     if (req.file) imageUrl = req.file.path.replace("\\", "/");
     else imageUrl = "images/pfp.jpg";
@@ -65,8 +75,8 @@ export const createUser = async (req, res, next) => {
     const chat = new Chat({
       name: "ʚ♡ɞ Saved Messages",
       description: "This is where you store your saved messages.",
-      creator: user,
-      admins: [user],
+      creator: null,
+      admins: [],
       users: [user],
       gradient,
       imageUrl: null,
@@ -76,7 +86,10 @@ export const createUser = async (req, res, next) => {
 
     await chat.save();
 
-    const token = createJWT(user);
+    let time = "1d";
+    if (staySignedIn) time = "7d";
+
+    const token = createJWT(user, time);
 
     res.status(201).json({
       message: "User created successfully",
@@ -92,9 +105,11 @@ export const createUser = async (req, res, next) => {
 
 export const signIn = async (req, res, next) => {
   try {
-    const { phoneNumber } = req.body;
+    const { phoneNumber, staySignedIn } = req.body;
 
     const user = await User.findOne({ phoneNumber });
+
+    console.log(user, phoneNumber);
 
     if (!user) {
       const error = new Error("User not found.");
@@ -103,7 +118,10 @@ export const signIn = async (req, res, next) => {
       throw error;
     }
 
-    const token = createJWT(user);
+    let time = "1d";
+    if (staySignedIn) time = "7d";
+
+    const token = createJWT(user, time);
 
     res.status(200).json({
       message: "Successfully signed in.",

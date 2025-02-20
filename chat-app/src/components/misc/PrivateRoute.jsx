@@ -1,7 +1,7 @@
 import { useDispatch } from "react-redux";
 import { setUser } from "../../store/redux/authSlice";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { connectSocket, socket, disconnectSocket } from "../../socket";
 import { checkIfSignedIn } from "../../utility/util";
 import { protectedFetchData } from "../../utility/async";
@@ -9,7 +9,6 @@ import PropTypes from "prop-types";
 
 const PrivateRoute = ({ children }) => {
   const dispatch = useDispatch();
-  const [isSignedIn, setIsSignedIn] = useState(false);
 
   const token = localStorage.getItem("token");
 
@@ -29,17 +28,17 @@ const PrivateRoute = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    setIsSignedIn(checkIfSignedIn(dispatch));
+    checkIfSignedIn(dispatch);
   }, [dispatch]);
 
-  const { data, error, isLoading } = useQuery({
+  const { data, error } = useQuery({
     queryFn: () => {
       const userId = localStorage.getItem("userId");
       const token = localStorage.getItem("token");
       return protectedFetchData(`/user/get-user/${userId}`, token);
     },
     queryKey: ["userData"],
-    enabled: !!token && isSignedIn,
+    enabled: !!token,
   });
 
   useEffect(() => {

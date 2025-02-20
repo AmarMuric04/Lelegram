@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { countries } from "../../assets/countryCodes";
 import { useDispatch, useSelector } from "react-redux";
-import { setSelected, setValue } from "../../store/redux/authSlice";
+import { setCountryCode, setValue } from "../../store/redux/authSlice";
 
 export default function CountryInput() {
   const [isFocused, setIsFocused] = useState(false);
   const [filteredCountries, setFilteredCountries] = useState(countries);
   const [showUl, setShowUl] = useState(false);
   const dispatch = useDispatch();
-  const { value } = useSelector((state) => state.auth);
+  const { value, countryName } = useSelector((state) => state.auth);
 
   const inputRef = useRef(null);
 
@@ -31,14 +31,20 @@ export default function CountryInput() {
   };
 
   const handleChange = (value) => {
-    dispatch(setSelected({}));
+    dispatch(setCountryCode(""));
     dispatch(setValue(value));
   };
 
   const handleCountrySelect = (country) => {
-    dispatch(setSelected(country));
+    dispatch(setCountryCode(country.phone));
     dispatch(setValue(country.label));
   };
+
+  useEffect(() => {
+    if (countryName) {
+      dispatch(setValue(countryName));
+    }
+  }, [countryName, dispatch]);
 
   return (
     <div className="relative h-[3.5rem]">
