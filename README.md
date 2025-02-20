@@ -22,13 +22,17 @@ A Telegram clone that includes:
 20. Emoji sending
 21. Custom emoji reactions
 22. Direct messages
+23. Voice messages
+24. Chat notifications
+25. System chat messages
+And more!
 
 Things in consideration of being implemented:
-1. Voice Messages,
-2. Mentions (@...), 🔜
-4. Read Receipts,
-5. Chat Themes, 🔜
-6. User status,
+
+1. Mentions (@...), 🔜
+2. Read Receipts,
+3. Chat Themes, 🔜
+4. User status,
 
 To use the app, change the .env.test file's name to just .env
 Phone Number checking is not implemented, in the Code just write whatever you want.
