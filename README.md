@@ -22,9 +22,9 @@ A Telegram clone that includes:
 20. Emoji sending
 21. Custom emoji reactions
 22. Direct messages
+23. Voice messages
 
 Things in consideration of being implemented:
-1. Voice Messages,
 2. Mentions (@...), 🔜
 4. Read Receipts,
 5. Chat Themes, 🔜
