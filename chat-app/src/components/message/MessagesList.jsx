@@ -39,7 +39,6 @@ const MessagesList = forwardRef(function MessagesList(
 
   const { mutate: addReaction } = useMutation({
     mutationFn: ({ emoji, message }) => {
-      console.log(emoji, message);
       return protectedPostData(
         "/message/add-reaction",
         {

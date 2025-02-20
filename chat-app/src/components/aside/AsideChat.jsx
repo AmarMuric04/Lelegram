@@ -61,7 +61,7 @@ export default function AsideChat({ chat, action }) {
               }, ${chat.gradient?.colors?.join(", ") || "#ccc"})`,
             }}
           >
-            {displayName.slice(0, 3)}
+            {displayName?.slice(0, 3)}
           </div>
         )
       ) : chat.imageUrl ? (

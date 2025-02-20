@@ -143,7 +143,6 @@ export default function ModifyChat({
       <div className={`absolute z-50 right-5 transition-all ${btnCondition}`}>
         <button
           onClick={() => {
-            console.log({ ...chat, url });
             action({ chat: { ...chat, url, preview } });
             setIsModifying(false);
           }}

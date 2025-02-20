@@ -27,7 +27,7 @@ export default function PopUpMenu({
       const distance = Math.sqrt(
         (e.clientX - elemX) ** 2 + (e.clientY - elemY) ** 2
       );
-      if (distance > 200) setOpen(false);
+      if (distance > 300) setOpen(false);
     };
 
     if (open) {

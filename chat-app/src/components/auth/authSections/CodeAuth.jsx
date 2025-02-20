@@ -48,10 +48,7 @@ export default function CodeAuth({ setActivePage }) {
       queryClient.invalidateQueries(["userData"]);
       navigate("/");
     },
-    onError: (error) => {
-      console.log(error);
-      setError(error);
-    },
+    onError: (error) => setError(error),
   });
 
   const signInMutation = useMutation({
@@ -67,10 +64,7 @@ export default function CodeAuth({ setActivePage }) {
       queryClient.invalidateQueries(["userData"]);
       navigate("/");
     },
-    onError: (error) => {
-      console.log(error);
-      setError(error);
-    },
+    onError: (error) => console.log(error),
   });
 
   const handleSubmit = async () => {
@@ -78,7 +72,7 @@ export default function CodeAuth({ setActivePage }) {
       await verifyOTP(email, code);
       isSigningIn ? signInMutation.mutate() : signUpMutation.mutate();
     } catch (err) {
-      console.log(err);
+      console.error(err);
       setError(err);
     }
   };

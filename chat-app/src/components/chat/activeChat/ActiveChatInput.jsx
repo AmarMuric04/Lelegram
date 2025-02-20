@@ -71,7 +71,6 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
 
   const handlePickImage = async (e) => {
     if (!e.target.files || e.target.files.length === 0) {
-      console.log("User canceled image selection.");
       dispatch(resetMessage());
       return;
     }

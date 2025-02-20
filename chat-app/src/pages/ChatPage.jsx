@@ -62,7 +62,6 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (data) {
-      console.log(data, "Chat data fetched successfully.");
       dispatch(setActiveChat(data.data));
     }
   }, [data, dispatch, queryClient]);

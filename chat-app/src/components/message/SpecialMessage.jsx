@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 
 export default function SpecialMessage({ message, topMessage, icon }) {
   const dispatch = useDispatch();
-  console.log(message);
 
   const getFromText = () => {
     if (Array.isArray(message) && message.length > 0) {

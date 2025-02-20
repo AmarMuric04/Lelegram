@@ -503,16 +503,23 @@ export const addReaction = async (req, res, next) => {
     }
 
     const chat = await Chat.findById(message.chat);
-
-    let updatedMessage;
     const userReactions = message.reactions.get(reaction) || [];
+    let updatedMessage;
 
     if (userReactions.includes(req.userId)) {
       updatedMessage = await Message.findOneAndUpdate(
         { _id: messageId },
-        { $unset: { [`reactions.${reaction}`]: req.userId } },
+        { $pull: { [`reactions.${reaction}`]: req.userId } },
         { new: true }
       );
+
+      if (updatedMessage.reactions[reaction]?.length === 0) {
+        updatedMessage = await Message.findOneAndUpdate(
+          { _id: messageId },
+          { $unset: { [`reactions.${reaction}`]: "" } },
+          { new: true }
+        );
+      }
 
       getSocket().emit("messageSent", { data: chat._id });
       console.log("Emitted: Reaction removed");

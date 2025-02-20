@@ -37,6 +37,7 @@ export default function Message({
   const { isSelecting, selected } = useSelector((state) => state.message);
   const { user } = useSelector((state) => state.auth);
   const { open } = useSelector((state) => state.contextMenu);
+  const { activeChat } = useSelector((state) => state.chat);
 
   useEffect(() => {
     if (!isSelecting) dispatch(setSelected([]));
@@ -104,6 +105,10 @@ export default function Message({
     .filter((opt) => opt.voters.includes(user._id))
     .map((option) => option.text);
 
+  const isInChat = activeChat?.users?.some(
+    (u) => u._id.toString() === user._id
+  );
+
   return (
     <>
       {message.type === "system" && (
@@ -135,7 +140,7 @@ export default function Message({
           onContextMenu={handleContextMenu}
           onMouseOver={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
-          className={`w-full flex z-10 max-w-[25rem] justify-end relative ${
+          className={`w-full flex z-10 justify-end relative ${
             isSelecting && "cursor-pointer"
           } ${isMe ? "self-end flex-row" : "self-start flex-row-reverse"}`}
           key={message._id}
@@ -150,7 +155,7 @@ export default function Message({
             id={message._id}
             className={`relative transition-all left-0 ${
               !isMe && isSelecting && "left-12"
-            } z-50 appearAnimation flex gap-2 ${
+            } z-50 appearAnimation flex gap-2 max-w-[25rem] ${
               isMe ? "self-end flex-row" : "self-start flex-row-reverse"
             } ${!showImage && !isMe && "ml-12"} ${showImage && "mb-1"}`}
           >
@@ -160,7 +165,7 @@ export default function Message({
               isSelected={isSelected}
               message={message}
             />
-            {isHovering && !isSelecting && (
+            {isInChat && isHovering && !isSelecting && (
               <button
                 onClick={() => {
                   dispatch(openModal("forward-to-channels"));
@@ -185,31 +190,33 @@ export default function Message({
                 </svg>
               </button>
             )}
-            {isHovering && Object.keys(message.reactions).length <= 18 && (
-              <>
-                <button
-                  onClick={handleReactionClick}
-                  className={`appearAnimation cursor-pointer group absolute bottom-0 ${
-                    isMe ? "-left-6" : "-right-6"
-                  } p-1 rounded-full bg-[#202021]`}
-                >
-                  <p className="group-hover:scale-110 group-hover:text-green-400 transition-all">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                    >
-                      <rect width="24" height="24" fill="none" />
-                      <path
-                        fill="currentColor"
-                        d="M7 9.5C7 8.67 7.67 8 8.5 8s1.5.67 1.5 1.5S9.33 11 8.5 11S7 10.33 7 9.5m5 8c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5m3.5-6.5c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8S14 8.67 14 9.5s.67 1.5 1.5 1.5M22 1h-2v2h-2v2h2v2h2V5h2V3h-2zm-2 11c0 4.42-3.58 8-8 8s-8-3.58-8-8s3.58-8 8-8c1.46 0 2.82.4 4 1.08V2.84A9.9 9.9 0 0 0 11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12c0-1.05-.17-2.05-.47-3H19.4c.38.93.6 1.94.6 3"
-                      />
-                    </svg>
-                  </p>
-                </button>
-              </>
-            )}
+            {isInChat &&
+              isHovering &&
+              Object.keys(message.reactions).length <= 18 && (
+                <>
+                  <button
+                    onClick={handleReactionClick}
+                    className={`appearAnimation cursor-pointer group absolute bottom-0 ${
+                      isMe ? "-left-6" : "-right-6"
+                    } p-1 rounded-full bg-[#202021]`}
+                  >
+                    <p className="group-hover:scale-110 group-hover:text-green-400 transition-all">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                      >
+                        <rect width="24" height="24" fill="none" />
+                        <path
+                          fill="currentColor"
+                          d="M7 9.5C7 8.67 7.67 8 8.5 8s1.5.67 1.5 1.5S9.33 11 8.5 11S7 10.33 7 9.5m5 8c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5m3.5-6.5c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8S14 8.67 14 9.5s.67 1.5 1.5 1.5M22 1h-2v2h-2v2h2v2h2V5h2V3h-2zm-2 11c0 4.42-3.58 8-8 8s-8-3.58-8-8s3.58-8 8-8c1.46 0 2.82.4 4 1.08V2.84A9.9 9.9 0 0 0 11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12c0-1.05-.17-2.05-.47-3H19.4c.38.93.6 1.94.6 3"
+                        />
+                      </svg>
+                    </p>
+                  </button>
+                </>
+              )}
 
             <div
               className={`rounded-[1.25rem] ${
@@ -413,7 +420,9 @@ export default function Message({
                         .filter(([, users]) => users.length > 0)
                         .map(([emoji, users]) => (
                           <p
-                            onClick={() => addReaction({ emoji, message })}
+                            onClick={() => {
+                              if (isInChat) addReaction({ emoji, message });
+                            }}
                             className="py-1 px-3 m-[2px] bg-[#ffffff50] hover:bg-[#ffffff70] cursor-pointer rounded-lg"
                             key={emoji}
                           >
