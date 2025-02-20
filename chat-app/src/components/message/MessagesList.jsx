@@ -9,6 +9,10 @@ import React, {
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 import Message from "./Message";
+import Picker from "@emoji-mart/react";
+import data from "@emoji-mart/data";
+import { protectedPostData } from "../../utility/async";
+import { useMutation } from "@tanstack/react-query";
 
 const MessagesList = forwardRef(function MessagesList(
   { messages, viewInfo, setShowScrollButton },
@@ -20,11 +24,83 @@ const MessagesList = forwardRef(function MessagesList(
     (state) => state.message
   );
   const { open } = useSelector((state) => state.contextMenu);
+  const [showPicker, setShowPicker] = useState({
+    open: false,
+    id: null,
+  });
+  const [pickerPosition, setPickerPosition] = useState({ x: 0, y: 0 });
 
   const bottomRef = useRef(null);
   const messagesRef = useRef(null);
   const [messageId, setMessageId] = useState(null);
   const location = useLocation();
+
+  const token = localStorage.getItem("token");
+
+  const { mutate: addReaction } = useMutation({
+    mutationFn: ({ emoji, message }) => {
+      console.log(emoji, message);
+      return protectedPostData(
+        "/message/add-reaction",
+        {
+          reaction: emoji,
+          messageId: message._id,
+        },
+        token
+      );
+    },
+  });
+
+  const handleEmojiSelect = (emoji, message) => {
+    addReaction({ emoji: emoji.native, message });
+    setShowPicker({ open: false, id: null });
+  };
+
+  useEffect(() => {
+    const handleHidePicker = (e) => {
+      if (!e.target.closest("#picker"))
+        setShowPicker({ open: false, id: null });
+    };
+
+    if (showPicker.open) {
+      setTimeout(() => {
+        document.addEventListener("click", handleHidePicker);
+      }, 0);
+    } else {
+      document.removeEventListener("click", handleHidePicker);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleHidePicker);
+    };
+  }, [showPicker.open]);
+
+  const handleOpenPicker = (event, message) => {
+    const { clientX, clientY } = event;
+    const pickerHeight = 500;
+    const pickerWidth = 250;
+    const padding = 10;
+
+    const windowHeight = window.innerHeight;
+    const windowWidth = window.innerWidth;
+
+    let posX = clientX;
+    let posY = clientY;
+
+    if (clientY + pickerHeight + padding > windowHeight) {
+      posY = windowHeight - 100 - pickerHeight - padding;
+    }
+
+    if (clientX + pickerWidth + padding > windowWidth) {
+      posX = windowWidth - pickerWidth - padding;
+    }
+
+    setPickerPosition({ x: posX, y: posY });
+    setShowPicker({
+      open: true,
+      id: message._id,
+    });
+  };
 
   useEffect(() => {
     const messageIdFromUrl = location.hash.replace("#", "");
@@ -159,7 +235,10 @@ const MessagesList = forwardRef(function MessagesList(
                 let showSenderInfo = true;
                 if (index !== 0) {
                   const previousMessage = groupedMessages[dateKey][index - 1];
-                  if (previousMessage.sender._id === message.sender._id) {
+                  if (
+                    previousMessage.type !== "system" &&
+                    previousMessage.sender._id === message.sender._id
+                  ) {
                     const prevTime = new Date(previousMessage.createdAt);
                     const currTime = new Date(message.createdAt);
                     const timeDifference = currTime - prevTime;
@@ -188,15 +267,35 @@ const MessagesList = forwardRef(function MessagesList(
                 return (
                   <>
                     {message.type === "forward" && message.message && (
-                      <Message
-                        key={`${message._id}-forward`}
-                        message={{ ...message, type: "normal", extra: true }}
-                        isMe={isMe}
-                        isAdmin={isAdmin}
-                        showImage={showImage}
-                        showSenderInfo={showSenderInfo}
-                        messageId={messageId}
-                      />
+                      <>
+                        <Message
+                          key={`${message._id}-forward`}
+                          message={{ ...message, type: "normal", extra: true }}
+                          isMe={isMe}
+                          isAdmin={isAdmin}
+                          showImage={showImage}
+                          showSenderInfo={showSenderInfo}
+                          messageId={messageId}
+                          onOpenPicker={handleOpenPicker}
+                          addReaction={addReaction}
+                        />
+                        {showPicker.open && showPicker.id === message._id && (
+                          <div
+                            id="picker"
+                            style={{
+                              position: "fixed",
+                              top: pickerPosition.y,
+                              left: pickerPosition.x,
+                              zIndex: 1000,
+                            }}
+                          >
+                            <Picker
+                              data={data}
+                              onEmojiSelect={handleEmojiSelect}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                     <Message
                       key={message._id}
@@ -206,7 +305,25 @@ const MessagesList = forwardRef(function MessagesList(
                       showImage={showImage}
                       showSenderInfo={showSenderInfo}
                       messageId={messageId}
+                      onOpenPicker={handleOpenPicker}
+                      addReaction={addReaction}
                     />
+                    {showPicker.open && showPicker.id === message._id && (
+                      <div
+                        id="picker"
+                        style={{
+                          position: "fixed",
+                          top: pickerPosition.y,
+                          left: pickerPosition.x,
+                          zIndex: 1000,
+                        }}
+                      >
+                        <Picker
+                          data={data}
+                          onEmojiSelect={(e) => handleEmojiSelect(e, message)}
+                        />
+                      </div>
+                    )}
                   </>
                 );
               })}

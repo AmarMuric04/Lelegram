@@ -82,6 +82,14 @@ export default function ActiveChat() {
     enabled: !!activeChat,
   });
 
+  const { mutate: createDirectMessage } = useMutation({
+    mutationFn: ({ userId }) =>
+      protectedPostData("/user/create-direct-message", { userId }, token),
+    onSuccess: () => {
+      console.log("Created");
+    },
+  });
+
   if (!user || !activeChat) return;
 
   const isInChat = activeChat?.users?.some(
@@ -94,6 +102,21 @@ export default function ActiveChat() {
   const isAdmin = activeChat?.admins?.some(
     (u) => u._id.toString() === user._id
   );
+
+  let otherUser;
+  let displayName = activeChat?.name;
+  if (
+    activeChat.type === "private" &&
+    Array.isArray(activeChat.users) &&
+    user
+  ) {
+    otherUser = activeChat.users.find(
+      (u) => u.toString() !== user._id.toString()
+    );
+  }
+  if (otherUser) {
+    displayName = `${otherUser.firstName} ${otherUser.lastName}`;
+  }
 
   return (
     <div className="flex w-[63.5vw] overflow-hidden">
@@ -152,7 +175,7 @@ export default function ActiveChat() {
                     <div
                       className={`${
                         !isInChat && "jumpInAnimation"
-                      } absolute left-1/2 -translate-x-1/2 transition-all bg-[#252525] flex gap-4 px-4 py-2 h-full rounded-2xl z-10 items-center w-[70%] justify-between`}
+                      } absolute left-1/2 -translate-x-1/2 transition-all bg-[#242424] flex gap-4 px-4 py-2 h-full rounded-2xl z-10 items-center w-[70%] justify-between`}
                     >
                       <div className="flex items-center">
                         <button
@@ -252,8 +275,8 @@ export default function ActiveChat() {
           </div>
         </div>
       </div>
-      <aside className="border-r-2 relative z-10 transition-all bg-[#252525] h-screen overflow-y-hidden border-[#151515] min-w-[21.5vw] flex flex-col items-center text-white">
-        <div className="w-full">
+      <aside className="border-r-2 relative z-10 transition-all bg-[#202021] h-screen overflow-y-hidden border-[#151515] min-w-[21.5vw] flex flex-col items-center text-white">
+        <div className="w-full bg-[#252525]">
           <header className="flex items-center justify-between w-full px-4">
             <div className="text-white self-start flex justify-between items-center py-2 h-[58px] gap-6">
               <button
@@ -275,9 +298,11 @@ export default function ActiveChat() {
                   />
                 </svg>
               </button>
-              <h1 className="font-semibold text-xl">Group info</h1>
+              <h1 className="font-semibold text-xl">
+                {otherUser ? "User" : "Group"} info
+              </h1>
             </div>
-            {isAdmin && (
+            {activeChat?.type !== "private" && isAdmin && (
               <button
                 onClick={() => setEditingChannel(true)}
                 className="hover:bg-[#303030] cursor-pointer transition-all p-2 text-[#ccc] rounded-full"
@@ -298,125 +323,192 @@ export default function ActiveChat() {
           </header>
           <div className="flex flex-col items-center mt-6 w-full">
             <ChatImage dimensions={30} />
-            <p className="mt-4 font-semibold text-lg">{activeChat?.name}</p>
+            <p className="mt-4 font-semibold text-lg">{displayName}</p>
             <p className="text-[#ccc]">
-              {activeChat?.users?.length} member
-              {activeChat?.users?.length > 1 && "s"}
+              {activeChat?.type === "private" && "Last seen recently"}
+              {activeChat?.type !== "private" &&
+                `${activeChat.users.length} member ${
+                  activeChat.users.length > 1 && "s"
+                }`}
             </p>
             <div className="flex flex-col w-full mt-8">
-              <div className="flex hover:bg-[#303030] p-2 rounded-lg transition-all cursor-pointer gap-2 items-center w-full">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  className="min-w-[10%] text-[#ccc]"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M11 17h2v-6h-2zm1-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12t-2.325-5.675T12 4T6.325 6.325T4 12t2.325 5.675T12 20m0-8"
-                  />
-                </svg>
-                <div className="flex flex-col max-w-[90%]">
-                  <p>
-                    {activeChat?.description
-                      ? activeChat.description
-                      : "No description given."}
-                  </p>
-                  <span className="text-[#ccc] text-sm mt-2">Info</span>
-                </div>
-              </div>
-              <div className="flex hover:bg-[#303030] p-2 rounded-lg transition-all cursor-pointer gap-2 items-center w-full">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  className="min-w-[10%] text-[#ccc]"
-                >
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="m9.172 14.829l5.657-5.657M7.05 11.293l-1.414 1.414a4 4 0 1 0 5.657 5.657l1.412-1.414m-1.413-9.9l1.414-1.414a4 4 0 1 1 5.657 5.657l-1.414 1.414"
-                  />
-                </svg>
-                <div className="flex flex-col">
-                  <p className="max-w-[90%] overflow-clip truncate">
-                    {import.meta.env.VITE_SERVER_PORT}
-                    {activeChat?._id}
-                  </p>
-                  <span className="text-[#ccc] text-sm mt-2">Link</span>
-                </div>
-              </div>
-            </div>
-            <div className="w-full max-h-1/2">
-              <header className="p-3 flex border-t-16 border-b-2 border-b-[#151515] border-[#202021] w-full text-[#ccc] font-semibold">
-                <p
-                  onClick={() => setActiveSelect("members")}
-                  className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
-                    activeSelect !== "members"
-                      ? "text-[#ccc]"
-                      : "text-[#8675DC]"
-                  }`}
-                >
-                  Members
-                </p>
-                <p
-                  onClick={() => setActiveSelect("admins")}
-                  className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
-                    activeSelect !== "admins" ? "text-[#ccc]" : "text-[#8675DC]"
-                  }`}
-                >
-                  Admins
-                </p>
-              </header>
-              <ul className="p-2 flex flex-col w-full overflow-y-auto max-h-[100%]">
-                {showUsers?.map((user) => {
-                  const userIsAdmin = activeChat?.admins?.some(
-                    (u) => u._id.toString() === user._id
-                  );
-                  return (
-                    <li
-                      key={user._id}
-                      className="flex items-center gap-2 transition-all hover:bg-[#303030] p-2 rounded-lg cursor-pointer"
+              {activeChat?.type === "private" && (
+                <>
+                  <div className="flex hover:bg-[#303030] p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      className="min-w-[10%] text-[#ccc]"
                     >
-                      <img
-                        src={`${import.meta.env.VITE_SERVER_PORT}/${
-                          user.imageUrl
-                        }`}
-                        alt={`${user.firstName} ${user.lastName}`}
-                        className="h-10 w-10 rounded-full mt-1"
+                      <rect width="24" height="24" fill="none" />
+                      <path
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="1.5"
+                        d="M15.6 8.4v4.5a2.7 2.7 0 1 0 5.4 0V12a9 9 0 1 0-3.6 7.2M15.6 12a3.6 3.6 0 1 1-7.2 0a3.6 3.6 0 0 1 7.2 0"
+                        color="currentColor"
                       />
-                      <div className="w-full">
-                        <div className="flex justify-between items-center">
-                          <p className="text-white font-semibold">
-                            {user.firstName}, {user.lastName[0]}
-                          </p>
-                          {userIsAdmin && (
-                            <p className="text-[#ccc] text-xs">admin</p>
-                          )}
-                        </div>
-                        <p className="text-[#ccc] text-sm">
-                          Last seen recently
-                        </p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+                    </svg>
+                    <div className="flex flex-col max-w-[90%]">
+                      <p>
+                        {otherUser?.username
+                          ? otherUser?.username
+                          : `${otherUser?.firstName}, ${otherUser.lastName[0]}`}
+                      </p>
+                      <span className="text-[#ccc] text-sm">Username</span>
+                    </div>
+                  </div>
+                  <div className="flex hover:bg-[#303030] p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      className="min-w-[10%] text-[#ccc]"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M11 17h2v-6h-2zm1-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12t-2.325-5.675T12 4T6.325 6.325T4 12t2.325 5.675T12 20m0-8"
+                      />
+                    </svg>
+                    <div className="flex flex-col max-w-[90%]">
+                      <p>{otherUser?.bio ? otherUser.bio : "No bio given."}</p>
+                      <span className="text-[#ccc] text-sm">Bio</span>
+                    </div>
+                  </div>
+                </>
+              )}
+              {activeChat?.type !== "private" && (
+                <>
+                  <div className="flex hover:bg-[#303030] p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      className="min-w-[10%] text-[#ccc]"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M11 17h2v-6h-2zm1-8q.425 0 .713-.288T13 8t-.288-.712T12 7t-.712.288T11 8t.288.713T12 9m0 13q-2.075 0-3.9-.788t-3.175-2.137T2.788 15.9T2 12t.788-3.9t2.137-3.175T8.1 2.788T12 2t3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m0-2q3.35 0 5.675-2.325T20 12t-2.325-5.675T12 4T6.325 6.325T4 12t2.325 5.675T12 20m0-8"
+                      />
+                    </svg>
+                    <div className="flex flex-col max-w-[90%]">
+                      <p>
+                        {activeChat?.description
+                          ? activeChat.description
+                          : "No description given."}
+                      </p>
+                      <span className="text-[#ccc] text-sm">Info</span>
+                    </div>
+                  </div>
+                  <div className="flex hover:bg-[#303030] p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      className="min-w-[10%] text-[#ccc]"
+                    >
+                      <path
+                        fill="none"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="m9.172 14.829l5.657-5.657M7.05 11.293l-1.414 1.414a4 4 0 1 0 5.657 5.657l1.412-1.414m-1.413-9.9l1.414-1.414a4 4 0 1 1 5.657 5.657l-1.414 1.414"
+                      />
+                    </svg>
+                    <div className="flex flex-col max-w-[90%]">
+                      <p className="max-w-[90%] truncate">
+                        {import.meta.env.VITE_SERVER_PORT}
+                        {activeChat?._id}
+                      </p>
+                      <span className="text-[#ccc] text-sm">Link</span>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
+            {activeChat?.type !== "private" && (
+              <div className="w-full max-h-1/2">
+                <header className="p-3 flex border-t-16 border-b-2 border-b-[#151515] border-[#202021] w-full text-[#ccc] font-semibold">
+                  <p
+                    onClick={() => setActiveSelect("members")}
+                    className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
+                      activeSelect !== "members"
+                        ? "text-[#ccc]"
+                        : "text-[#8675DC]"
+                    }`}
+                  >
+                    Members
+                  </p>
+                  <p
+                    onClick={() => setActiveSelect("admins")}
+                    className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
+                      activeSelect !== "admins"
+                        ? "text-[#ccc]"
+                        : "text-[#8675DC]"
+                    }`}
+                  >
+                    Admins
+                  </p>
+                </header>
+                <ul className="p-2 flex flex-col w-full overflow-y-auto max-h-[100%]">
+                  {showUsers?.map((user) => {
+                    const userIsAdmin = activeChat?.admins?.some(
+                      (u) => u._id.toString() === user._id
+                    );
+                    return (
+                      <li
+                        key={user._id}
+                        onClick={() => {
+                          console.log("Hello");
+                          createDirectMessage({ userId: user._id });
+                        }}
+                        className="flex items-center gap-2 transition-all hover:bg-[#303030] p-2 rounded-lg cursor-pointer"
+                      >
+                        <img
+                          src={`${import.meta.env.VITE_SERVER_PORT}/${
+                            user.imageUrl
+                          }`}
+                          alt={`${user.firstName} ${user.lastName}`}
+                          className="h-10 w-10 rounded-full mt-1"
+                        />
+                        <div className="w-full">
+                          <div className="flex justify-between items-center">
+                            <p className="text-white font-semibold">
+                              {user.firstName}, {user.lastName[0]}
+                            </p>
+                            {userIsAdmin && (
+                              <p className="text-[#ccc] text-xs">admin</p>
+                            )}
+                          </div>
+                          <p className="text-[#ccc] text-sm">
+                            Last seen recently
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
-        <ModifyChat
-          isModifying={editingChannel}
-          setIsModifying={setEditingChannel}
-          action={editChannel}
-          title="Edit"
-          type="edit"
-        />
+        {activeChat?.type !== "private" && (
+          <ModifyChat
+            isModifying={editingChannel}
+            setIsModifying={setEditingChannel}
+            action={editChannel}
+            title="Edit"
+            type="edit"
+          />
+        )}
       </aside>
     </div>
   );

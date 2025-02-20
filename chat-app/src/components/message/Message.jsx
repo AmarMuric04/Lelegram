@@ -28,6 +28,8 @@ export default function Message({
   showSenderInfo,
   messageId,
   isAdmin,
+  onOpenPicker,
+  addReaction,
 }) {
   const dispatch = useDispatch();
   const [isHovering, setIsHovering] = useState(false);
@@ -47,6 +49,11 @@ export default function Message({
   if (message.extra) {
     showImage = false;
   }
+
+  const handleReactionClick = (event) => {
+    event.preventDefault();
+    onOpenPicker(event, message);
+  };
 
   const isSelected = selected.some((s) => s._id === message._id);
 
@@ -84,14 +91,6 @@ export default function Message({
       ),
   });
 
-  const { mutate: addReaction } = useMutation({
-    mutationFn: () =>
-      protectedPostData("/message/add-reaction", {
-        reaction: "❤️",
-        messageId: message._id,
-      }),
-  });
-
   const hasVoted = message.poll?.options.some((opt) =>
     opt.voters.includes(user._id)
   );
@@ -104,10 +103,6 @@ export default function Message({
   const votedOptions = message.poll?.options
     .filter((opt) => opt.voters.includes(user._id))
     .map((option) => option.text);
-
-  const userDidReact = !Object.entries(message.reactions || {}).some(
-    ([, users]) => users.includes(user._id)
-  );
 
   return (
     <>
@@ -140,7 +135,7 @@ export default function Message({
           onContextMenu={handleContextMenu}
           onMouseOver={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}
-          className={`w-full overflow-auto flex z-10 justify-end relative ${
+          className={`w-full flex z-10 max-w-[25rem] justify-end relative ${
             isSelecting && "cursor-pointer"
           } ${isMe ? "self-end flex-row" : "self-start flex-row-reverse"}`}
           key={message._id}
@@ -173,7 +168,7 @@ export default function Message({
                   dispatch(setMessage(message));
                   dispatch(setForwardedChat(null));
                 }}
-                className={`bg-[#8675DC20] hover:bg-[#8675DC80] cursor-pointer p-1 rounded-full appearAnimation z-50 transition-all absolute top-1/2 -translate-y-1/2 ${
+                className={`bg-[#8675DC20] hover:bg-[#8675DC80] cursor-pointer p-1 rounded-full appearAnimation z-10 transition-all absolute top-1/2 -translate-y-1/2 ${
                   isMe ? "-left-16" : "-right-16 -scale-x-100"
                 }`}
               >
@@ -190,15 +185,30 @@ export default function Message({
                 </svg>
               </button>
             )}
-            {isHovering && userDidReact && (
-              <button
-                onClick={addReaction}
-                className={`appearAnimation cursor-pointer group absolute bottom-0 ${
-                  isMe ? "-left-6" : "-right-6"
-                } p-1 rounded-full bg-[#202021]`}
-              >
-                <p className="group-hover:scale-125">❤️</p>
-              </button>
+            {isHovering && Object.keys(message.reactions).length <= 18 && (
+              <>
+                <button
+                  onClick={handleReactionClick}
+                  className={`appearAnimation cursor-pointer group absolute bottom-0 ${
+                    isMe ? "-left-6" : "-right-6"
+                  } p-1 rounded-full bg-[#202021]`}
+                >
+                  <p className="group-hover:scale-110 group-hover:text-green-400 transition-all">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                    >
+                      <rect width="24" height="24" fill="none" />
+                      <path
+                        fill="currentColor"
+                        d="M7 9.5C7 8.67 7.67 8 8.5 8s1.5.67 1.5 1.5S9.33 11 8.5 11S7 10.33 7 9.5m5 8c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5m3.5-6.5c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8S14 8.67 14 9.5s.67 1.5 1.5 1.5M22 1h-2v2h-2v2h2v2h2V5h2V3h-2zm-2 11c0 4.42-3.58 8-8 8s-8-3.58-8-8s3.58-8 8-8c1.46 0 2.82.4 4 1.08V2.84A9.9 9.9 0 0 0 11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12c0-1.05-.17-2.05-.47-3H19.4c.38.93.6 1.94.6 3"
+                      />
+                    </svg>
+                  </p>
+                </button>
+              </>
             )}
 
             <div
@@ -212,7 +222,7 @@ export default function Message({
             >
               <div>
                 {showSenderInfo && !isMe && (
-                  <div className="flex justify-between items-center gap-4">
+                  <div className="flex justify-between items-center gap-4 px-2">
                     <p className="text-sm font-semibold text-[#8675DC]">
                       {message.sender.firstName}, {message.sender.lastName[0]}
                     </p>
@@ -286,7 +296,7 @@ export default function Message({
                         isMe ? "border-l-4" : "border-r-4"
                       } px-2 py-1 rounded-md`}
                     >
-                      <p className="font-semibold">
+                      <p className="font-semibold px-2">
                         {message.referenceMessageId.sender.firstName}
                       </p>
                       <div className="flex items-center gap-2">
@@ -398,13 +408,13 @@ export default function Message({
                   Object.keys(message.reactions).some(
                     (emoji) => message.reactions[emoji].length > 0
                   ) && (
-                    <div className="cursor-pointer rounded-lg bg-[#ffffff50] hover:bg-[#ffffff70] inline-flex">
+                    <div className="mx-1 my-2 flex-wrap inline-flex">
                       {Object.entries(message.reactions)
                         .filter(([, users]) => users.length > 0)
                         .map(([emoji, users]) => (
                           <p
-                            onClick={addReaction}
-                            className="py-1 px-3"
+                            onClick={() => addReaction({ emoji, message })}
+                            className="py-1 px-3 m-[2px] bg-[#ffffff50] hover:bg-[#ffffff70] cursor-pointer rounded-lg"
                             key={emoji}
                           >
                             {emoji} {users.length}
@@ -446,4 +456,6 @@ Message.propTypes = {
   messageId: PropTypes.string.isRequired,
   onContextMenu: PropTypes.func.isRequired,
   onClearContextMenu: PropTypes.func.isRequired,
+  onOpenPicker: PropTypes.func.isRequired,
+  addReaction: PropTypes.func,
 };

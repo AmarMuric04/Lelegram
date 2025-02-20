@@ -24,8 +24,18 @@ export const getChat = async (req, res, next) => {
       return res.status(404).json({ message: "Chat not found." });
     }
 
-    const lastMessageId = chat.lastMessage ? chat.lastMessage._id : null;
+    if (chat.type === "saved") {
+      const userId = req.userId.toString();
+      const isAuthorized =
+        chat.users.some((user) => user._id.toString() === userId) ||
+        chat.admins.some((admin) => admin._id.toString() === userId);
 
+      if (!isAuthorized) {
+        return res.status(403).json({ message: "Access denied." });
+      }
+    }
+
+    const lastMessageId = chat.lastMessage ? chat.lastMessage._id : null;
     if (lastMessageId) {
       await Chat.updateOne(
         { _id: chatId },
@@ -44,10 +54,12 @@ export const getChat = async (req, res, next) => {
 
 export const getUserChats = async (req, res, next) => {
   try {
-    const chats = await Chat.find({ users: req.userId }).populate({
-      path: "lastMessage",
-      populate: [{ path: "sender" }, { path: "referenceMessageId" }],
-    });
+    const chats = await Chat.find({ users: req.userId })
+      .populate({
+        path: "lastMessage",
+        populate: [{ path: "sender" }, { path: "referenceMessageId" }],
+      })
+      .populate("users");
 
     chats.sort((a, b) => {
       const dateA = a.lastMessage
@@ -215,7 +227,19 @@ export const createChat = async (req, res, next) => {
     });
 
     await chat.save();
-    res.json(chat);
+
+    const systemMessage = new Message({
+      message: `created the chat`,
+      sender: req.userId,
+      chat: chatId,
+      type: "system",
+    });
+
+    await systemMessage.save();
+
+    getSocket().emit("messageSent", { data: chatId });
+
+    res.status(200).json(chat);
   } catch (err) {
     next(err);
   }

@@ -23,9 +23,11 @@ import { useMessageContext } from "../../../store/context/MessageProvider";
 import { setActiveChat } from "../../../store/redux/chatSlice";
 import { setIsFocused } from "../../../store/redux/searchSlice";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { protectedPostData } from "../../../utility/async";
+import Picker from "@emoji-mart/react";
+import data from "@emoji-mart/data";
 
 export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
   const {
@@ -38,6 +40,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
   } = useSelector((state) => state.message);
   const { activeChat } = useSelector((state) => state.chat);
   const { sendMessage, isSendingMessage } = useMessageContext();
+  const [showPicker, setShowPicker] = useState(false);
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
@@ -90,6 +93,11 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
     }
   };
 
+  const handleEmojiSelect = (emoji) => {
+    dispatch(setValue(value + emoji.native));
+    setShowPicker(false);
+  };
+
   const isReplying =
     messageType === "reply" && message.chat._id === activeChat._id;
 
@@ -138,16 +146,50 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
               topMessage={messageToEdit?.message}
             />
           )}
-
+          <div
+            className={`absolute transition-all bottom-[110%] right-20 z-10 ${
+              showPicker ? "opacity-100 scale-100" : "opacity-0 scale-0"
+            }`}
+          >
+            <Picker data={data} onEmojiSelect={handleEmojiSelect} />
+          </div>
+          <button
+            className={`${
+              isSelecting && "opacity-0 scale-0"
+            } cursor-pointer p-2 rounded-full hover:bg-[#404040] transition-all text-[#ccc] absolute z-10 right-30 top-1/2 -translate-y-1/2`}
+            onClick={() => setShowPicker(!showPicker)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+            >
+              <rect width="24" height="24" fill="none" />
+              <g
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.5"
+              >
+                <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10s-4.477 10-10 10" />
+                <path d="M16.5 14.5s-1.5 2-4.5 2s-4.5-2-4.5-2" />
+                <path
+                  fill="currentColor"
+                  d="M15.5 9a.5.5 0 1 1 0-1a.5.5 0 0 1 0 1m-7 0a.5.5 0 1 1 0-1a.5.5 0 0 1 0 1"
+                />
+              </g>
+            </svg>
+          </button>
           <input
             value={value}
             onChange={(e) => dispatch(setValue(e.target.value))}
             placeholder={!isSelecting && "Broadcast"}
-            className={`bg-[#252525] transition-all ease-in-out relative focus:outline-none py-2 rounded-2xl px-4 ${
+            className={`bg-[#252525] transition-all ease-in-out relative focus:outline-none py-2 rounded-2xl rounded-br-none px-4 ${
               isSelecting ? "w-[70%]" : "w-[89%]"
             } mx-auto`}
           />
-
           {showScrollButton && (
             <button
               onClick={() => messagesListRef.current?.scrollToBottom()}
@@ -159,7 +201,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
           <div
             className={`${
               isSelecting && "opacity-0 scale-0"
-            } transition-all absolute z-50 right-20 top-1/2 -translate-y-1/2`}
+            } transition-all absolute z-10 right-20 top-1/2 -translate-y-1/2`}
           >
             <PopUpMenu
               tl={true}

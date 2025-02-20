@@ -496,24 +496,26 @@ export const addReaction = async (req, res, next) => {
     const { reaction, messageId } = req.body;
     const message = await Message.findById(messageId);
 
-    const chat = await Chat.findById(message.chat);
-
     if (!message) {
       const error = new Error("Message does not exist.");
       error.statusCode = 404;
       throw error;
     }
 
+    const chat = await Chat.findById(message.chat);
+
     let updatedMessage;
-    if (message.reactions.get(reaction)?.includes(req.userId)) {
+    const userReactions = message.reactions.get(reaction) || [];
+
+    if (userReactions.includes(req.userId)) {
       updatedMessage = await Message.findOneAndUpdate(
         { _id: messageId },
-        { $pull: { [`reactions.${reaction}`]: req.userId } },
+        { $unset: { [`reactions.${reaction}`]: req.userId } },
         { new: true }
       );
 
       getSocket().emit("messageSent", { data: chat._id });
-      console.log("Emitted");
+      console.log("Emitted: Reaction removed");
 
       return res.status(201).json({
         message: "Reaction successfully removed.",
@@ -528,7 +530,7 @@ export const addReaction = async (req, res, next) => {
     }
 
     getSocket().emit("messageSent", { data: chat._id });
-    console.log("Emitted");
+    console.log("Emitted: Reaction added");
 
     res
       .status(201)

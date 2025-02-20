@@ -22,6 +22,21 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
     (u) => u._id.toString() === user._id
   );
 
+  let displayName = activeChat.name;
+
+  if (
+    activeChat.type === "private" &&
+    Array.isArray(activeChat.users) &&
+    user
+  ) {
+    const otherUser = activeChat.users.find(
+      (u) => u.toString() !== user._id.toString()
+    );
+    if (otherUser) {
+      displayName = `${otherUser.firstName} ${otherUser.lastName}`;
+    }
+  }
+
   return (
     <header
       onClick={() => setViewChatInfo(true)}
@@ -30,10 +45,13 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
       <div className="flex gap-5 items-center">
         <ChatImage dimensions={10} />
         <div>
-          <p className="font-semibold">{activeChat.name}</p>
+          <p className="font-semibold">{displayName}</p>
           <p className="text-[#ccc] text-sm -mt-1">
-            {activeChat.users.length} member
-            {activeChat.users.length > 1 && "s"}
+            {activeChat?.type === "private" && "Last seen recently"}
+            {activeChat?.type !== "private" &&
+              `${activeChat.users.length} member ${
+                activeChat.users.length > 1 && "s"
+              }`}
           </p>
         </div>
       </div>

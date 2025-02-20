@@ -150,3 +150,38 @@ export const checkPhoneNumber = async (req, res, next) => {
     next(err);
   }
 };
+
+export const createDirectMessage = async (req, res, next) => {
+  try {
+    const { userId } = req.body;
+    const currentUserId = req.userId;
+
+    if (currentUserId === userId) {
+      return res.status(400).json({ message: "You cannot message yourself." });
+    }
+
+    let chat = await Chat.findOne({
+      users: { $all: [currentUserId, userId] },
+      type: "private",
+    });
+
+    if (!chat) {
+      chat = new Chat({
+        creator: null,
+        admins: [currentUserId, userId],
+        users: [currentUserId, userId],
+        name: null,
+        description: null,
+        imageUrl: null,
+        gradient: null,
+        type: "private",
+      });
+
+      await chat.save();
+    }
+
+    res.status(201).json({ message: "Chat started.", chat });
+  } catch (err) {
+    next(err);
+  }
+};

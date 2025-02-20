@@ -9,13 +9,11 @@ import { closeModal } from "../../store/redux/modalSlice";
 import { CrossSVG } from "../../../public/svgs";
 import Modal from "../modal/Modal";
 import AsideChat from "../aside/AsideChat";
-import { setSelected } from "../../store/redux/authSlice";
 
 export default function ForwardMessageModal() {
   const dispatch = useDispatch();
 
   const { activeChat, userChats } = useSelector((state) => state.chat);
-  const { isSelecting } = useSelector((state) => state.message);
 
   return (
     <Modal extraClasses="w-[30rem]" id="forward-to-channels">
@@ -50,11 +48,7 @@ export default function ForwardMessageModal() {
             action={() => {
               dispatch(setForwardedChat(chat));
               dispatch(closeModal());
-
-              if (isSelecting) {
-                dispatch(setIsSelecting(false));
-                dispatch(setSelected([]));
-              }
+              dispatch(setIsSelecting(false));
             }}
             chat={chat}
           />

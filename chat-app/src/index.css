@@ -480,3 +480,7 @@ select:-webkit-autofill:focus {
   background-size: 400% 100%;
   animation: shimmer 1.5s infinite linear;
 }
+
+.emoji-picker {
+  background-color: #202021 !important;
+}

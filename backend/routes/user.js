@@ -29,4 +29,10 @@ router.post("/create-user", UserController.createUser);
 
 router.post("/check-phoneNumber", UserController.checkPhoneNumber);
 
+router.post(
+  "/create-direct-message",
+  isAuth,
+  UserController.createDirectMessage
+);
+
 export default router;

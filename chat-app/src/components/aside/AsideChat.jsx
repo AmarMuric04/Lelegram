@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 export default function AsideChat({ chat, action }) {
   const { activeChat } = useSelector((state) => state.chat);
+  const { user } = useSelector((state) => state.auth);
 
   let condition;
 
@@ -16,6 +17,19 @@ export default function AsideChat({ chat, action }) {
   let link = chat._id;
   if (chat?.more) {
     link += "#" + chat.more._id;
+  }
+
+  let displayName = chat.name;
+  let displayImageUrl = chat.imageUrl;
+
+  if (chat.type === "private" && Array.isArray(chat.users) && user) {
+    const otherUser = chat.users.find(
+      (u) => u.toString() !== user._id.toString()
+    );
+    if (otherUser) {
+      displayName = `${otherUser.firstName} ${otherUser.lastName}`;
+      displayImageUrl = otherUser.imageUrl;
+    }
   }
 
   return (
@@ -31,7 +45,26 @@ export default function AsideChat({ chat, action }) {
           {chat.missedCount}
         </p>
       )}
-      {chat.imageUrl ? (
+      {chat.type === "private" ? (
+        displayImageUrl ? (
+          <img
+            src={`${import.meta.env.VITE_SERVER_PORT}/${displayImageUrl}`}
+            alt={displayName}
+            className="min-h-14 max-h-14 min-w-14 max-w-14 rounded-full object-cover"
+          />
+        ) : (
+          <div
+            className="min-h-14 max-h-14 min-w-14 max-w-14 rounded-full grid place-items-center font-semibold text-white"
+            style={{
+              background: `linear-gradient(${
+                chat.gradient?.direction || "to right"
+              }, ${chat.gradient?.colors?.join(", ") || "#ccc"})`,
+            }}
+          >
+            {displayName.slice(0, 3)}
+          </div>
+        )
+      ) : chat.imageUrl ? (
         <img
           src={`${import.meta.env.VITE_SERVER_PORT}/${chat.imageUrl}`}
           alt={chat.name}
@@ -51,7 +84,7 @@ export default function AsideChat({ chat, action }) {
       )}
 
       <div>
-        <p className="font-semibold text-lg">{chat.name}</p>
+        <p className="font-semibold text-lg">{displayName}</p>
         <div className="text-[#ccc] line-clamp-1">
           {chat.message ? (
             <p>{chat.message}</p>
