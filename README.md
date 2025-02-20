@@ -23,6 +23,9 @@ A Telegram clone that includes:
 21. Custom emoji reactions
 22. Direct messages
 23. Voice messages
+24. Chat notifications
+25. System chat messages
+And more!
 
 Things in consideration of being implemented:
 
