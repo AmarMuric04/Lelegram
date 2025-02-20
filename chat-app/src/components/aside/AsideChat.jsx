@@ -19,6 +19,8 @@ export default function AsideChat({ chat, action }) {
     link += "#" + chat.more._id;
   }
 
+  if (!user) return;
+
   let displayName = chat.name;
   let displayImageUrl = chat.imageUrl;
 

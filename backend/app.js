@@ -14,6 +14,7 @@ import { fileURLToPath } from "url";
 import { initSocket } from "./socket.js";
 import { createServer } from "http";
 import nodemailer from "nodemailer";
+import chat from "./models/chat.js";
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -153,8 +154,32 @@ mongoose
 
     server.listen(port, () => console.log("Server running on port 3000"));
     const io = initSocket(server);
+    const typingUsers = {};
 
     io.on("connection", (socket) => {
+      console.log("User connected:", socket.id);
+
+      socket.on("userTyping", ({ user, chatId }) => {
+        // Use a consistent user identifier.
+        if (!typingUsers[chatId]) {
+          typingUsers[chatId] = new Set();
+        }
+        typingUsers[chatId].add(user._id);
+
+        // Emit the typing event to all connected clients.
+        io.emit("userTyping", { chatId, user });
+      });
+
+      socket.on("stopTyping", ({ user, chatId }) => {
+        if (typingUsers[chatId]) {
+          typingUsers[chatId].delete(user._id);
+          if (typingUsers[chatId].size === 0) {
+            delete typingUsers[chatId];
+          }
+        }
+        io.emit("userStoppedTyping", { chatId, user });
+      });
+
       socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
       });

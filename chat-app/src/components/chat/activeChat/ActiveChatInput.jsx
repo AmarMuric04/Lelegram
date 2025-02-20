@@ -23,12 +23,14 @@ import { useMessageContext } from "../../../store/context/MessageProvider";
 import { setActiveChat } from "../../../store/redux/chatSlice";
 import { setIsFocused } from "../../../store/redux/searchSlice";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { protectedPostData } from "../../../utility/async";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
+import { io } from "socket.io-client";
 
+const socket = io(import.meta.env.VITE_SERVER_PORT);
 export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
   const {
     value,
@@ -41,12 +43,32 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
   const { activeChat } = useSelector((state) => state.chat);
   const { sendMessage, isSendingMessage } = useMessageContext();
   const [showPicker, setShowPicker] = useState(false);
+
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
   const queryClient = useQueryClient();
   const messagesListRef = useRef(null);
+
+  const typingTimeout = useRef(null);
+
+  useEffect(() => {
+    const handleTyping = () => {
+      socket.emit("userTyping", { user, chatId: activeChat._id });
+
+      if (typingTimeout.current) {
+        clearTimeout(typingTimeout.current);
+      }
+      typingTimeout.current = setTimeout(() => {
+        socket.emit("stopTyping", { user, chatId: activeChat._id });
+      }, 2000);
+    };
+
+    if (value) {
+      handleTyping();
+    }
+  }, [value, activeChat, user]);
 
   const { mutate: editMessage, isLoading: isEditPending } = useMutation({
     mutationFn: () => {
@@ -90,6 +112,8 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
     } else {
       editMessage();
     }
+    clearTimeout(typingTimeout);
+    socket.emit("stopTyping", { user, chatId: activeChat._id });
   };
 
   const handleEmojiSelect = (emoji) => {
@@ -181,6 +205,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
               </g>
             </svg>
           </button>
+
           <input
             value={value}
             onChange={(e) => dispatch(setValue(e.target.value))}
@@ -262,4 +287,5 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
 ActiveChatInput.propTypes = {
   showScrollButton: PropTypes.bool.isRequired,
   viewChatInfo: PropTypes.bool.isRequired,
+  setTypeIndicator: PropTypes.func,
 };

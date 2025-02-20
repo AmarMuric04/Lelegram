@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import MessagesList from "../../message/MessagesList";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -20,6 +20,9 @@ import {
   protectedFetchData,
   protectedPostData,
 } from "../../../utility/async.js";
+import { io } from "socket.io-client";
+
+const socket = io(import.meta.env.VITE_SERVER_PORT);
 
 export default function ActiveChat() {
   const [viewChatInfo, setViewChatInfo] = useState(false);
@@ -28,7 +31,6 @@ export default function ActiveChat() {
   const [editingChannel, setEditingChannel] = useState(false);
 
   const messagesListRef = useRef(null);
-
   const { chatId } = useParams();
 
   const { activeChat } = useSelector((state) => state.chat);
@@ -37,6 +39,41 @@ export default function ActiveChat() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
+  const [typeIndicator, setTypeIndicator] = useState({});
+
+  useEffect(() => {
+    socket.on("userTyping", ({ chatId, user: typingUser }) => {
+      if (chatId === activeChat?._id && typingUser._id !== user._id) {
+        setTypeIndicator((prev) => {
+          let currentUsers = prev[chatId] || [];
+          if (!currentUsers.some((u) => u._id === typingUser._id)) {
+            return { ...prev, [chatId]: [...currentUsers, typingUser] };
+          }
+          return prev;
+        });
+      }
+    });
+
+    socket.on("userStoppedTyping", ({ chatId, user }) => {
+      if (chatId === activeChat?._id) {
+        setTypeIndicator((prev) => {
+          const updatedUsers = prev[chatId]?.filter((u) => u._id !== user._id);
+          if (updatedUsers?.length === 0) {
+            const newState = { ...prev };
+            delete newState[chatId];
+
+            return newState;
+          }
+          return { ...prev, [chatId]: updatedUsers };
+        });
+      }
+    });
+
+    return () => {
+      socket.off("userTyping");
+      socket.off("userStoppedTyping");
+    };
+  }, [activeChat, user]);
 
   const { mutate: editChannel } = useMutation({
     mutationFn: ({ chat }) => {
@@ -54,7 +91,6 @@ export default function ActiveChat() {
   });
 
   queryClient.setQueryData(["chats", "users"], (oldChats) => {
-    // Check if oldChats and its nested properties exist
     if (!oldChats?.data?.chats || !activeChat?._id) return oldChats;
 
     const chatIndex = oldChats.data.chats.findIndex(
@@ -268,8 +304,27 @@ export default function ActiveChat() {
                       </div>
                     </div>
                   )}
-                  <ActiveChatInput showScrollButton={showScrollButton} />
+                  <ActiveChatInput
+                    setTypeIndicator={setTypeIndicator}
+                    showScrollButton={showScrollButton}
+                  />
                 </div>
+                {typeIndicator[activeChat?._id] &&
+                  typeIndicator[activeChat._id].length > 0 && (
+                    <div className="absolute bottom-0 text-sm ml-2 bg-[#202021] rounded-full rounded-tr-none px-2 py-1 z-10 font-semibold">
+                      {typeIndicator[activeChat._id].map((user, index) => (
+                        <span key={user._id}>
+                          {user.firstName}{" "}
+                          {index < typeIndicator[activeChat._id].length - 1
+                            ? ", "
+                            : ""}
+                        </span>
+                      ))}
+                      {typeIndicator[activeChat._id].length > 1
+                        ? " are typing..."
+                        : " is typing..."}
+                    </div>
+                  )}
               </div>
             </div>
           </div>
