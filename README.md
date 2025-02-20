@@ -18,11 +18,14 @@ A Telegram clone that includes:
 16. Pinned Messages for chats,
 17. Polls & Surveys,
 18. Message reactions
+19. Type indicators
+20. Emoji sending
+21. Custom emoji reactions
+22. Direct messages
 
 Things in consideration of being implemented:
 1. Voice Messages,
 2. Mentions (@...), 🔜
-3. Type Indicators,
 4. Read Receipts,
 5. Chat Themes, 🔜
 6. User status,
