@@ -315,6 +315,8 @@ export const sendVoiceMessage = async (req, res, next) => {
     const audioFile = req.files.audioUrl[0];
     const { senderId, chatId } = req.body;
 
+    const chat = await Chat.findById(chatId);
+
     const newMessage = new Message({
       chat: chatId,
       sender: senderId,
@@ -328,6 +330,10 @@ export const sendVoiceMessage = async (req, res, next) => {
     });
 
     const savedMessage = await newMessage.save();
+
+    chat.lastMessage = newMessage._id;
+
+    await chat.save();
 
     getSocket().emit("messageSent", {
       data: chatId,

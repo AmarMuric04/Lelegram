@@ -7,6 +7,7 @@ import { setSelected } from "../../../store/redux/authSlice";
 import { setIsSelecting } from "../../../store/redux/messageSlice";
 import { openModal } from "../../../store/redux/modalSlice";
 import PropTypes from "prop-types";
+import VoiceChat from "../../misc/VoiceChat";
 
 export default function ActiveChatHeader({ setViewChatInfo }) {
   const { activeChat } = useSelector((state) => state.chat);
@@ -49,8 +50,8 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
           <p className="text-[#ccc] text-sm -mt-1">
             {activeChat?.type === "private" && "Last seen recently"}
             {activeChat?.type !== "private" &&
-              `${activeChat.users.length} member ${
-                activeChat.users.length > 1 && "s"
+              `${activeChat.users.length} member${
+                activeChat.users.length > 1 ? "s" : ""
               }`}
           </p>
         </div>
@@ -72,54 +73,56 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
             </div>
           </div>
         )}
-
-        {activeChat.type !== "saved" && (
-          <PopUpMenu
-            bl={true}
-            icon={<VerticalDotsSVG />}
-            buttonClasses={
-              "hover:bg-[#303030] cursor-pointer transition-all p-2 text-white rounded-full"
-            }
-          >
-            {isSelecting && (
-              <PopUpMenuItem
-                action={(e) => {
-                  e.stopPropagation();
-                  dispatch(setSelected([]));
-                  dispatch(setIsSelecting(false));
-                }}
-              >
-                <SelectSVG />
-                <p className="font-semibold flex-shrink-0">Clear selection</p>
-              </PopUpMenuItem>
-            )}
-            {!isSelecting && (
-              <PopUpMenuItem
-                action={(e) => {
-                  e.stopPropagation();
-                  dispatch(setIsSelecting(true));
-                }}
-              >
-                <SelectSVG />
-                <p className="font-semibold flex-shrink-0">Select Messages</p>
-              </PopUpMenuItem>
-            )}
-            {isInChat && (
-              <PopUpMenuItem
-                itemClasses={"text-red-500 hover:bg-red-500/20"}
-                action={(e) => {
-                  e.stopPropagation();
-                  dispatch(openModal("leave-channel"));
-                }}
-              >
-                <TrashSVG />
-                <p className="font-semibold flex-shrink-0">
-                  {isAdmin ? "Delete Channel" : "Leave Channel"}
-                </p>
-              </PopUpMenuItem>
-            )}
-          </PopUpMenu>
-        )}
+        <div className="flex items-center gap-8">
+          <VoiceChat />
+          {activeChat.type !== "saved" && (
+            <PopUpMenu
+              bl={true}
+              icon={<VerticalDotsSVG />}
+              buttonClasses={
+                "hover:bg-[#303030] cursor-pointer transition-all p-2 text-white rounded-full"
+              }
+            >
+              {isSelecting && (
+                <PopUpMenuItem
+                  action={(e) => {
+                    e.stopPropagation();
+                    dispatch(setSelected([]));
+                    dispatch(setIsSelecting(false));
+                  }}
+                >
+                  <SelectSVG />
+                  <p className="font-semibold flex-shrink-0">Clear selection</p>
+                </PopUpMenuItem>
+              )}
+              {!isSelecting && (
+                <PopUpMenuItem
+                  action={(e) => {
+                    e.stopPropagation();
+                    dispatch(setIsSelecting(true));
+                  }}
+                >
+                  <SelectSVG />
+                  <p className="font-semibold flex-shrink-0">Select Messages</p>
+                </PopUpMenuItem>
+              )}
+              {isInChat && (
+                <PopUpMenuItem
+                  itemClasses={"text-red-500 hover:bg-red-500/20"}
+                  action={(e) => {
+                    e.stopPropagation();
+                    dispatch(openModal("leave-channel"));
+                  }}
+                >
+                  <TrashSVG />
+                  <p className="font-semibold flex-shrink-0">
+                    {isAdmin ? "Delete Channel" : "Leave Channel"}
+                  </p>
+                </PopUpMenuItem>
+              )}
+            </PopUpMenu>
+          )}
+        </div>
       </div>
     </header>
   );

@@ -382,8 +382,8 @@ export default function ActiveChat() {
             <p className="text-[#ccc]">
               {activeChat?.type === "private" && "Last seen recently"}
               {activeChat?.type !== "private" &&
-                `${activeChat.users.length} member ${
-                  activeChat.users.length > 1 && "s"
+                `${activeChat.users.length} member${
+                  activeChat.users.length > 1 ? "s" : ""
                 }`}
             </p>
             <div className="flex flex-col w-full mt-8">
