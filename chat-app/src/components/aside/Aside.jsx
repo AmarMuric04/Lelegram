@@ -286,7 +286,7 @@ export default function Aside({ setTheme, theme }) {
             !addingChannel ? "left-0" : "-left-[21.5vw]"
           }`}
         >
-          <div className="sidepanel ">
+          <div className="sidepanel min-w-[21.5vw]">
             <div
               className={`absolute right-5 transition-all ${
                 isFocused ? "-bottom-20" : "bottom-5"

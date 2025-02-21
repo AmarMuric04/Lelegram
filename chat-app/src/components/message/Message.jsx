@@ -229,17 +229,13 @@ export default function Message({
                 {!isMe && (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    className="absolute -bottom-2 -left-1"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 2048 2048"
+                    className="absolute -bottom-0 -left-2"
                   >
-                    <g transform="rotate(160, 12, 12)">
-                      <path
-                        className="theme-fill-bg"
-                        d="M24,12 Q12,0 0,12 Q12,24 24,12 Z"
-                      />
-                    </g>
+                    <rect width="2048" height="2048" fill="none" />
+                    <path className="theme-fill-bg" d="m1024 0l1024 2048H0z" />
                   </svg>
                 )}
                 {isMe && showImage && (
@@ -247,15 +243,11 @@ export default function Message({
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
                     height="20"
-                    viewBox="0 0 24 24"
-                    className="absolute -bottom-2 -right-1"
+                    viewBox="0 0 2048 2048"
+                    className="absolute -bottom-0 -right-2"
                   >
-                    <g transform="rotate(200, 12, 12)">
-                      <path
-                        fill="#8675DC"
-                        d="M24,12 Q12,0 0,12 Q12,24 24,12 Z"
-                      />
-                    </g>
+                    <rect width="2048" height="2048" fill="none" />
+                    <path fill="#8675DC" d="m1024 0l1024 2048H0z" />
                   </svg>
                 )}
                 {message.type === "forward" && (

@@ -36,6 +36,8 @@ export const getChat = async (req, res, next) => {
     }
 
     const lastMessageId = chat.lastMessage ? chat.lastMessage._id : null;
+    let lastReadMessageId = chat.lastReadMessages?.get(req.userId) || null;
+
     if (lastMessageId) {
       await Chat.updateOne(
         { _id: chatId },
@@ -45,7 +47,7 @@ export const getChat = async (req, res, next) => {
 
     res.status(200).json({
       message: "Successfully fetched chat.",
-      data: chat,
+      data: { ...chat._doc, lastReadMessageId, _id: chat._id },
     });
   } catch (err) {
     next(err);
@@ -127,7 +129,7 @@ export const getAllChats = async (req, res, next) => {
         if (lastReadMessageId) {
           const missedCount = await Message.countDocuments({
             chat: chat._id,
-            _id: { $gt: lastReadMessageId }, // Messages after the user's last read message
+            _id: { $gt: lastReadMessageId },
           });
           missedCounts[userId] = missedCount;
         } else {
