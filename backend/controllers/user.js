@@ -57,7 +57,8 @@ export const createUser = async (req, res, next) => {
     const { phoneNumber, email, firstName, lastName, staySignedIn } = req.body;
 
     let imageUrl;
-    if (req.file) imageUrl = req.file.path.replace("\\", "/");
+    if (req.files.imageUrl)
+      imageUrl = "images/" + req.files.imageUrl[0].filename;
     else imageUrl = "images/pfp.jpg";
 
     const user = new User({

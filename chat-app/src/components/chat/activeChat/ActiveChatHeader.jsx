@@ -41,13 +41,13 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
   return (
     <header
       onClick={() => setViewChatInfo(true)}
-      className="relative z-210 border-x-2 border-[#151515] bg-[#252525] w-full px-5 py-2 flex justify-between items-center gap-5 h-[5%] cursor-pointer"
+      className="relative z-10 border-x-2 sidepanel  w-full px-5 py-2 flex justify-between items-center gap-5 h-[5%] cursor-pointer theme-text"
     >
       <div className="flex gap-5 items-center">
         <ChatImage dimensions={10} />
         <div>
           <p className="font-semibold">{displayName}</p>
-          <p className="text-[#ccc] text-sm -mt-1">
+          <p className="theme-text-2 text-sm -mt-1">
             {activeChat?.type === "private" && "Last seen recently"}
             {activeChat?.type !== "private" &&
               `${activeChat.users.length} member${
@@ -74,13 +74,13 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
           </div>
         )}
         <div className="flex items-center gap-8">
-          <VoiceChat />
+          {activeChat.type !== "broadcast" && <VoiceChat />}
           {activeChat.type !== "saved" && (
             <PopUpMenu
               bl={true}
               icon={<VerticalDotsSVG />}
               buttonClasses={
-                "hover:bg-[#303030] cursor-pointer transition-all p-2 text-white rounded-full"
+                "theme-hover-bg-2 cursor-pointer transition-all p-2  rounded-full"
               }
             >
               {isSelecting && (

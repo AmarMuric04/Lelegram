@@ -141,7 +141,7 @@ export const getAllChats = async (req, res, next) => {
     res.status(200).json({
       message: "Successfully fetched chats.",
       data: {
-        chats: chats.filter((c) => c.type !== "saved"),
+        chats: chats.filter((c) => c.type !== "saved" && c.type !== "private"),
       },
     });
   } catch (err) {
@@ -211,7 +211,8 @@ export const createChat = async (req, res, next) => {
     const gradient = gradients[name.length % gradients.length];
 
     let imageUrl;
-    if (req.file) imageUrl = req.file.path.replace("\\", "/");
+    if (req.files.imageUrl)
+      imageUrl = "images/" + req.files.imageUrl[0].filename;
     else console.log("Image not found");
 
     const chat = new Chat({
@@ -261,9 +262,8 @@ export const editChat = async (req, res, next) => {
     }
 
     let imageUrl = chat.imageUrl;
-    if (req.file) {
-      imageUrl = req.file.path.replace("\\", "/");
-    }
+    if (req.files.imageUrl)
+      imageUrl = "images/" + req.files.imageUrl[0].filename;
 
     const systemMessage = new Message({
       message: `modified the chat's look`,

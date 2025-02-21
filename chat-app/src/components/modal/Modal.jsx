@@ -9,7 +9,7 @@ export default function Modal({ children, extraClasses, id }) {
   return (
     <div className="fixed z-50 inset-0 bg-black/50 flex items-center justify-center text-white">
       <div
-        className={`popInAnimation bg-[#151515] py-5 px-8 rounded-xl ${
+        className={`popInAnimation theme-bg theme-text py-5 px-8 rounded-xl ${
           extraClasses && extraClasses
         }`}
       >

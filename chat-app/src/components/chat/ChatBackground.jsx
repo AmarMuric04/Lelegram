@@ -9,7 +9,7 @@ export default function ChatBackground() {
         src={Image}
       />
       <img className="min-w-[63.5vw] absolute z-0 h-screen" src={Gradient} />
-      <div className="absolute min-w-[63.5vw] h-screen z-10 bg-[#00000090]"></div>
+      <div className="absolute min-w-[63.5vw] h-screen z-10 opacified-bg"></div>
     </>
   );
 }

@@ -38,8 +38,8 @@ export default function AsideChat({ chat, action }) {
     <Link
       onClick={action}
       to={`/${link}`}
-      className={`flex relative items-center gap-5 text-white p-2 rounded-xl transition-all cursor-pointer ${
-        condition ? "bg-[#8675DC] hover:bg-[#8765DC]" : "hover:bg-[#353535]"
+      className={`flex theme-text relative items-center gap-5 p-2 rounded-xl transition-all cursor-pointer ${
+        condition ? "bg-[#8675DC] hover:bg-[#8765DC]" : "theme-hover-bg-2"
       }`}
     >
       {chat.missedCount > 0 && (
@@ -56,7 +56,7 @@ export default function AsideChat({ chat, action }) {
           />
         ) : (
           <div
-            className="min-h-14 max-h-14 min-w-14 max-w-14 rounded-full grid place-items-center font-semibold text-white"
+            className="min-h-14 max-h-14 min-w-14 max-w-14 rounded-full grid place-items-center font-semibold "
             style={{
               background: `linear-gradient(${
                 chat.gradient?.direction || "to right"
@@ -74,7 +74,7 @@ export default function AsideChat({ chat, action }) {
         />
       ) : (
         <div
-          className="min-h-14 max-h-14 min-w-14 max-w-14 rounded-full grid place-items-center font-semibold text-white"
+          className="min-h-14 max-h-14 min-w-14 max-w-14 rounded-full grid place-items-center font-semibold "
           style={{
             background: `linear-gradient(${
               chat.gradient.direction
@@ -87,12 +87,16 @@ export default function AsideChat({ chat, action }) {
 
       <div>
         <p className="font-semibold text-lg">{displayName}</p>
-        <div className="text-[#ccc] line-clamp-1">
+        <div
+          className={` line-clamp-1 ${
+            activeChat?._id === chat._id ? "text-white" : "theme-text-2"
+          }`}
+        >
           {chat.message ? (
             <p>{chat.message}</p>
           ) : chat.lastMessage ? (
             <p>
-              <span className="font-semibold text-white">
+              <span className="font-semibold ">
                 {chat.lastMessage.sender.firstName}
               </span>
               :{" "}

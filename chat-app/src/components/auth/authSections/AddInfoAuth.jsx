@@ -88,7 +88,7 @@ export default function AddInfoAuth({ setActivePage }) {
         <div className="text-3xl font-semibold flex items-center gap-2">
           <p>{isSigningIn ? "Continue sign in" : "Add more information"}</p>
         </div>
-        <p className="text-gray-400 w-[70%] mt-4 text-center">
+        <p className="theme-text-2 w-[70%] mt-4 text-center">
           {isSigningIn
             ? "Please verify your email to continue"
             : "Choose how you want others to see you"}

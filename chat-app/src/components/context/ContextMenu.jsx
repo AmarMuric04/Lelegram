@@ -62,7 +62,7 @@ export default function ContextMenu({ children }) {
   return ReactDOM.createPortal(
     <div
       ref={modalRef}
-      className="appearAnimation text-white bg-[#202021] rounded-xl shadow-md"
+      className="appearAnimation bg-[#202021] text-white rounded-xl shadow-md"
       style={{
         position: "absolute",
         top: contextMenuInfo.y,

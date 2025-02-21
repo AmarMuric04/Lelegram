@@ -570,4 +570,6 @@ export const countries = [
   { code: "CL", label: "Chile", phone: "56" },
   { code: "AE", label: "United Arab Emirates", phone: "971" },
   { code: "PE", label: "Peru", phone: "51" },
+  { code: "ZW", label: "Zimbabwe", phone: "263" },
+  { code: "BA", label: "Bosnia and Herzegovina", phone: "387" },
 ];

@@ -9,16 +9,26 @@ import { setIsFocused, setSearch } from "../../store/redux/searchSlice";
 import AsideChat from "./AsideChat";
 import { signOut } from "../../utility/util";
 import ModifyChat from "../chat/ModifyChat";
-import { CrossSVG, MegaphoneSVG, PenSVG } from "../../../public/svgs";
+import {
+  CrossSVG,
+  EditSVG,
+  LeftArrowSVG,
+  MegaphoneSVG,
+  PenSVG,
+  VerticalDotsSVG,
+} from "../../../public/svgs";
 import { protectedPostData } from "../../utility/async";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
+import CircleCheckbox from "../misc/CircleCheckbox";
 
-export default function Aside() {
+export default function Aside({ setTheme, theme }) {
   const [activeSelect, setActiveSelect] = useState("chats");
   const [addingChannel, setAddingChannel] = useState(false);
 
-  const { isFocused } = useSelector((state) => state.search);
-  const { data } = useSelector((state) => state.search);
+  const { isFocused, data } = useSelector((state) => state.search);
+  const { userChats } = useSelector((state) => state.chat);
+  const { user } = useSelector((state) => state.auth);
   const token = localStorage.getItem("token");
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
@@ -40,14 +50,126 @@ export default function Aside() {
 
   return (
     <aside
-      className={`border-l-2 transition overflow-hidden border-[#151515] min-w-[21.5vw] max-w-[21.5vw] relative flex`}
+      className={`border-l-2 theme-text sidepanel transition overflow-hidden min-w-[21.5vw] max-w-[21.5vw] relative flex`}
     >
       <div
         className={`w-full flex relative transition-all ${
           addingChannel ? "-left-full" : "left-0"
         }`}
       >
-        <div className="min-w-full h-full bg-[#242424]">
+        <div className="min-w-[21.5vw] theme-bg theme-text">
+          <div className="sidepanel p-2">
+            <div className="flex items-center text-white text-xl justify-between font-semibold px-6 py-2">
+              <div className="flex items-center gap-8">
+                <button className="cursor-pointer">
+                  <LeftArrowSVG />
+                </button>
+                <p>Settings</p>
+              </div>
+              <div className="flex items-center gap-8">
+                <EditSVG />
+                <VerticalDotsSVG />
+              </div>
+            </div>
+            <div className="flex flex-col items-center w-full my-8">
+              <img
+                className="object-cover w-[8rem] h-[8rem] rounded-full"
+                src={`${import.meta.env.VITE_SERVER_PORT}/${user.imageUrl}`}
+              />
+              <p className="text-lg font-semibold mt-2">
+                {user.firstName}, {user.lastName[0]}
+              </p>
+              <p className="theme-text-2 text-sm -mt-1">Last seen just now</p>
+            </div>
+            <div className="flex theme-hover-bg-2 p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                className="min-w-[10%] theme-text-2"
+              >
+                <rect width="24" height="24" fill="none" />
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  strokeDasharray="64"
+                  strokeDashoffset="64"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M8 3c0.5 0 2.5 4.5 2.5 5c0 1 -1.5 2 -2 3c-0.5 1 0.5 2 1.5 3c0.39 0.39 2 2 3 1.5c1 -0.5 2 -2 3 -2c0.5 0 5 2 5 2.5c0 2 -1.5 3.5 -3 4c-1.5 0.5 -2.5 0.5 -4.5 0c-2 -0.5 -3.5 -1 -6 -3.5c-2.5 -2.5 -3 -4 -3.5 -6c-0.5 -2 -0.5 -3 0 -4.5c0.5 -1.5 2 -3 4 -3Z"
+                >
+                  <animate
+                    fill="freeze"
+                    attributeName="stroke-dashoffset"
+                    dur="0.6s"
+                    values="64;0"
+                  />
+                </path>
+              </svg>
+              <div className="flex flex-col max-w-[90%]">
+                <p>{user.phoneNumber}</p>
+                <span className="theme-text-2 text-sm">Phone</span>
+              </div>
+            </div>
+          </div>
+          <div className="sidepanel mt-4 p-2">
+            <div className="flex theme-hover-bg-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full p-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                className="min-w-[10%] theme-text-2"
+              >
+                <rect width="24" height="24" fill="none" />
+                <path
+                  fill="none"
+                  stroke="currentColor"
+                  strokeDasharray="64"
+                  strokeDashoffset="64"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M8 3c0.5 0 2.5 4.5 2.5 5c0 1 -1.5 2 -2 3c-0.5 1 0.5 2 1.5 3c0.39 0.39 2 2 3 1.5c1 -0.5 2 -2 3 -2c0.5 0 5 2 5 2.5c0 2 -1.5 3.5 -3 4c-1.5 0.5 -2.5 0.5 -4.5 0c-2 -0.5 -3.5 -1 -6 -3.5c-2.5 -2.5 -3 -4 -3.5 -6c-0.5 -2 -0.5 -3 0 -4.5c0.5 -1.5 2 -3 4 -3Z"
+                >
+                  <animate
+                    fill="freeze"
+                    attributeName="stroke-dashoffset"
+                    dur="0.6s"
+                    values="64;0"
+                  />
+                </path>
+              </svg>
+              <div className="flex flex-col max-w-[90%]">
+                <p>{user.phoneNumber}</p>
+              </div>
+            </div>
+            <div className="flex rounded-lg transition-all gap-4 items-center w-full p-4">
+              <div className="flex flex-col w-full">
+                <p className="font-semibold text-[#8675DC] mb-2">Color theme</p>
+                <div className="flex flex-col gap-4 w-full">
+                  <div className="flex items-center gap-10 theme-hover-bg-2 w-full p-2 rounded-lg">
+                    <CircleCheckbox
+                      isChecked={theme === "light-theme"}
+                      id="light-theme"
+                    />
+                    <label htmlFor="light-theme">Day</label>
+                  </div>
+                  <div className="flex items-center gap-10 theme-hover-bg-2 w-full p-2 rounded-lg">
+                    <CircleCheckbox
+                      isChecked={theme === "dark-theme"}
+                      id="dark-theme"
+                    />
+                    <label htmlFor="dark-theme">Night</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="min-w-full h-full sidepanel">
           <div
             className={`absolute right-5 transition-all ${
               isFocused ? "-bottom-20" : "bottom-5"
@@ -76,7 +198,7 @@ export default function Aside() {
                 dispatch(setIsFocused(false));
                 dispatch(setSearch([]));
               }}
-              className="hover:bg-[#303030] cursor-pointer transition-all text-[#ccc] rounded-full"
+              className="theme-hover-bg-2 cursor-pointer transition-all theme-text-2 rounded-full"
             >
               {!isFocused && (
                 <PopUpMenu
@@ -100,7 +222,15 @@ export default function Aside() {
                     </svg>
                   }
                 >
-                  <PopUpMenuItem action={() => setAddingChannel(true)}>
+                  <PopUpMenuItem
+                    action={() => {
+                      const usersSavedChat = userChats?.find(
+                        (chat) => chat.type === "saved"
+                      );
+
+                      navigate(`/${usersSavedChat._id}`);
+                    }}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -151,7 +281,12 @@ export default function Aside() {
                       Settings
                     </p>
                   </PopUpMenuItem>
-                  <PopUpMenuItem>
+                  <PopUpMenuItem
+                    action={() => {
+                      if (theme === "dark-theme") setTheme("light-theme");
+                      else setTheme("dark-theme");
+                    }}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -164,11 +299,23 @@ export default function Aside() {
                         d="M12 21q-3.75 0-6.375-2.625T3 12t2.625-6.375T12 3q.35 0 .688.025t.662.075q-1.025.725-1.638 1.888T11.1 7.5q0 2.25 1.575 3.825T16.5 12.9q1.375 0 2.525-.613T20.9 10.65q.05.325.075.662T21 12q0 3.75-2.625 6.375T12 21m0-2q2.2 0 3.95-1.213t2.55-3.162q-.5.125-1 .2t-1 .075q-3.075 0-5.238-2.163T9.1 7.5q0-.5.075-1t.2-1q-1.95.8-3.163 2.55T5 12q0 2.9 2.05 4.95T12 19m-.25-6.75"
                       />
                     </svg>
-                    <p className="text-[1rem] font-semibold flex-shrink-0">
-                      Dark Mode
-                    </p>
+                    <div className="text-[1rem] gap-8 font-semibold flex-shrink-0 flex items-center justify-between">
+                      <p>Dark Mode</p>
+                      <div className="theme-checkbox">
+                        <input
+                          checked={theme === "dark-theme"}
+                          type="checkbox"
+                          id="cbx-3"
+                        />
+                        <label htmlFor="cbx-3" className="toggle">
+                          <span></span>
+                        </label>
+                      </div>
+                    </div>
                   </PopUpMenuItem>
-                  <PopUpMenuItem>
+                  <PopUpMenuItem
+                    action={() => navigate("/67b8a3ae47301a0c6685fb58")}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
@@ -232,20 +379,22 @@ export default function Aside() {
                 </PopUpMenu>
               )}
               {isFocused && (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                >
-                  <g fill="none">
-                    <path d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z" />
-                    <path
-                      fill="currentColor"
-                      d="M3.636 11.293a1 1 0 0 0 0 1.414l5.657 5.657a1 1 0 0 0 1.414-1.414L6.757 13H20a1 1 0 1 0 0-2H6.757l3.95-3.95a1 1 0 0 0-1.414-1.414z"
-                    />
-                  </g>
-                </svg>
+                <button className="cursor-pointer p-2 rounded-full">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                  >
+                    <g fill="none">
+                      <path d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z" />
+                      <path
+                        fill="currentColor"
+                        d="M3.636 11.293a1 1 0 0 0 0 1.414l5.657 5.657a1 1 0 0 0 1.414-1.414L6.757 13H20a1 1 0 1 0 0-2H6.757l3.95-3.95a1 1 0 0 0-1.414-1.414z"
+                      />
+                    </g>
+                  </svg>
+                </button>
               )}
             </button>
             <Search select={activeSelect} />
@@ -256,13 +405,13 @@ export default function Aside() {
               isFocused
                 ? "opacity-100 scale-100 pointer-events-auto"
                 : "opacity-0 scale-115 pointer-events-none"
-            } transition-all flex flex-col w-full h-[95%] absolute left-0 top-[5%] z-10 bg-[#252525]`}
+            } transition-all flex flex-col w-full h-[95%] absolute left-0 top-[5%] z-10 sidepanel`}
           >
-            <header className="h-[5%] flex border-b-2 border-[#151515] py-2 w-full text-[#ccc] font-semibold">
+            <header className="h-[5%] flex border-b-2 py-2 w-full theme-text-2 font-semibold sidepanel">
               <p
                 onClick={() => setActiveSelect("chats")}
                 className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
-                  activeSelect !== "chats" ? "text-[#ccc]" : "text-[#8675DC]"
+                  activeSelect !== "chats" ? "theme-text-2" : "text-[#8675DC]"
                 }`}
               >
                 Chats
@@ -270,13 +419,15 @@ export default function Aside() {
               <p
                 onClick={() => setActiveSelect("messages")}
                 className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
-                  activeSelect !== "messages" ? "text-[#ccc]" : "text-[#8675DC]"
+                  activeSelect !== "messages"
+                    ? "theme-text-2"
+                    : "text-[#8675DC]"
                 }`}
               >
                 Messages
               </p>
             </header>
-            <p className="text-[#ccc] my-4 px-4 h-[5%]">
+            <p className="theme-text-2 my-4 px-4 h-[5%]">
               {data?.length > 0 ? "Closest results" : "Search for something"}
             </p>
             <ul className="flex flex-col px-2 overflow-scroll h-[90%]">
@@ -298,3 +449,8 @@ export default function Aside() {
     </aside>
   );
 }
+
+Aside.propTypes = {
+  setTheme: PropTypes.func.isRequired,
+  theme: PropTypes.string.isREquired,
+};

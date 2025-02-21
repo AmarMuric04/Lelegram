@@ -99,7 +99,7 @@ export default function CodeAuth({ setActivePage }) {
             />
           </svg>
         </div>
-        <p className="text-gray-400 w-[70%] mt-4 text-center">
+        <p className="theme-text-2 w-[70%] mt-4 text-center">
           We have sent a message <br /> with the code.
         </p>
         <div className="flex gap-4 my-4 flex-col w-full">

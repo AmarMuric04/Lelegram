@@ -90,7 +90,7 @@ export const LeftArrowSVG = () => (
     width="24"
     height="24"
     viewBox="0 0 24 24"
-    className="text-[#ccc]"
+    className="theme-text-2"
   >
     <path
       fill="none"

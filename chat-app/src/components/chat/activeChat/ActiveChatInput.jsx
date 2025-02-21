@@ -179,7 +179,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
           <button
             className={`${
               isSelecting && "opacity-0 scale-0"
-            } cursor-pointer p-2 rounded-full hover:bg-[#404040] transition-all text-[#ccc] absolute z-10 right-30 top-1/2 -translate-y-1/2`}
+            } cursor-pointer p-2 rounded-full theme-hover-bg-2 transition-all theme-text-2 absolute z-10 right-30 top-1/2 -translate-y-1/2`}
             onClick={() => setShowPicker(!showPicker)}
           >
             <svg
@@ -208,15 +208,18 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
           <input
             value={value}
             onChange={(e) => dispatch(setValue(e.target.value))}
-            placeholder={!isSelecting && "Broadcast"}
-            className={`bg-[#252525] transition-all ease-in-out relative focus:outline-none py-2 rounded-2xl rounded-br-none px-4 ${
+            placeholder={
+              !isSelecting &&
+              (activeChat.type === "broadcast" ? "Broadcast" : "Message")
+            }
+            className={`sidepanel transition-all ease-in-out relative focus:outline-none py-2 rounded-2xl rounded-br-none px-4 ${
               isSelecting ? "w-[70%]" : "w-[89%]"
             } mx-auto`}
           />
           {showScrollButton && (
             <button
               onClick={() => messagesListRef.current?.scrollToBottom()}
-              className={`appearAnimation absolute right-0 bottom-[120%] p-4 rounded-full bg-[#202021] hover:bg-[#303030] transition-all cursor-pointer`}
+              className={`appearAnimation absolute right-0 bottom-[120%] p-4 rounded-full theme-bg theme-hover-bg-2 transition-all cursor-pointer`}
             >
               <ArrowUpSVG />
             </button>
@@ -229,7 +232,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
             <PopUpMenu
               tl={true}
               icon={<ClipSVG />}
-              buttonClasses="cursor-pointer z-10 text-[#ccc] p-2 rounded-full hover:bg-[#404040]"
+              buttonClasses="cursor-pointer z-10 theme-text-2 p-2 rounded-full theme-hover-bg-2"
             >
               <PopUpMenuItem itemClasses="w-[10rem] cursor-pointer">
                 <input

@@ -65,7 +65,7 @@ export default function PopUpMenu({
       </button>
       <div
         ref={modalRef}
-        className={`absolute z-50 min-w-max right-0 bg-[#252525] p-2 text-xs text-white rounded-md
+        className={`absolute z-50 min-w-max right-0 sidepanel p-2 text-xs theme-text rounded-md
         ${open ? "opacity-100 scale-100" : "opacity-0 scale-0"}
         ${tl ? "bottom-[130%] right-0" : ""}
         ${tr ? "bottom-[130%] left-0" : ""}

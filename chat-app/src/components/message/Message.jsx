@@ -15,7 +15,7 @@ import {
   closeContextMenu,
   openContextMenu,
 } from "../../store/redux/contextMenuSlice";
-import { LightbulbSVG } from "../../../public/svgs";
+import { LightbulbSVG, ReplySVG } from "../../../public/svgs";
 import CircleCheckbox from "../misc/CircleCheckbox";
 import PollOptionsList from "../poll/PollOptionsList";
 import MessageContextMenu from "./MessageContextMenu";
@@ -177,17 +177,7 @@ export default function Message({
                   isMe ? "-left-16" : "-right-16 -scale-x-100"
                 }`}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 32 32"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M28.88 30a1 1 0 0 1-.88-.5A15.19 15.19 0 0 0 15 22v6a1 1 0 0 1-.62.92a1 1 0 0 1-1.09-.21l-12-12a1 1 0 0 1 0-1.42l12-12a1 1 0 0 1 1.09-.21A1 1 0 0 1 15 4v6.11a17.19 17.19 0 0 1 15 17a16 16 0 0 1-.13 2a1 1 0 0 1-.79.86ZM14.5 20A17.62 17.62 0 0 1 28 26a15.31 15.31 0 0 0-14.09-14a1 1 0 0 1-.91-1V6.41L3.41 16L13 25.59V21a1 1 0 0 1 1-1h.54Z"
-                  />
-                </svg>
+                <ReplySVG classes="text-white" />
               </button>
             )}
             {isInChat &&
@@ -198,7 +188,7 @@ export default function Message({
                     onClick={handleReactionClick}
                     className={`appearAnimation cursor-pointer group absolute bottom-0 ${
                       isMe ? "-left-6" : "-right-6"
-                    } p-1 rounded-full bg-[#202021]`}
+                    } p-1 rounded-full theme-bg`}
                   >
                     <p className="group-hover:scale-110 group-hover:text-green-400 transition-all">
                       <svg
@@ -219,10 +209,10 @@ export default function Message({
               )}
 
             <div
-              className={`rounded-[1.25rem] ${
+              className={`rounded-[1.25rem] relative ${
                 isMe
                   ? "bg-[#8675DC] ml-auto rounded-br-none"
-                  : "bg-[#151515] mr-auto rounded-bl-none"
+                  : "theme-bg mr-auto rounded-bl-none"
               } ${!showSenderInfo && !isMe && "rounded-tl-md"} ${
                 !showSenderInfo && isMe && "rounded-tr-md"
               }`}
@@ -233,8 +223,40 @@ export default function Message({
                     <p className="text-sm font-semibold text-[#8675DC]">
                       {message.sender.firstName}, {message.sender.lastName[0]}
                     </p>
-                    {isAdmin && <p className="text-[#ccc] text-xs">admin</p>}
+                    {isAdmin && <p className="theme-text-2 text-xs">admin</p>}
                   </div>
+                )}
+                {!isMe && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    className="absolute -bottom-2 -left-1"
+                  >
+                    <g transform="rotate(160, 12, 12)">
+                      <path
+                        className="theme-fill-bg"
+                        d="M24,12 Q12,0 0,12 Q12,24 24,12 Z"
+                      />
+                    </g>
+                  </svg>
+                )}
+                {isMe && showImage && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    className="absolute -bottom-2 -right-1"
+                  >
+                    <g transform="rotate(200, 12, 12)">
+                      <path
+                        fill="#8675DC"
+                        d="M24,12 Q12,0 0,12 Q12,24 24,12 Z"
+                      />
+                    </g>
+                  </svg>
                 )}
                 {message.type === "forward" && (
                   <Link
@@ -379,7 +401,7 @@ export default function Message({
                     )}
                   </div>
                 )}
-                <div className="flex flex-wrap items-baseline px-2 py-1">
+                <div className="flex flex-wrap justify-end items-baseline px-2 py-1">
                   {message.message &&
                     message.type !== "forward" &&
                     message.type !== "poll" && (
@@ -407,7 +429,7 @@ export default function Message({
                     />
                   )}
 
-                  <div className="flex-shrink-0 flex gap-2 whitespace-nowrap text-xs text-[#ccc] ml-2">
+                  <div className="flex-shrink-0 flex gap-2 whitespace-nowrap text-xs theme-text-2 ml-2">
                     {message.edited && message.type !== "forward" && (
                       <p className="italic">edited</p>
                     )}

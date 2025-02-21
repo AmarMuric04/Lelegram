@@ -38,7 +38,7 @@ export default function LandingAuth({ setActivePage }) {
             bgColor="#8675DC"
           />
           <h1 className="font-semibold text-3xl mt-8">Sign in to Telegram</h1>
-          <p className="text-gray-400 w-[70%] mt-4">
+          <p className="theme-text-2 w-[70%] mt-4">
             Please confirm your coutry code and enter your phone number.
           </p>
         </div>

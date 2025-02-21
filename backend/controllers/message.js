@@ -19,10 +19,10 @@ export const sendMessage = async (req, res, next) => {
       pollCorrectAnswer,
     } = req.body;
 
-    console.log(pollSettings);
 
     let imageUrl;
-    if (req.file) imageUrl = req.file.path.replace("\\", "/");
+    if (req.files.imageUrl)
+      imageUrl = "images/" + req.files.imageUrl[0].filename;
 
     if (type === "poll") {
       const poll = new Poll({

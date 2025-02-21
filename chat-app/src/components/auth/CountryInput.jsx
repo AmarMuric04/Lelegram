@@ -104,7 +104,7 @@ export default function CountryInput() {
           <li
             key={option.code}
             onMouseDown={() => handleCountrySelect(option)}
-            className="p-2 hover:bg-[#242424] transition-all cursor-pointer"
+            className="p-2 hover:sidepanel transition-all cursor-pointer"
           >
             <div className="flex w-full items-center justify-between py-2">
               <div className="flex items-center gap-2 w-full">
@@ -120,7 +120,7 @@ export default function CountryInput() {
                 </span>
                 <p>({option.code})</p>
               </div>
-              <p className="text-gray-400 text-sm italic">+{option.phone}</p>
+              <p className="theme-text-2 text-sm italic">+{option.phone}</p>
             </div>
           </li>
         ))}

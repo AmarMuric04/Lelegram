@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -21,6 +21,7 @@ export default function ChatPage() {
   const queryClient = useQueryClient();
   const token = localStorage.getItem("token");
   const { user } = useSelector((state) => state.auth);
+  const [theme, setTheme] = useState("dark-theme");
   const { activeChat } = useSelector((state) => state.chat);
   const { message, messageType, messageToEdit } = useSelector(
     (state) => state.message
@@ -73,10 +74,12 @@ export default function ChatPage() {
   }, [error]);
 
   return (
-    <main className="bg-[#202021] w-screen h-screen flex justify-center ">
+    <main
+      className={`${theme} transition-all theme-bg w-screen h-screen flex justify-center`}
+    >
       <ConditionalModals />
       <div className="w-[85vw] flex justify-between overflow-hidden">
-        <Aside />
+        <Aside setTheme={setTheme} theme={theme} />
         <div className="relative w-[63.5vw] transition-all">
           <ChatBackground />
           <ActiveChat />

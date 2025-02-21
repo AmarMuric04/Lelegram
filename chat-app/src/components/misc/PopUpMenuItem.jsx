@@ -5,7 +5,7 @@ export default function PopUpMenuItem({ itemClasses, action, children }) {
     <button
       role="menuitem"
       onClick={action}
-      className={`hover:bg-[#303030] relative z-50 ${
+      className={`theme-hover-bg-2 relative z-50 w-full ${
         itemClasses && itemClasses
       }  cursor-pointer flex gap-2 items-center  transition-all p-2 rounded-md text-[16px]`}
     >

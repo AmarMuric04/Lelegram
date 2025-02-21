@@ -7,29 +7,34 @@ import {
 import PropTypes from "prop-types";
 import { useQuery } from "@tanstack/react-query";
 import { protectedPostData } from "../../utility/async";
+import { useEffect } from "react";
 
 export default function Search({ select }) {
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
   const { value } = useSelector((state) => state.search);
 
-  const { refetch } = useQuery({
+  const { data, refetch } = useQuery({
     queryFn: () => {
+      if (value === "") return;
       let url;
       if (select === "chats") url = "/chat/get-searched-chats";
       else if (select === "messages") url = "/message/get-searched-messages";
+      console.log(value);
 
       return protectedPostData(url, { input: value }, token);
     },
-    onSuccess: ({ data }) => {
+    queryKey: ["search", select],
+    enabled: true,
+  });
+
+  useEffect(() => {
+    if (data) {
       if (select === "chats") {
         dispatch(setSearch(data.data.chats));
       } else dispatch(setSearch(data.data));
-    },
-    onError: (error) => console.error(error),
-    queryKey: ["search", select],
-    enabled: false,
-  });
+    }
+  }, [select, dispatch, data]);
 
   const handleSearch = () => {
     refetch();
@@ -44,7 +49,7 @@ export default function Search({ select }) {
         width="24"
         height="24"
         viewBox="0 0 24 24"
-        className="absolute text-[#ccc] left-3 pointer-events-none"
+        className="absolute theme-text-2 left-3 pointer-events-none"
       >
         <path
           fill="currentColor"
@@ -58,7 +63,7 @@ export default function Search({ select }) {
         onChange={(e) => dispatch(setValue(e.target.value))}
         placeholder="Search"
         type="text"
-        className={`border-2 transition-all border-[#202021] focus:border-[#8675DC] pl-[40px] bg-[#202021] text-white h-full rounded-full focus:outline-none ${
+        className={`border-2 transition-all theme-bg theme-text focus:border-[#8675DC] pl-[40px] sidepanel h-full rounded-full focus:outline-none ${
           CONDITION ? "w-full" : "w-[83%]"
         }`}
       />

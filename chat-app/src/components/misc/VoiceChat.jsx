@@ -80,14 +80,14 @@ export default function VoiceChat() {
       {!isCalling ? (
         <button
           onClick={startCall}
-          className="hover:bg-[#303030] cursor-pointer transition-all p-2 text-white rounded-full"
+          className="theme-hover-bg-2 cursor-pointer transition-all p-2 text-white rounded-full"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
             height="24"
             viewBox="0 0 24 24"
-            className="text-[#ccc]"
+            className="theme-text-2"
           >
             <rect width="24" height="24" fill="none" />
             <path

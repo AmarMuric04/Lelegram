@@ -21,6 +21,7 @@ import {
   protectedPostData,
 } from "../../../utility/async.js";
 import { io } from "socket.io-client";
+import { copyToClipboard } from "../../../utility/util.js";
 
 const socket = io(import.meta.env.VITE_SERVER_PORT);
 
@@ -121,9 +122,6 @@ export default function ActiveChat() {
   const { mutate: createDirectMessage } = useMutation({
     mutationFn: ({ userId }) =>
       protectedPostData("/user/create-direct-message", { userId }, token),
-    onSuccess: () => {
-      console.log("Created");
-    },
   });
 
   if (!user || !activeChat) return;
@@ -155,13 +153,13 @@ export default function ActiveChat() {
   }
 
   return (
-    <div className="flex w-[63.5vw] overflow-hidden">
+    <div className="flex w-[63.5vw] overflow-hidden theme-text">
       <div
         className={`transition-all ${
           viewChatInfo ? "min-w-[42vw]" : "min-w-[63.5vw]"
         }`}
       >
-        <div className="relative h-screen w-full text-white flex flex-col items-center">
+        <div className="relative h-screen w-full  flex flex-col items-center">
           <ActiveChatHeader setViewChatInfo={setViewChatInfo} />
 
           <div
@@ -211,7 +209,7 @@ export default function ActiveChat() {
                     <div
                       className={`${
                         !isInChat && "jumpInAnimation"
-                      } absolute left-1/2 -translate-x-1/2 transition-all bg-[#242424] flex gap-4 px-4 py-2 h-full rounded-2xl z-10 items-center w-[70%] justify-between`}
+                      } absolute left-1/2 -translate-x-1/2 transition-all sidepanel flex gap-4 px-4 py-2 h-full rounded-2xl z-10 items-center w-[70%] justify-between`}
                     >
                       <div className="flex items-center">
                         <button
@@ -226,7 +224,7 @@ export default function ActiveChat() {
                             width="18"
                             height="18"
                             viewBox="0 0 24 24"
-                            className="text-[#ccc]"
+                            className="theme-text-2"
                           >
                             <path
                               fill="none"
@@ -252,14 +250,14 @@ export default function ActiveChat() {
                           }}
                           className={`${
                             !selected.length && "opacity-50 pointer-events-none"
-                          } flex w-full py-2  px-2 items-center gap-4 rounded-md  hover:bg-[#303030] transition-all cursor-pointer`}
+                          } flex w-full py-2  px-2 items-center gap-4 rounded-md  theme-hover-bg-2 transition-all cursor-pointer`}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
                             height="24"
                             viewBox="0 0 32 32"
-                            className="text-[#ccc] -scale-x-100"
+                            className="theme-text-2 -scale-x-100"
                           >
                             <path
                               fill="currentColor"
@@ -330,13 +328,13 @@ export default function ActiveChat() {
           </div>
         </div>
       </div>
-      <aside className="border-r-2 relative z-10 transition-all bg-[#202021] h-screen overflow-y-hidden border-[#151515] min-w-[21.5vw] flex flex-col items-center text-white">
-        <div className="w-full bg-[#252525]">
+      <aside className="border-r-2 relative z-10 transition-all theme-bg h-screen overflow-y-hidden min-w-[21.5vw] flex flex-col items-center  sidepanel">
+        <div className="w-full sidepanel">
           <header className="flex items-center justify-between w-full px-4">
-            <div className="text-white self-start flex justify-between items-center py-2 h-[58px] gap-6">
+            <div className=" self-start flex justify-between items-center py-2 h-[58px] gap-6">
               <button
                 onClick={() => setViewChatInfo(false)}
-                className="hover:bg-[#303030] cursor-pointer transition-all p-2 text-[#ccc] rounded-full"
+                className="theme-hover-bg-2 cursor-pointer transition-all p-2 theme-text-2 rounded-full"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -360,7 +358,7 @@ export default function ActiveChat() {
             {activeChat?.type !== "private" && isAdmin && (
               <button
                 onClick={() => setEditingChannel(true)}
-                className="hover:bg-[#303030] cursor-pointer transition-all p-2 text-[#ccc] rounded-full"
+                className="theme-hover-bg-2 cursor-pointer transition-all p-2 theme-text-2 rounded-full"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -379,7 +377,7 @@ export default function ActiveChat() {
           <div className="flex flex-col items-center mt-6 w-full">
             <ChatImage dimensions={30} />
             <p className="mt-4 font-semibold text-lg">{displayName}</p>
-            <p className="text-[#ccc]">
+            <p className="theme-text-2">
               {activeChat?.type === "private" && "Last seen recently"}
               {activeChat?.type !== "private" &&
                 `${activeChat.users.length} member${
@@ -389,13 +387,13 @@ export default function ActiveChat() {
             <div className="flex flex-col w-full mt-8">
               {activeChat?.type === "private" && (
                 <>
-                  <div className="flex hover:bg-[#303030] p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
+                  <div className="flex theme-hover-bg-2 p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
                       height="24"
                       viewBox="0 0 24 24"
-                      className="min-w-[10%] text-[#ccc]"
+                      className="min-w-[10%] theme-text-2"
                     >
                       <rect width="24" height="24" fill="none" />
                       <path
@@ -414,16 +412,16 @@ export default function ActiveChat() {
                           ? otherUser?.username
                           : `${otherUser?.firstName}, ${otherUser.lastName[0]}`}
                       </p>
-                      <span className="text-[#ccc] text-sm">Username</span>
+                      <span className="theme-text-2 text-sm">Username</span>
                     </div>
                   </div>
-                  <div className="flex hover:bg-[#303030] p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
+                  <div className="flex theme-hover-bg-2 p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
                       height="24"
                       viewBox="0 0 24 24"
-                      className="min-w-[10%] text-[#ccc]"
+                      className="min-w-[10%] theme-text-2"
                     >
                       <path
                         fill="currentColor"
@@ -432,20 +430,20 @@ export default function ActiveChat() {
                     </svg>
                     <div className="flex flex-col max-w-[90%]">
                       <p>{otherUser?.bio ? otherUser.bio : "No bio given."}</p>
-                      <span className="text-[#ccc] text-sm">Bio</span>
+                      <span className="theme-text-2 text-sm">Bio</span>
                     </div>
                   </div>
                 </>
               )}
               {activeChat?.type !== "private" && (
                 <>
-                  <div className="flex hover:bg-[#303030] p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
+                  <div className="flex theme-hover-bg-2 p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
                       height="24"
                       viewBox="0 0 24 24"
-                      className="min-w-[10%] text-[#ccc]"
+                      className="min-w-[10%] theme-text-2"
                     >
                       <path
                         fill="currentColor"
@@ -458,16 +456,16 @@ export default function ActiveChat() {
                           ? activeChat.description
                           : "No description given."}
                       </p>
-                      <span className="text-[#ccc] text-sm">Info</span>
+                      <span className="theme-text-2 text-sm">Info</span>
                     </div>
                   </div>
-                  <div className="flex hover:bg-[#303030] p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
+                  <div className="flex theme-hover-bg-2 p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="24"
                       height="24"
                       viewBox="0 0 24 24"
-                      className="min-w-[10%] text-[#ccc]"
+                      className="min-w-[10%] theme-text-2"
                     >
                       <path
                         fill="none"
@@ -478,12 +476,20 @@ export default function ActiveChat() {
                         d="m9.172 14.829l5.657-5.657M7.05 11.293l-1.414 1.414a4 4 0 1 0 5.657 5.657l1.412-1.414m-1.413-9.9l1.414-1.414a4 4 0 1 1 5.657 5.657l-1.414 1.414"
                       />
                     </svg>
-                    <div className="flex flex-col max-w-[90%]">
+                    <div
+                      onClick={() =>
+                        copyToClipboard(
+                          `${import.meta.env.VITE_FRONT_PORT}/${
+                            activeChat?._id
+                          }`
+                        )
+                      }
+                      className="flex flex-col max-w-[90%]"
+                    >
                       <p className="max-w-[90%] truncate">
-                        {import.meta.env.VITE_SERVER_PORT}
-                        {activeChat?._id}
+                        {import.meta.env.VITE_FRONT_PORT}/{activeChat?._id}
                       </p>
-                      <span className="text-[#ccc] text-sm">Link</span>
+                      <span className="theme-text-2 text-sm">Link</span>
                     </div>
                   </div>
                 </>
@@ -491,12 +497,12 @@ export default function ActiveChat() {
             </div>
             {activeChat?.type !== "private" && (
               <div className="w-full max-h-1/2">
-                <header className="p-3 flex border-t-16 border-b-2 border-b-[#151515] border-[#202021] w-full text-[#ccc] font-semibold">
+                <header className="p-3 flex border-t-16 border-b-2 sidepanel w-full theme-text-2 font-semibold">
                   <p
                     onClick={() => setActiveSelect("members")}
                     className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
                       activeSelect !== "members"
-                        ? "text-[#ccc]"
+                        ? "theme-text-2"
                         : "text-[#8675DC]"
                     }`}
                   >
@@ -506,7 +512,7 @@ export default function ActiveChat() {
                     onClick={() => setActiveSelect("admins")}
                     className={`px-4 cursor-pointer hover:text-[#8765DC] transition-all ${
                       activeSelect !== "admins"
-                        ? "text-[#ccc]"
+                        ? "theme-text-2"
                         : "text-[#8675DC]"
                     }`}
                   >
@@ -522,10 +528,9 @@ export default function ActiveChat() {
                       <li
                         key={user._id}
                         onClick={() => {
-                          console.log("Hello");
                           createDirectMessage({ userId: user._id });
                         }}
-                        className="flex items-center gap-2 transition-all hover:bg-[#303030] p-2 rounded-lg cursor-pointer"
+                        className="flex items-center gap-2 transition-all theme-hover-bg-2 p-2 rounded-lg cursor-pointer"
                       >
                         <img
                           src={`${import.meta.env.VITE_SERVER_PORT}/${
@@ -536,14 +541,14 @@ export default function ActiveChat() {
                         />
                         <div className="w-full">
                           <div className="flex justify-between items-center">
-                            <p className="text-white font-semibold">
+                            <p className=" font-semibold">
                               {user.firstName}, {user.lastName[0]}
                             </p>
                             {userIsAdmin && (
-                              <p className="text-[#ccc] text-xs">admin</p>
+                              <p className="theme-text-2 text-xs">admin</p>
                             )}
                           </div>
-                          <p className="text-[#ccc] text-sm">
+                          <p className="theme-text-2 text-sm">
                             Last seen recently
                           </p>
                         </div>

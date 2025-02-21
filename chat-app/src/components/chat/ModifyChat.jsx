@@ -47,11 +47,11 @@ export default function ModifyChat({
 
   return (
     <div
-      className={`min-w-full h-full min-h-screen absolute text-white transition-all bg-[#202021] ${
+      className={`min-w-full theme-text theme-bg h-full min-h-screen absolute text-white transition-all ${
         isModifying ? (type === "edit" ? "left-0" : "left-full") : "left-full"
       }`}
     >
-      <div className="bg-[#242424] px-8 py-4">
+      <div className="sidepanel px-8 py-4">
         <div className="flex items-center text-white text-xl font-semibold gap-8">
           <button
             className="cursor-pointer"
@@ -104,7 +104,7 @@ export default function ModifyChat({
           <div className="flex flex-col gap-4 w-full">
             <Input
               value={chat.name}
-              textClass={"bg-[#242424]"}
+              textClass={"sidepanel"}
               inputValue={chat.name}
               onChange={(e) => setChat({ ...chat, name: e.target.value })}
               type="text"
@@ -114,7 +114,7 @@ export default function ModifyChat({
 
             <Input
               value={chat.description}
-              textClass={"bg-[#242424]"}
+              textClass={"sidepanel"}
               inputValue={chat.description}
               onChange={(e) =>
                 setChat({ ...chat, description: e.target.value })
@@ -126,11 +126,11 @@ export default function ModifyChat({
           </div>
         </div>
       </div>
-      <p className="text-[#ccc] text-sm text-center my-2">
+      <p className="theme-text-2 text-sm text-center my-2">
         You can provide an optional description for your channel.
       </p>
       {type === "edit" && (
-        <div className="bg-[#242424] p-4">
+        <div className="sidepanel p-4">
           <button
             onClick={() => dispatch(openModal("leave-channel"))}
             className="flex w-full items-center gap-8 cursor-pointer transition-all text-red-400 hover:bg-red-500/10 p-4 rounded-lg"
@@ -153,7 +153,7 @@ export default function ModifyChat({
             width="24"
             height="24"
             viewBox="0 0 512 512"
-            className="text-[#ccc]"
+            className="theme-text-2"
           >
             <rect width="512" height="512" fill="none" />
             <path

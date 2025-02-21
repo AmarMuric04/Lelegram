@@ -10,7 +10,7 @@ export default function ContextMenuItem({
   return (
     <button
       onClick={action}
-      className={`flex w-full py-2  px-2 items-center gap-4 rounded-md transition-all cursor-pointer ${
+      className={`flex w-full py-2 px-2 items-center gap-4 rounded-md transition-all cursor-pointer ${
         buttonClasses && buttonClasses
       }`}
     >

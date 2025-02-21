@@ -52,7 +52,7 @@ export default function PollModal() {
               handleResetPoll();
               dispatch(closeModal());
             }}
-            className="hover:bg-[#303030] cursor-pointer transition-all p-2 rounded-full"
+            className="theme-hover-bg-2 cursor-pointer transition-all p-2 rounded-full"
           >
             <CrossSVG />
           </button>
@@ -90,11 +90,11 @@ export default function PollModal() {
         inputValue={poll.question}
         value={poll.question}
         onChange={(e) => setPoll({ ...poll, question: e.target.value })}
-        textClass="bg-[#151515]"
+        textClass="theme-bg"
       >
         Ask a Question
       </Input>
-      <h1 className="my-4 font-bold  text-[#ccc]">Poll options</h1>
+      <h1 className="my-4 font-bold  theme-text-2">Poll options</h1>
       {poll.options.map((opt, index) => (
         <div className="flex items-center gap-4 w-full" key={index}>
           {poll.settings.quizMode && opt !== "" && (
@@ -152,25 +152,25 @@ export default function PollModal() {
                 return { ...prev, options: newOptions };
               });
             }}
-            textClass="bg-[#151515]"
+            textClass="theme-bg"
           >
             Add an Option
           </Input>
         </div>
       ))}
-      <h1 className="my-4 font-bold text-[#ccc]">Settings</h1>
+      <h1 className="my-4 font-bold theme-text-2">Settings</h1>
       <PollSettings poll={poll} setPoll={setPoll} />
       {poll.settings.quizMode && (
         <div>
-          <h1 className="my-4 font-bold text-[#ccc]">Explanation</h1>
+          <h1 className="my-4 font-bold theme-text-2">Explanation</h1>
           <Input
             inputValue={poll.explanation}
             onChange={(e) => setPoll({ ...poll, explanation: e.target.value })}
-            textClass="bg-[#151515]"
+            textClass="theme-bg"
           >
             Add an explanation
           </Input>
-          <p className="mt-4 text-[#ccc] text-sm">
+          <p className="mt-4 theme-text-2 text-sm">
             Users will see this text after choosing the wrong answer, good for
             educational purposes.
           </p>
