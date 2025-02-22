@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 
-const socket = io("http://localhost:3000"); // Your backend URL
+const socket = io(import.meta.env.VITE_SERVER_PORT);
 
 export default function VoiceChat() {
   const [isCalling, setIsCalling] = useState(false);

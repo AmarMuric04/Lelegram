@@ -32,7 +32,7 @@ export default function VoiceRecorder() {
 
       try {
         const response = await fetch(
-          "http://localhost:3000/message/send-voice-message",
+          `${import.meta.env.VITE_SERVER_PORT}/message/send-voice-message`,
           {
             method: "POST",
             headers: {

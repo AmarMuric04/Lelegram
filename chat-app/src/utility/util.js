@@ -75,7 +75,7 @@ export const signOut = (dispatch) => {
 };
 
 export const sendOTP = async (email) => {
-  await fetch("http://localhost:3000/send-otp", {
+  await fetch(`${import.meta.env.VITE_SERVER_PORT}/send-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
@@ -83,11 +83,14 @@ export const sendOTP = async (email) => {
 };
 
 export const verifyOTP = async (email, otp) => {
-  const response = await fetch("http://localhost:3000/verify-otp", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, otp }),
-  });
+  const response = await fetch(
+    `${import.meta.env.VITE_SERVER_PORT}/verify-otp`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, otp }),
+    }
+  );
 
   const data = await response.json();
 
