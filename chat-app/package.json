@@ -19,6 +19,7 @@
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/react-query": "^5.66.0",
     "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
     "emoji-regex": "^10.4.0",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",

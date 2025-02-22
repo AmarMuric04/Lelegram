@@ -77,8 +77,6 @@ export default function CodeAuth({ setActivePage }) {
     }
   };
 
-  console.log(error);
-
   return (
     <div className="min-w-[500px] flex justify-center mt-28 h-screen">
       <div className="flex flex-col items-center w-[360px] text-center">
