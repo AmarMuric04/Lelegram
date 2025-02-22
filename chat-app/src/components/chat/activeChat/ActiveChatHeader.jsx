@@ -25,15 +25,14 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
   );
 
   let displayName = activeChat.name;
-
-  console.log(activeChat);
+  let otherUser;
 
   if (
     activeChat.type === "private" &&
     Array.isArray(activeChat.users) &&
     user
   ) {
-    const otherUser = activeChat?.users.find(
+    otherUser = activeChat?.users.find(
       (u) => u?._id.toString() !== user._id.toString()
     );
     if (otherUser) {
@@ -53,8 +52,8 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
           <p className="theme-text-2 text-sm -mt-1">
             {activeChat?.type === "private" && (
               <p className="theme-text-2 text-sm">
-                {user.lastSeen
-                  ? `last seen ${getRecentTime(user.lastSeen)}`
+                {otherUser.lastSeen
+                  ? `last seen ${getRecentTime(otherUser.lastSeen)}`
                   : "online"}
               </p>
             )}

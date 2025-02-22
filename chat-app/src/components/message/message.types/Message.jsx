@@ -20,7 +20,7 @@ import PollMessage from "./PollMessage";
 import ReplyMessage from "./ReplyMessage";
 import ForwardMessage from "./ForwardMessage";
 import NormalMessage from "./NormalMessage";
-import ReacToMessage from "../MessageReactions";
+import MessageReactions from "../MessageReactions";
 // import { isOnlyEmojis } from "../../utility/util";
 
 export default function Message({
@@ -159,7 +159,7 @@ export default function Message({
                 <>
                   <button
                     onClick={handleReactionClick}
-                    className={`appearAnimation cursor-pointer group absolute bottom-0 ${
+                    className={`appearAnimation z-10 cursor-pointer group absolute bottom-0 ${
                       isMe ? "-left-6" : "-right-6"
                     } p-1 rounded-full theme-bg`}
                   >
@@ -249,7 +249,7 @@ export default function Message({
                   Object.keys(message.reactions).some(
                     (emoji) => message.reactions[emoji].length > 0
                   ) && (
-                    <ReacToMessage
+                    <MessageReactions
                       message={message}
                       onReact={handleReactionClick}
                     />

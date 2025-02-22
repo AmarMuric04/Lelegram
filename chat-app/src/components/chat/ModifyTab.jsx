@@ -8,6 +8,7 @@ import { setImage } from "../../store/redux/imageSlice";
 import { openModal } from "../../store/redux/modalSlice";
 
 export default function ModifyTab({
+  isModifying,
   setIsModifying,
   action,
   title,
@@ -143,7 +144,11 @@ export default function ModifyTab({
           </button>
         </div>
       )}
-      <div className={`absolute z-50 right-5 transition-all ${btnCondition}`}>
+      <div
+        className={`absolute z-50 right-5 transition-all ${
+          isModifying ? btnCondition : "-bottom-20"
+        }`}
+      >
         <button
           onClick={() => {
             action({ data: { ...victimChanges, url, preview } });

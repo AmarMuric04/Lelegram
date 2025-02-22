@@ -201,7 +201,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
         <>
           {isReplying && (
             <SpecialMessage
-              icon={<ReplySVG />}
+              icon={<ReplySVG classes="text-[#8675DC]" />}
               message={message}
               topMessage={`Reply to ${message.sender?.firstName + " "} ${
                 message.sender?.lastName
@@ -210,7 +210,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
           )}
           {isForwarding && forwardedChat && (
             <SpecialMessage
-              icon={<ForwardSVG />}
+              icon={<ForwardSVG classes="text-[#8675DC]" />}
               message={message}
               topMessage={
                 Array.isArray(message)
@@ -221,7 +221,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
           )}
           {messageToEdit && (
             <SpecialMessage
-              icon={<EditSVG />}
+              icon={<EditSVG classes="text-[#8675DC]" />}
               message={messageToEdit}
               topMessage={messageToEdit?.message}
             />

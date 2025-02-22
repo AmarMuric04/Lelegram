@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 
-export default function ReacToMessage({ message, isInChat, onReact }) {
+export default function MessageReactions({ message, isInChat, onReact }) {
   return (
     <div className="mx-1 my-2 flex-wrap inline-flex">
       {Object.entries(message.reactions)
@@ -20,7 +20,7 @@ export default function ReacToMessage({ message, isInChat, onReact }) {
   );
 }
 
-ReacToMessage.propTypes = {
+MessageReactions.propTypes = {
   message: PropTypes.object.isRequired,
   isInChat: PropTypes.bool.isRequired,
   onReact: PropTypes.func.isRequired,

@@ -17,7 +17,7 @@ export default function ReplyMessage({ message, isMe }) {
             : "hover:bg-[#8675DC40] bg-[#8675DC20] border-[#8675DC]"
         } ${isMe ? "border-l-4" : "border-r-4"} px-2 py-1 rounded-md`}
       >
-        <p className="font-semibold px-2">
+        <p className="font-semibold">
           {message.referenceMessageId.sender?.firstName}
         </p>
         <div className="flex items-center gap-2">
@@ -27,11 +27,13 @@ export default function ReplyMessage({ message, isMe }) {
               src={`${message.referenceMessageId.imageUrl}`}
             />
           )}
-          {message.referenceMessageId.message
-            ? message.referenceMessageId.message
-            : "Photo"}
-          {message.referenceMessageId.type === "poll" &&
-            "📊 " + message.referenceMessageId.poll.question}
+          <p className="line-clamp-2">
+            {message.referenceMessageId.message
+              ? message.referenceMessageId.message
+              : "Photo"}
+            {message.referenceMessageId.type === "poll" &&
+              "📊 " + message.referenceMessageId.poll.question}
+          </p>
         </div>
       </div>
     </Link>

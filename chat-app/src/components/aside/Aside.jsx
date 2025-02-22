@@ -75,12 +75,8 @@ export default function Aside() {
 
       let uploadedFileUrl = null;
 
-      console.log(data.url);
-
       if (data.url) {
-        console.log("123");
         uploadedFileUrl = await uploadToCloudinary(data.url);
-        console.log(uploadedFileUrl);
         if (uploadedFileUrl) {
           formData.append("imageUrl", uploadedFileUrl);
         }
@@ -338,6 +334,7 @@ export default function Aside() {
           {user && (
             <ModifyTab
               title="Edit Profile"
+              isModifying={editingUser}
               setIsModifying={setEditingUser}
               action={editUser}
               type="edit"
@@ -626,13 +623,14 @@ export default function Aside() {
           </div>
           <ModifyTab
             title="New Channel"
+            isModifying={addingChannel}
             setIsModifying={setAddingChannel}
             action={addChat}
             type="add"
             victimData={{
-              imageUrl: activeChat?.imageUrl,
-              name: activeChat?.name,
-              description: activeChat?.description,
+              imageUrl: null,
+              name: "",
+              description: "",
             }}
           />
         </div>

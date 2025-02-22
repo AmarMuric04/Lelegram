@@ -140,8 +140,6 @@ export const signIn = async (req, res, next) => {
     user.lastSeen = null;
     await user.save();
 
-    console.log(user, user.lastSeen);
-
     res.status(200).json({
       message: "Successfully signed in.",
       data: { userId: user._id, token },

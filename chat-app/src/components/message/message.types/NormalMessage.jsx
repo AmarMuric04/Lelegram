@@ -13,10 +13,10 @@ export default function NormalMessage({ message }) {
       {message.message &&
         message.type !== "forward" &&
         message.type !== "poll" && (
-          <p className="flex-grow break-words break-all">{message.message}</p>
+          <p className="flex-grow">{message.message}</p>
         )}
       {message.type === "forward" && (
-        <p className="flex-grow break-words break-all">
+        <p className="flex-grow">
           {message.referenceMessageId?.type === "poll" &&
             "📊 " + message.referenceMessageId?.poll.question}
           {message.referenceMessageId

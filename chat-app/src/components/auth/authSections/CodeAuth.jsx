@@ -38,7 +38,6 @@ export default function CodeAuth({ setActivePage }) {
       return postData("/user/create-user", formData);
     },
     onSuccess: ({ data }) => {
-      console.log("Signed up");
       let expiryDate = 1000 * 60 * 60 * 24;
 
       if (staySignedIn) expiryDate *= 7;
@@ -55,7 +54,6 @@ export default function CodeAuth({ setActivePage }) {
   const signInMutation = useMutation({
     mutationFn: () => postData("/user/signin", { phoneNumber }),
     onSuccess: async ({ data }) => {
-      console.log("Signed in");
       let expiryDate = 1000 * 60 * 60 * 24;
 
       if (staySignedIn) expiryDate *= 7;

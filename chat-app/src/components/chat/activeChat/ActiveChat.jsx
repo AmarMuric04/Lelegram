@@ -391,8 +391,8 @@ export default function ActiveChat() {
             <p className="theme-text-2">
               {activeChat?.type === "private" && (
                 <p className="theme-text-2 text-sm">
-                  {user.lastSeen
-                    ? `last seen ${getRecentTime(user.lastSeen)}`
+                  {otherUser.lastSeen
+                    ? `last seen ${getRecentTime(otherUser.lastSeen)}`
                     : "online"}
                 </p>
               )}
@@ -584,6 +584,7 @@ export default function ActiveChat() {
             }`}
           >
             <ModifyTab
+              isModifying={editingChannel}
               setIsModifying={setEditingChannel}
               action={editChannel}
               title="Edit"

@@ -25,7 +25,7 @@ export default function AsideChat({ chat, action }) {
   let displayImageUrl = chat.imageUrl;
 
   if (chat.type === "private" && Array.isArray(chat.users) && user) {
-    const otherUser = activeChat?.users.find(
+    const otherUser = chat.users.find(
       (u) => u?._id.toString() !== user._id.toString()
     );
     if (otherUser) {

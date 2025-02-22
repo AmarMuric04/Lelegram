@@ -351,7 +351,9 @@ export const removeUserFromChat = async (req, res, next) => {
     });
 
     await systemMessage.save();
-    chat.lastMessage = systemMessage._id;
+    if (chat.type !== "broadcast") {
+      chat.lastMessage = systemMessage._id;
+    }
     await chat.save();
 
     getSocket().emit("messageSent", { data: chatId });
@@ -401,7 +403,9 @@ export const addUserToChat = async (req, res, next) => {
     });
 
     await systemMessage.save();
-    chat.lastMessage = systemMessage._id;
+    if (chat.type !== "broadcast") {
+      chat.lastMessage = systemMessage._id;
+    }
     await chat.save();
 
     getSocket().emit("messageSent", { data: chatId });

@@ -1,13 +1,14 @@
 import { useDispatch, useSelector } from "react-redux";
 import { resetMessage } from "../../store/redux/messageSlice";
 import PropTypes from "prop-types";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 export default function SpecialMessage({ message, topMessage, icon }) {
   const dispatch = useDispatch();
   const { activeChat } = useSelector((state) => state.chat);
+  const { user } = useSelector((state) => state.auth);
 
-  const getFromText = () => {
+  const getFromText = useMemo(() => {
     if (Array.isArray(message) && message.length > 0) {
       const uniqueSenders = message.reduce((acc, m) => {
         if (!acc.some((sender) => sender._id === m.sender._id)) {
@@ -26,52 +27,49 @@ export default function SpecialMessage({ message, topMessage, icon }) {
       }
     }
     return "";
-  };
+  }, [message]);
 
   const isAdmin = activeChat?.admins?.some(
-    (u) => u._id.toString() === user._id
+    (u) => u._id.toString() === user._id.toString()
   );
 
-  const canChat = activeChat?.type === "broadcast" && isAdmin;
+  const cantChat = activeChat?.type === "broadcast" && !isAdmin;
 
   useEffect(() => {
-    if (!canChat) {
+    if (cantChat) {
       dispatch(resetMessage());
     }
-  }, []);
+  }, [user, activeChat, cantChat, dispatch]);
 
   return (
     <>
-      {canChat && (
+      {!cantChat && (
         <div className="ml-[6px] interactInputAnimation absolute sidepanel flex gap-4 px-4 py-2 left-0 w-[89%] z-10 h-full rounded-2xl items-center rounded-b-none">
           {icon}
           <div className="bg-[#8675DC20] w-full px-2 text-sm rounded-md border-l-4 border-[#8675DC]">
             <p className="text-[#8675DC]">{topMessage}</p>
             <div className="theme-text-2 line-clamp-1 flex items-end gap-2">
-              {message.imageUrl && (
-                <img
-                  className="max-h-[16px]"
-                  src={`${message.imageUrl}`}
-                  alt="message visual"
-                />
+              {Array.isArray(message) ? (
+                <span className="ml-2">From: {getFromText}</span>
+              ) : (
+                <>
+                  {message.imageUrl && (
+                    <img
+                      className="max-h-[16px]"
+                      src={message.imageUrl}
+                      alt="message visual"
+                    />
+                  )}
+                  <p className="line-clamp-1">
+                    {message.type === "poll" && "📊 " + message.poll.question}
+                    {message.referenceMessageId?.message || message.message}
+                  </p>
+                </>
               )}
-              <p className="line-clamp-1">
-                {message.type === "poll" && "📊 " + message.poll.question}
-                {message.referenceMessageId
-                  ? message.referenceMessageId.message
-                    ? message.referenceMessageId.message
-                    : message.message
-                  : message.message}
-                {Array.isArray(message) && (
-                  <span className="ml-2">From: {getFromText()}</span>
-                )}
-              </p>
             </div>
           </div>
           <button
-            onClick={() => {
-              dispatch(resetMessage());
-            }}
+            onClick={() => dispatch(resetMessage())}
             className="hover:bg-[#8675DC20] cursor-pointer transition-all p-2 text-[#8675DC] rounded-full"
           >
             <svg
