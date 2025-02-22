@@ -76,7 +76,7 @@ export default function VoiceChat() {
   };
 
   return (
-    <div onClick={(e) => e.stopPropagation()} className="p-4">
+    <div onClick={(e) => e.stopPropagation()}>
       {!isCalling ? (
         <button
           onClick={startCall}

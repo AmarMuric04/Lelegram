@@ -63,7 +63,7 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
             className="text-sm border-l-2 border-[#8675DC] px-4"
           >
             <p className="text-[#8675DC]">Pinned Message</p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 line-clamp-1">
               <p>{activeChat.pinnedMessage.sender.firstName}: </p>
               <p className="line-clamp-1 max-w-[10rem] truncate whitespace-nowrap overflow-hidden">
                 {activeChat.pinnedMessage.message

@@ -24,7 +24,7 @@ export const getUser = async (req, res, next) => {
 
 export const checkInput = async (req, res, next) => {
   try {
-    const { email, firstName, lastName } = req.body;
+    const { email } = req.body;
     const errors = validationResult(req);
     const validationError = errors.array();
 
