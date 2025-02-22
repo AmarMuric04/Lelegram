@@ -29,7 +29,6 @@ export function PollSettings({ poll, setPoll }) {
               quizMode: false,
             },
             explanation: "",
-            question: "",
             correctAnswer: "",
           }));
         }}

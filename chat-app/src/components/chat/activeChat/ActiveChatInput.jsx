@@ -45,6 +45,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
   const [showPicker, setShowPicker] = useState(false);
 
   const { user } = useSelector((state) => state.auth);
+  const { sendMessageBy } = useSelector((state) => state.userSettings);
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
@@ -52,6 +53,61 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
   const messagesListRef = useRef(null);
 
   const typingTimeout = useRef(null);
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${
+        textareaRef.current.scrollHeight + 16
+      }px`;
+    }
+  }, [value]);
+
+  const insertAtCaret = (textToInsert) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const updatedValue =
+      value.substring(0, start) + textToInsert + value.substring(end);
+
+    dispatch(setValue(updatedValue));
+
+    setTimeout(() => {
+      textarea.selectionStart = textarea.selectionEnd =
+        start + textToInsert.length;
+    }, 0);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      insertAtCaret("\t");
+      return;
+    }
+
+    if (e.key === "Enter") {
+      if (sendMessageBy === "Enter") {
+        if (!e.shiftKey) {
+          e.preventDefault();
+          if (value.trim()) {
+            handleSendMessage({ value: value.trim() });
+            dispatch(setValue(""));
+          }
+        }
+      } else {
+        if (e.ctrlKey) {
+          e.preventDefault();
+          if (value.trim()) {
+            handleSendMessage({ value: value.trim() });
+            dispatch(setValue(""));
+          }
+        }
+      }
+    }
+  };
 
   useEffect(() => {
     const handleTyping = () => {
@@ -105,7 +161,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
   const handleSendMessage = () => {
     if (!messageToEdit) {
       if (messageType === "forward" || message !== "") {
-        sendMessage({ value });
+        sendMessage({ value: value.trim() });
       } else {
         console.log("Voice message.");
       }
@@ -205,16 +261,23 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
               </g>
             </svg>
           </button>
-          <input
+          <textarea
+            ref={textareaRef}
             value={value}
-            onChange={(e) => dispatch(setValue(e.target.value))}
+            onChange={(e) => {
+              if (value.length === 4096) return;
+              dispatch(setValue(e.target.value));
+            }}
+            onKeyDown={handleKeyDown}
             placeholder={
               !isSelecting &&
               (activeChat.type === "broadcast" ? "Broadcast" : "Message")
             }
-            className={`sidepanel transition-all ease-in-out relative focus:outline-none py-2 rounded-2xl rounded-br-none px-4 ${
+            rows={1}
+            className={`pr-24 sidepanel max-h-[40rem] transition-all ease-in-out relative focus:outline-none pt-4 rounded-2xl rounded-br-none px-4 resize-none overflow-hidden mx-auto ${
               isSelecting ? "w-[70%]" : "w-[89%]"
-            } mx-auto`}
+            }`}
+            style={{ height: "auto" }}
           />
           {showScrollButton && (
             <button

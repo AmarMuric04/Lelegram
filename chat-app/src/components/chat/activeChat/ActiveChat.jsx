@@ -13,7 +13,6 @@ import { setSelected } from "../../../store/redux/authSlice";
 import { openModal } from "../../../store/redux/modalSlice";
 
 import ActiveChatHeader from "./ActiveChatHeader";
-import ModifyChat from "../ModifyChat.jsx";
 import ChatImage from "../ChatImage.jsx";
 import ActiveChatInput from "./ActiveChatInput.jsx";
 import {
@@ -22,6 +21,7 @@ import {
 } from "../../../utility/async.js";
 import { io } from "socket.io-client";
 import { copyToClipboard } from "../../../utility/util.js";
+import ModifyTab from "../ModifyTab.jsx";
 
 const socket = io(import.meta.env.VITE_SERVER_PORT);
 
@@ -77,11 +77,11 @@ export default function ActiveChat() {
   }, [activeChat, user]);
 
   const { mutate: editChannel } = useMutation({
-    mutationFn: ({ chat }) => {
+    mutationFn: ({ data }) => {
       const formData = new FormData();
-      formData.append("name", chat.name);
-      formData.append("description", chat.description);
-      formData.append("imageUrl", chat.url);
+      formData.append("name", data.name);
+      formData.append("description", data.description);
+      formData.append("imageUrl", data.url);
       return protectedPostData(
         `/chat/edit-chat/${activeChat._id}`,
         formData,
@@ -203,7 +203,7 @@ export default function ActiveChat() {
                   />
                 )}
                 <div
-                  className={`relative h-[3.5rem] z-10 flex justify-between gap-2 w-full`}
+                  className={`relative z-10 flex justify-between items-end gap-2 w-full`}
                 >
                   {isSelecting && (
                     <div
@@ -329,7 +329,7 @@ export default function ActiveChat() {
         </div>
       </div>
       <aside className="border-r-2 relative z-10 transition-all theme-bg h-screen overflow-y-hidden min-w-[21.5vw] flex flex-col items-center  sidepanel">
-        <div className="w-full sidepanel">
+        <div className="sidepanel w-full">
           <header className="flex items-center justify-between w-full px-4">
             <div className=" self-start flex justify-between items-center py-2 h-[58px] gap-6">
               <button
@@ -561,13 +561,23 @@ export default function ActiveChat() {
           </div>
         </div>
         {activeChat?.type !== "private" && (
-          <ModifyChat
-            isModifying={editingChannel}
-            setIsModifying={setEditingChannel}
-            action={editChannel}
-            title="Edit"
-            type="edit"
-          />
+          <div
+            className={`w-full transition-all absolute ${
+              editingChannel ? "left-0" : "left-full"
+            }`}
+          >
+            <ModifyTab
+              setIsModifying={setEditingChannel}
+              action={editChannel}
+              title="Edit"
+              type="edit"
+              victimData={{
+                imageUrl: activeChat?.imageUrl,
+                name: activeChat?.name,
+                description: activeChat?.description,
+              }}
+            />
+          </div>
         )}
       </aside>
     </div>

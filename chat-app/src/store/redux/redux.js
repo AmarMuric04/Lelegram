@@ -6,6 +6,7 @@ import searchReducer from "./searchSlice.js";
 import messageReducer from "./messageSlice.js";
 import imageReducer from "./imageSlice.js";
 import contextMenuReducer from "./contextMenuSlice.js";
+import userSetttingsReducer from "./userSettingsSlice.js";
 
 const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
     message: messageReducer,
     image: imageReducer,
     contextMenu: contextMenuReducer,
+    userSettings: userSetttingsReducer,
   },
 });
 

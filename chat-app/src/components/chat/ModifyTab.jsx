@@ -7,50 +7,56 @@ import { LeftArrowSVG, TrashSVG } from "../../../public/svgs";
 import { setImage } from "../../store/redux/imageSlice";
 import { openModal } from "../../store/redux/modalSlice";
 
-export default function ModifyChat({
-  isModifying,
+export default function ModifyTab({
   setIsModifying,
   action,
   title,
   type,
+  victimData,
 }) {
-  const { activeChat } = useSelector((state) => state.chat);
   const { url, preview } = useSelector((state) => state.image);
   const dispatch = useDispatch();
-  const [chat, setChat] = useState({
-    name: "",
-    description: "",
-  });
+  const [victimChanges, setVictimChanges] = useState({ ...victimData });
+
+  function formatLabel(text) {
+    return text
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  if (type === "edituser") console.log(victimData);
 
   useEffect(() => {
-    if (type === "edit")
-      setChat({
-        name: activeChat.name,
-        description: activeChat.description,
-      });
-    dispatch(setImage({ url: activeChat?.imageUrl }));
-  }, [activeChat, type, dispatch]);
+    if (victimData.imageUrl) {
+      dispatch(setImage({ url: victimData.imageUrl }));
+    }
+  }, [type, victimData, dispatch]);
 
-  const isNameDifferent = chat.name !== activeChat?.name && chat.name !== "";
-  const isDescDifferent =
-    chat.description !== activeChat?.description && chat.description !== "";
-  const isImageDifferent = url !== activeChat?.imageUrl;
+  const isDifferent = Object.keys(victimData).some((key) => {
+    if (key === "imageUrl") {
+      return url !== victimData.imageUrl;
+    }
+    return victimData[key] !== victimChanges[key];
+  });
 
-  let btnCondition;
-  if (type === "edit")
-    btnCondition =
-      isNameDifferent || isDescDifferent || isImageDifferent
+  const isEmpty = Object.keys(victimChanges).some(
+    (key) => victimChanges[key] === ""
+  );
+
+  let btnCondition =
+    type === "edit"
+      ? isDifferent && !isEmpty
         ? "bottom-5"
-        : "-bottom-20";
-  else if (type === "add")
-    btnCondition = chat.name && chat.description ? "bottom-5" : "-bottom-20";
+        : "-bottom-20"
+      : "-bottom-20";
+
+  const handleFieldChange = (field, value) => {
+    setVictimChanges((prev) => ({ ...prev, [field]: value }));
+  };
 
   return (
-    <div
-      className={`min-w-full theme-text theme-bg h-full min-h-screen absolute text-white transition-all ${
-        isModifying ? (type === "edit" ? "left-0" : "left-full") : "left-full"
-      }`}
-    >
+    <div className="min-w-full theme-text theme-bg h-full min-h-screen relative">
       <div className="sidepanel px-8 py-4">
         <div className="flex items-center text-white text-xl font-semibold gap-8">
           <button
@@ -70,11 +76,11 @@ export default function ModifyChat({
                 alt="Chosen profile picture."
               />
             )}
-            {activeChat?.imageUrl && !preview && (
+            {!preview && victimData?.imageUrl && (
               <img
                 className="w-full h-full rounded-full object-cover absolute"
                 src={`${import.meta.env.VITE_SERVER_PORT}/${
-                  activeChat?.imageUrl
+                  victimData.imageUrl
                 }`}
                 alt="Chosen profile picture."
               />
@@ -102,27 +108,23 @@ export default function ModifyChat({
             />
           </div>
           <div className="flex flex-col gap-4 w-full">
-            <Input
-              value={chat.name}
-              textClass={"sidepanel"}
-              inputValue={chat.name}
-              onChange={(e) => setChat({ ...chat, name: e.target.value })}
-              type="text"
-            >
-              Channel name
-            </Input>
-
-            <Input
-              value={chat.description}
-              textClass={"sidepanel"}
-              inputValue={chat.description}
-              onChange={(e) =>
-                setChat({ ...chat, description: e.target.value })
-              }
-              type="text"
-            >
-              Description (optional)
-            </Input>
+            {Object.entries(victimChanges).map(([key, value]) => {
+              if (key === "imageUrl") return null;
+              let label = key;
+              return (
+                <Input
+                  key={key}
+                  value={value}
+                  textClass="sidepanel"
+                  inputValue={value}
+                  name={key}
+                  onChange={(e) => handleFieldChange(key, e.target.value)}
+                  type="text"
+                >
+                  {formatLabel(label)}
+                </Input>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -143,7 +145,7 @@ export default function ModifyChat({
       <div className={`absolute z-50 right-5 transition-all ${btnCondition}`}>
         <button
           onClick={() => {
-            action({ chat: { ...chat, url, preview } });
+            action({ data: { ...victimChanges, url, preview } });
             setIsModifying(false);
           }}
           className="bg-[#8675DC] cursor-pointer hover:bg-[#8765DC] transition-all p-4 text-white rounded-full"
@@ -155,7 +157,6 @@ export default function ModifyChat({
             viewBox="0 0 512 512"
             className="theme-text-2"
           >
-            <rect width="512" height="512" fill="none" />
             <path
               fill="none"
               stroke="currentColor"
@@ -171,11 +172,10 @@ export default function ModifyChat({
   );
 }
 
-ModifyChat.propTypes = {
-  isModifying: PropTypes.bool.isRequired,
+ModifyTab.propTypes = {
   setIsModifying: PropTypes.func.isRequired,
   action: PropTypes.func.isRequired,
   title: PropTypes.string.isRequired,
-  containerLogic: PropTypes.any,
   type: PropTypes.string.isRequired,
+  victimData: PropTypes.object.isRequired,
 };

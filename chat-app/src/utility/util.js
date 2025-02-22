@@ -1,5 +1,6 @@
 import { setUser } from "../store/redux/authSlice";
 import { setImage } from "../store/redux/imageSlice";
+import emojiRegex from "emoji-regex";
 
 export const generateBase64FromImage = (imageFile) => {
   const reader = new FileReader();
@@ -98,4 +99,53 @@ export const verifyOTP = async (email, otp) => {
   }
 
   return data;
+};
+
+export const isOnlyEmojis = (text) => {
+  if (!text) return false;
+
+  const regex = emojiRegex();
+  const matches = text.match(regex);
+  const textWithoutEmojis = text.replace(regex, "");
+
+  const hasNonEmojis = textWithoutEmojis.trim().length > 0;
+
+  return {
+    onlyEmojis: !hasNonEmojis && matches !== null,
+    count: matches ? matches.length : 0,
+  };
+};
+
+const getFormattedTimeAMPM = (date, AMPM) => {
+  return new Date(date).toLocaleString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: AMPM,
+    hour24: !AMPM,
+  });
+};
+
+export const getRecentTime = (date, AMPM) => {
+  // const messageDate = new Date(date);
+  // const currentDate = new Date();
+  // const diffInSeconds = Math.floor((currentDate - messageDate) / 1000);
+  // const diffInMinutes = Math.floor(diffInSeconds / 60);
+  // const diffInHours = Math.floor(diffInMinutes / 60);
+  // const diffInDays = Math.floor(diffInHours / 24);
+
+  return getFormattedTimeAMPM(date, AMPM);
+
+  // if (diffInMinutes < 60) {
+  //   return `${diffInMinutes} mins ago`;
+  // } else if (diffInHours < 24) {
+  //   return getFormattedTimeAMPM(date, AMPM);
+  //   // return `${diffInHours} hrs ago`;
+  // } else if (diffInDays === 1) {
+  //   return "Yesterday";
+  // }
+  // } else if (diffInDays < 7) {
+  //   return `${diffInDays} days ago`;
+  // } else {
+  //   return getFormattedTimeAMPM(date);
+  // }
 };

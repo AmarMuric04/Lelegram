@@ -52,6 +52,18 @@ export const checkInput = async (req, res, next) => {
   }
 };
 
+export const editUser = async (req, res, next) => {
+  try {
+    const { firstName, lastName } = req.body;
+
+    await User.findByIdAndUpdate(req.userId, { $set: { firstName, lastName } });
+
+    res.status(200).json({ message: "Succuessfully updated the user" });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const createUser = async (req, res, next) => {
   try {
     const { phoneNumber, email, firstName, lastName, staySignedIn } = req.body;

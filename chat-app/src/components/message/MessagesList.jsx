@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-import Message from "./Message";
+import Message from "./message.types/Message";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { protectedPostData } from "../../utility/async";

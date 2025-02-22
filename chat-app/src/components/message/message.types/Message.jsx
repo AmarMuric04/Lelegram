@@ -5,21 +5,23 @@ import {
   setMessage,
   setMessageType,
   setSelected,
-} from "../../store/redux/messageSlice";
+} from "../../../store/redux/messageSlice";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { openModal } from "../../store/redux/modalSlice";
-import { useMutation } from "@tanstack/react-query";
+import { openModal } from "../../../store/redux/modalSlice";
 import {
   closeContextMenu,
   openContextMenu,
-} from "../../store/redux/contextMenuSlice";
-import { LightbulbSVG, ReplySVG } from "../../../public/svgs";
-import CircleCheckbox from "../misc/CircleCheckbox";
-import PollOptionsList from "../poll/PollOptionsList";
-import MessageContextMenu from "./MessageContextMenu";
-import { protectedPostData } from "../../utility/async";
+} from "../../../store/redux/contextMenuSlice";
+import { ReplySVG } from "../../../../public/svgs";
+import CircleCheckbox from "../../misc/CircleCheckbox";
+import MessageContextMenu from "../MessageContextMenu";
+import PollMessage from "./PollMessage";
+import ReplyMessage from "./ReplyMessage";
+import ForwardMessage from "./ForwardMessage";
+import NormalMessage from "./NormalMessage";
+import ReacToMessage from "../MessageReactions";
+// import { isOnlyEmojis } from "../../utility/util";
 
 export default function Message({
   message,
@@ -29,19 +31,22 @@ export default function Message({
   messageId,
   isAdmin,
   onOpenPicker,
-  addReaction,
 }) {
   const dispatch = useDispatch();
-  const [isHovering, setIsHovering] = useState(false);
-  const [votes, setVotes] = useState([]);
-  const { isSelecting, selected } = useSelector((state) => state.message);
-  const { user } = useSelector((state) => state.auth);
-  const { open } = useSelector((state) => state.contextMenu);
   const { activeChat } = useSelector((state) => state.chat);
+  const { user } = useSelector((state) => state.auth);
+  const [isHovering, setIsHovering] = useState(false);
+  const { isSelecting, selected } = useSelector((state) => state.message);
+  const { open } = useSelector((state) => state.contextMenu);
 
   useEffect(() => {
     if (!isSelecting) dispatch(setSelected([]));
   }, [isSelecting, dispatch]);
+
+  const handleReactionClick = (event) => {
+    event.preventDefault();
+    onOpenPicker(event, message);
+  };
 
   if (message.type === "forward" && message.message) {
     showSenderInfo = false;
@@ -50,11 +55,6 @@ export default function Message({
   if (message.extra) {
     showImage = false;
   }
-
-  const handleReactionClick = (event) => {
-    event.preventDefault();
-    onOpenPicker(event, message);
-  };
 
   const isSelected = selected.some((s) => s._id === message._id);
 
@@ -77,33 +77,6 @@ export default function Message({
       dispatch(openContextMenu({ message, x, y }));
     }, 0);
   };
-
-  const token = localStorage.getItem("token");
-
-  const { mutate: addVote } = useMutation({
-    mutationFn: () =>
-      protectedPostData(
-        "/poll/add-vote",
-        {
-          pollId: message.poll,
-          options: votes,
-        },
-        token
-      ),
-  });
-
-  const hasVoted = message.poll?.options.some((opt) =>
-    opt.voters.includes(user._id)
-  );
-
-  const totalPollVotes = message.poll?.options.reduce(
-    (a, b) => (a += b.votes),
-    0
-  );
-
-  const votedOptions = message.poll?.options
-    .filter((opt) => opt.voters.includes(user._id))
-    .map((option) => option.text);
 
   const isInChat = activeChat?.users?.some(
     (u) => u._id.toString() === user._id
@@ -251,92 +224,10 @@ export default function Message({
                   </svg>
                 )}
                 {message.type === "forward" && (
-                  <Link
-                    className={`${isSelecting && "pointer-events-none"}`}
-                    to={`/${
-                      message.referenceMessageId.chat?._id
-                        ? message.referenceMessageId.chat?._id
-                        : ""
-                    }`}
-                  >
-                    <div
-                      className={`text-sm cursor-pointer transition-all px-2 py-1 rounded-md`}
-                    >
-                      <p className="font-semibold">Forwarded from</p>
-                      <div className="flex items-center gap-1">
-                        {message.referenceMessageId.chat?.imageUrl ? (
-                          <img
-                            src={`${import.meta.env.VITE_SERVER_PORT}/${
-                              message.referenceMessageId.chat.imageUrl
-                            }`}
-                            alt={message.referenceMessageId.chat.name}
-                            className="min-h-6 max-h-6 min-w-6 max-w-6 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div
-                            className="h-6 w-6 rounded-full text-[0.5rem] grid place-items-center font-semibold text-white"
-                            style={{
-                              background: message.referenceMessageId.chat
-                                ? `linear-gradient(${
-                                    message.referenceMessageId.chat?.gradient
-                                      ?.direction
-                                  }, ${message.referenceMessageId.chat?.gradient?.colors.join(
-                                    ", "
-                                  )})`
-                                : "darkred",
-                            }}
-                          >
-                            {message.referenceMessageId.chat
-                              ? message.referenceMessageId.chat?.name?.slice(
-                                  0,
-                                  3
-                                )
-                              : "x"}
-                          </div>
-                        )}
-                        <p>
-                          {message.referenceMessageId.chat?.name
-                            ? message.referenceMessageId.chat?.name
-                            : "Channel deleted"}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
+                  <ForwardMessage message={message} />
                 )}
                 {message.type === "reply" && (
-                  <Link
-                    className={`${isSelecting && "pointer-events-none"}`}
-                    to={`/${message.chat._id}#${message.referenceMessageId._id}`}
-                  >
-                    <div
-                      className={`mx-2 text-sm cursor-pointer transition-all ${
-                        isMe
-                          ? "hover:bg-[#ffffff40] bg-[#ffffff20] border-white"
-                          : "hover:bg-[#8675DC40] bg-[#8675DC20] border-[#8675DC]"
-                      } ${
-                        isMe ? "border-l-4" : "border-r-4"
-                      } px-2 py-1 rounded-md`}
-                    >
-                      <p className="font-semibold px-2">
-                        {message.referenceMessageId.sender.firstName}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        {message.referenceMessageId.imageUrl && (
-                          <img
-                            className="max-h-[16px]"
-                            src={`${import.meta.env.VITE_SERVER_PORT}/${
-                              message.referenceMessageId.imageUrl
-                            }`}
-                          />
-                        )}
-                        {message.referenceMessageId.message
-                          ? message.referenceMessageId.message
-                          : "Photo"}
-                        {message.referenceMessageId.type === "poll" &&
-                          "📊 " + message.referenceMessageId.poll.question}
-                      </div>
-                    </div>
-                  </Link>
+                  <ReplyMessage message={message} isMe={isMe} />
                 )}
                 {message.type !== "forward" && message.imageUrl && (
                   <img
@@ -356,104 +247,16 @@ export default function Message({
                       }`}
                     />
                   )}
-                {message.type === "poll" && (
-                  <div className="min-w-[20rem]">
-                    <p className="font-semibold">{message.poll.question}</p>
-                    <div className="text-sm flex items-center w-full">
-                      <p>
-                        {message.poll.settings.anonymousVoting && "Anonymous"}{" "}
-                        {message.poll.settings.quizMode ? " Quiz" : "Voting"}
-                      </p>
-
-                      {hasVoted && message.poll.settings.quizMode && (
-                        <button
-                          onClick={() => alert(message.poll.explanation)}
-                          className="self-end ml-auto cursor-pointer"
-                        >
-                          <LightbulbSVG />
-                        </button>
-                      )}
-                    </div>
-                    <PollOptionsList
-                      message={message}
-                      hasVoted={hasVoted}
-                      votedOptions={votedOptions}
-                      totalPollVotes={totalPollVotes}
-                      votes={votes}
-                      setVotes={setVotes}
-                      addVote={addVote}
-                    />
-                    {message.poll.settings.multipleAnswers && (
-                      <button
-                        onClick={() => addVote()}
-                        className="font-semibold w-full mt-4 cursor-pointer"
-                      >
-                        Vote
-                      </button>
-                    )}
-                  </div>
-                )}
-                <div className="flex flex-wrap justify-end items-baseline px-2 py-1">
-                  {message.message &&
-                    message.type !== "forward" &&
-                    message.type !== "poll" && (
-                      <p className="flex-grow break-words break-all">
-                        {message.message}
-                      </p>
-                    )}
-                  {message.type === "forward" && (
-                    <p className="flex-grow break-words break-all">
-                      {message.referenceMessageId?.type === "poll" &&
-                        "📊 " + message.referenceMessageId?.poll.question}
-                      {message.referenceMessageId
-                        ? message.referenceMessageId.message
-                          ? message.referenceMessageId.message
-                          : message.message
-                        : message.message}
-                    </p>
-                  )}
-                  {message.type === "voice" && (
-                    <audio
-                      controls
-                      src={`${import.meta.env.VITE_SERVER_PORT}${
-                        message.audioUrl
-                      }`}
-                    />
-                  )}
-
-                  <div className="flex-shrink-0 flex gap-2 whitespace-nowrap text-xs theme-text-2 ml-2">
-                    {message.edited && message.type !== "forward" && (
-                      <p className="italic">edited</p>
-                    )}
-                    <p>
-                      {new Date(message.createdAt).toLocaleString("en-US", {
-                        weekday: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                      })}
-                    </p>
-                  </div>
-                </div>
+                {message.type === "poll" && <PollMessage message={message} />}
+                <NormalMessage message={message} />
                 {message.reactions &&
                   Object.keys(message.reactions).some(
                     (emoji) => message.reactions[emoji].length > 0
                   ) && (
-                    <div className="mx-1 my-2 flex-wrap inline-flex">
-                      {Object.entries(message.reactions)
-                        .filter(([, users]) => users.length > 0)
-                        .map(([emoji, users]) => (
-                          <p
-                            onClick={() => {
-                              if (isInChat) addReaction({ emoji, message });
-                            }}
-                            className="py-1 px-3 m-[2px] bg-[#ffffff50] hover:bg-[#ffffff70] cursor-pointer rounded-lg"
-                            key={emoji}
-                          >
-                            {emoji} {users.length}
-                          </p>
-                        ))}
-                    </div>
+                    <ReacToMessage
+                      message={message}
+                      onReact={handleReactionClick}
+                    />
                   )}
               </div>
             </div>
@@ -490,5 +293,4 @@ Message.propTypes = {
   onContextMenu: PropTypes.func.isRequired,
   onClearContextMenu: PropTypes.func.isRequired,
   onOpenPicker: PropTypes.func.isRequired,
-  addReaction: PropTypes.func,
 };

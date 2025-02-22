@@ -25,6 +25,8 @@ router.post(
   UserController.checkInput
 );
 
+router.post("/edit-user", isAuth, UserController.editUser)
+
 router.post("/create-user", UserController.createUser);
 
 router.post("/check-phoneNumber", UserController.checkPhoneNumber);

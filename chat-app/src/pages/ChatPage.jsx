@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -13,7 +13,6 @@ import ChatBackground from "../components/chat/ChatBackground.jsx";
 import ActiveChat from "../components/chat/activeChat/ActiveChat.jsx";
 import { protectedFetchData } from "../utility/async.js";
 
-// Correctly use the environment variable and provide fallback
 const socket = io(import.meta.env.VITE_SERVER_PORT || "http://localhost:3000");
 
 export default function ChatPage() {
@@ -21,7 +20,7 @@ export default function ChatPage() {
   const queryClient = useQueryClient();
   const token = localStorage.getItem("token");
   const { user } = useSelector((state) => state.auth);
-  const [theme, setTheme] = useState("dark-theme");
+  const { theme } = useSelector((state) => state.userSettings);
   const { activeChat } = useSelector((state) => state.chat);
   const { message, messageType, messageToEdit } = useSelector(
     (state) => state.message
@@ -79,7 +78,7 @@ export default function ChatPage() {
     >
       <ConditionalModals />
       <div className="w-[85vw] flex justify-between overflow-hidden">
-        <Aside setTheme={setTheme} theme={theme} />
+        <Aside theme={theme} />
         <div className="relative w-[63.5vw] transition-all">
           <ChatBackground />
           <ActiveChat />

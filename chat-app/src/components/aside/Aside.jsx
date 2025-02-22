@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setIsFocused, setSearch } from "../../store/redux/searchSlice";
 import AsideChat from "./AsideChat";
 import { signOut } from "../../utility/util";
-import ModifyChat from "../chat/ModifyChat";
+import ModifyTab from "../chat/ModifyTab";
 import {
   CrossSVG,
   EditSVG,
@@ -21,27 +21,50 @@ import { protectedPostData } from "../../utility/async";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import CircleCheckbox from "../misc/CircleCheckbox";
+import {
+  setSendMessageBy,
+  setTheme,
+  setTimeFormat,
+} from "../../store/redux/userSettingsSlice";
 
-export default function Aside({ setTheme, theme }) {
+export default function Aside() {
   const [activeSelect, setActiveSelect] = useState("chats");
   const [addingChannel, setAddingChannel] = useState(false);
   const [editingUser, setEditingUser] = useState(false);
   const [viewSettings, setViewSettings] = useState(false);
 
   const { isFocused, data } = useSelector((state) => state.search);
+  const { timeFormat, sendMessageBy, theme } = useSelector(
+    (state) => state.userSettings
+  );
   const { userChats } = useSelector((state) => state.chat);
   const { user } = useSelector((state) => state.auth);
+  const { activeChat } = useSelector((state) => state.chat);
   const token = localStorage.getItem("token");
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { mutate: addChat } = useMutation({
-    mutationFn: ({ chat }) => {
+  const { mutate: editUser } = useMutation({
+    mutationFn: ({ data }) => {
       const formData = new FormData();
-      formData.append("name", chat.name);
-      formData.append("description", chat.description);
-      formData.append("imageUrl", chat.url);
+      formData.append("firstName", data.firstName);
+      formData.append("lastName", data.lastName);
+      formData.append("imageUrl", data.url);
+      return protectedPostData("/user/edit-user", formData, token);
+    },
+    onSuccess: () => {
+      setEditingUser(false);
+      queryClient.invalidateQueries(["userData"]);
+    },
+  });
+
+  const { mutate: addChat } = useMutation({
+    mutationFn: ({ data }) => {
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("description", data.description);
+      formData.append("imageUrl", data.url);
       return protectedPostData("/chat/create-chat", formData, token);
     },
     onSuccess: () => {
@@ -190,14 +213,20 @@ export default function Aside({ setTheme, theme }) {
                     Color theme
                   </p>
                   <div className="flex flex-col w-full">
-                    <div className="flex items-center gap-10 theme-hover-bg-2 w-full p-4 rounded-lg">
+                    <div
+                      onClick={() => dispatch(setTheme("light-theme"))}
+                      className="flex items-center cursor-pointer gap-10 theme-hover-bg-2 w-full p-4 rounded-lg"
+                    >
                       <CircleCheckbox
                         isChecked={theme === "light-theme"}
                         id="light-theme"
                       />
                       <label htmlFor="light-theme">Day</label>
                     </div>
-                    <div className="flex items-center gap-10 theme-hover-bg-2 w-full p-4 rounded-lg">
+                    <div
+                      onClick={() => dispatch(setTheme("dark-theme"))}
+                      className="flex items-center cursor-pointer gap-10 theme-hover-bg-2 w-full p-4 rounded-lg"
+                    >
                       <CircleCheckbox
                         isChecked={theme === "dark-theme"}
                         id="dark-theme"
@@ -215,21 +244,27 @@ export default function Aside({ setTheme, theme }) {
                     Keyboard
                   </p>
                   <div className="flex flex-col w-full">
-                    <div className="flex items-center gap-10 theme-hover-bg-2 w-full p-4 rounded-lg">
+                    <div
+                      onClick={() => dispatch(setSendMessageBy("Enter"))}
+                      className="flex items-center cursor-pointer gap-10 theme-hover-bg-2 w-full p-4 rounded-lg"
+                    >
                       <CircleCheckbox
-                        isChecked={theme === "light-theme"}
-                        id="light-theme"
+                        isChecked={sendMessageBy === "Enter"}
+                        id="sendByEnter"
                       />
-                      <label htmlFor="light-theme">
+                      <label htmlFor="sendByEnter">
                         <p>Send by Enter</p>
                         <p className="theme-text-2">
                           New line by Shift + Enter
                         </p>
                       </label>
                     </div>
-                    <div className="flex items-center gap-10 theme-hover-bg-2 w-full p-4 rounded-lg">
+                    <div
+                      onClick={() => dispatch(setSendMessageBy("Enter&Caps"))}
+                      className="flex items-center gap-10 theme-hover-bg-2 w-full p-4 rounded-lg"
+                    >
                       <CircleCheckbox
-                        isChecked={theme === "dark-theme"}
+                        isChecked={sendMessageBy === "Enter&Caps"}
                         id="dark-theme"
                       />
                       <label htmlFor="dark-theme">
@@ -248,22 +283,28 @@ export default function Aside({ setTheme, theme }) {
                     Time Format
                   </p>
                   <div className="flex flex-col w-full">
-                    <div className="flex items-center gap-10 theme-hover-bg-2 w-full p-4 rounded-lg">
+                    <div
+                      onClick={() => dispatch(setTimeFormat("12hours"))}
+                      className="flex items-center cursor-pointer gap-10 theme-hover-bg-2 w-full p-4 rounded-lg"
+                    >
                       <CircleCheckbox
-                        isChecked={theme === "light-theme"}
-                        id="light-theme"
+                        isChecked={timeFormat === "12hours"}
+                        id="12hours"
                       />
-                      <label htmlFor="light-theme">
+                      <label htmlFor="12hours">
                         <p>12-hour</p>
                         <p className="theme-text-2">06:28PM</p>
                       </label>
                     </div>
-                    <div className="flex items-center gap-10 theme-hover-bg-2 w-full p-4 rounded-lg">
+                    <div
+                      onClick={() => dispatch(setTimeFormat("24hours"))}
+                      className="flex items-center cursor-pointer gap-10 theme-hover-bg-2 w-full p-4 rounded-lg"
+                    >
                       <CircleCheckbox
-                        isChecked={theme === "dark-theme"}
-                        id="dark-theme"
+                        isChecked={timeFormat === "24hours"}
+                        id="24hours"
                       />
-                      <label htmlFor="dark-theme">
+                      <label htmlFor="24hours">
                         <p>24-hour</p>
                         <p className="theme-text-2">18:28</p>
                       </label>
@@ -273,13 +314,19 @@ export default function Aside({ setTheme, theme }) {
               </div>
             </div>
           </div>
-          <ModifyChat
-            title="New Profile"
-            isModifying={editingUser}
-            setIsModifying={setEditingUser}
-            action={addChat}
-            type="add"
-          />
+          {user && (
+            <ModifyTab
+              title="Edit Profile"
+              setIsModifying={setEditingUser}
+              action={editUser}
+              type="edituser"
+              victimData={{
+                imageUrl: user?.imageUrl,
+                firstName: user?.firstName,
+                lastName: user?.lastName,
+              }}
+            />
+          )}
         </div>
         <div
           className={`min-w-[21.5vw] transition-all ease-in-out h-full flex relative  ${
@@ -400,8 +447,9 @@ export default function Aside({ setTheme, theme }) {
                     </PopUpMenuItem>
                     <PopUpMenuItem
                       action={() => {
-                        if (theme === "dark-theme") setTheme("light-theme");
-                        else setTheme("dark-theme");
+                        if (theme === "dark-theme")
+                          dispatch(setTheme("light-theme"));
+                        else dispatch(setTheme("dark-theme"));
                       }}
                     >
                       <svg
@@ -555,12 +603,16 @@ export default function Aside({ setTheme, theme }) {
               </ul>
             </div>
           </div>
-          <ModifyChat
+          <ModifyTab
             title="New Channel"
-            isModifying={addingChannel}
             setIsModifying={setAddingChannel}
             action={addChat}
             type="add"
+            victimData={{
+              imageUrl: activeChat?.imageUrl,
+              name: activeChat?.name,
+              description: activeChat?.description,
+            }}
           />
         </div>
       </div>
@@ -569,6 +621,5 @@ export default function Aside({ setTheme, theme }) {
 }
 
 Aside.propTypes = {
-  setTheme: PropTypes.func.isRequired,
   theme: PropTypes.string.isREquired,
 };
