@@ -5,7 +5,7 @@ let ioInstance = null;
 export const initSocket = (httpServer) => {
   ioInstance = new Server(httpServer, {
     cors: {
-      origin: "telegram-xi-olive.vercel.app",
+      origin: "*",
       methods: ["GET", "POST", "PUT"],
     },
   });
