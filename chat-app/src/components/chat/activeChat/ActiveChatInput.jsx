@@ -58,9 +58,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${
-        textareaRef.current.scrollHeight + 16
-      }px`;
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [value]);
 
@@ -272,7 +270,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
               (activeChat.type === "broadcast" ? "Broadcast" : "Message")
             }
             rows={1}
-            className={`pr-24 sidepanel max-h-[40rem] transition-all ease-in-out relative focus:outline-none pt-4 rounded-2xl rounded-br-none px-4 resize-none overflow-hidden mx-auto ${
+            className={`pr-24 min-h-[2.5rem] sidepanel max-h-[40rem] transition-all ease-in-out relative focus:outline-none p-4 rounded-2xl rounded-br-none px-4 resize-none overflow-hidden mx-auto ${
               isSelecting ? "w-[70%]" : "w-[89%]"
             }`}
             style={{ height: "auto" }}

@@ -76,7 +76,9 @@ export const createUser = async (req, res, next) => {
       email,
       firstName,
       lastName,
-      imageUrl: imageUrl || null,
+      imageUrl:
+        imageUrl ||
+        "https://res.cloudinary.com/dccik7g13/image/upload/v1740222827/cduvcfnv5e2ehyv1mtt5.jpg",
     });
 
     await user.save();

@@ -210,7 +210,7 @@ export default function ActiveChat() {
                   />
                 )}
                 <div
-                  className={`relative z-10 flex justify-between items-end gap-2 w-full`}
+                  className={`relative min-h-[3.5rem] z-10 flex justify-between items-end gap-2 w-full`}
                 >
                   {isSelecting && (
                     <div

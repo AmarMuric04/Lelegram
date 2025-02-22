@@ -126,7 +126,7 @@ export default function Message({
 
           <li
             id={message._id}
-            className={`relative transition-all left-0 ${
+            className={`relative items-end transition-all left-0 ${
               !isMe && isSelecting && "left-12"
             } z-50 appearAnimation flex gap-2 max-w-[25rem] ${
               isMe ? "self-end flex-row" : "self-start flex-row-reverse"
