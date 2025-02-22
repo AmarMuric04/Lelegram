@@ -50,7 +50,7 @@ export default function AsideChat({ chat, action }) {
       {chat.type === "private" ? (
         displayImageUrl ? (
           <img
-            src={`${import.meta.env.VITE_SERVER_PORT}/${displayImageUrl}`}
+            src={`${displayImageUrl}`}
             alt={displayName}
             className="min-h-14 max-h-14 min-w-14 max-w-14 rounded-full object-cover"
           />
@@ -68,7 +68,7 @@ export default function AsideChat({ chat, action }) {
         )
       ) : chat.imageUrl ? (
         <img
-          src={`${import.meta.env.VITE_SERVER_PORT}/${chat.imageUrl}`}
+          src={`${chat.imageUrl}`}
           alt={chat.name}
           className="min-h-14 max-h-14 min-w-14 max-w-14 rounded-full object-cover"
         />

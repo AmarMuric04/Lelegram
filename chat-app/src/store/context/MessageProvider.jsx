@@ -5,6 +5,7 @@ import { resetMessage } from "../redux/messageSlice";
 import PropTypes from "prop-types";
 import { resetImage } from "../redux/imageSlice";
 import { protectedPostData } from "../../utility/async";
+import { uploadToCloudinary } from "../../utility/util";
 
 const MessageContext = createContext();
 
@@ -19,7 +20,7 @@ export const MessageProvider = ({ children }) => {
   const messagesListRef = useRef();
 
   const { mutate: sendMessage, isSendingMessage } = useMutation({
-    mutationFn: ({ poll, msgImage, value }) => {
+    mutationFn: async ({ poll, msgImage, value }) => {
       const formData = new FormData();
 
       if (poll) {
@@ -34,10 +35,14 @@ export const MessageProvider = ({ children }) => {
         formData.append("pollCorrectAnswer", poll.correctAnswer);
       }
 
+      console.log(msgImage);
       if (msgImage) {
         formData.append("message", msgImage.caption);
         if (msgImage.url) {
-          formData.append("imageUrl", msgImage.url);
+          const uploadedImageUrl = await uploadToCloudinary(msgImage.url);
+          if (uploadedImageUrl) {
+            formData.append("imageUrl", uploadedImageUrl);
+          }
         }
       }
 

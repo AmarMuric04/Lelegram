@@ -27,10 +27,10 @@ export default function NormalMessage({ message }) {
         </p>
       )}
       {message.type === "voice" && (
-        <audio
-          controls
-          src={`${import.meta.env.VITE_SERVER_PORT}${message.audioUrl}`}
-        />
+        <audio controls>
+          <source src={message.audioUrl} type="audio/mp3" />
+          Your browser does not support the audio element.
+        </audio>
       )}
 
       <div className="flex-shrink-0 flex gap-2 whitespace-nowrap text-xs theme-text-2 ml-2">

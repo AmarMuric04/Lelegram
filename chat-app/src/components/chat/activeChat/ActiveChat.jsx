@@ -20,7 +20,7 @@ import {
   protectedPostData,
 } from "../../../utility/async.js";
 import { io } from "socket.io-client";
-import { copyToClipboard } from "../../../utility/util.js";
+import { copyToClipboard, uploadToCloudinary } from "../../../utility/util.js";
 import ModifyTab from "../ModifyTab.jsx";
 
 const socket = io(import.meta.env.VITE_SERVER_PORT);
@@ -77,11 +77,18 @@ export default function ActiveChat() {
   }, [activeChat, user]);
 
   const { mutate: editChannel } = useMutation({
-    mutationFn: ({ data }) => {
+    mutationFn: async ({ data }) => {
       const formData = new FormData();
       formData.append("name", data.name);
       formData.append("description", data.description);
-      formData.append("imageUrl", data.url);
+
+      if (data.url) {
+        const uploadedImageUrl = await uploadToCloudinary(data.url);
+        if (uploadedImageUrl) {
+          formData.append("imageUrl", uploadedImageUrl);
+        }
+      }
+
       return protectedPostData(
         `/chat/edit-chat/${activeChat._id}`,
         formData,
@@ -533,9 +540,7 @@ export default function ActiveChat() {
                         className="flex items-center gap-2 transition-all theme-hover-bg-2 p-2 rounded-lg cursor-pointer"
                       >
                         <img
-                          src={`${import.meta.env.VITE_SERVER_PORT}/${
-                            user.imageUrl
-                          }`}
+                          src={`${user.imageUrl}`}
                           alt={`${user.firstName} ${user.lastName}`}
                           className="h-10 w-10 rounded-full mt-1"
                         />

@@ -38,16 +38,21 @@ export default function ModifyTab({
     return victimData[key] !== victimChanges[key];
   });
 
-  const isEmpty = Object.keys(victimChanges).some(
-    (key) => victimChanges[key] === ""
-  );
+  const isEmpty = Object.keys(victimChanges).some((key) => {
+    if (key === "imageUrl" || key === "description") return false;
+    return !victimChanges[key];
+  });
 
-  let btnCondition =
-    type === "edit"
-      ? isDifferent && !isEmpty
-        ? "bottom-5"
-        : "-bottom-20"
-      : "-bottom-20";
+  const isNameEmpty =
+    !victimChanges.name?.trim() &&
+    (!victimChanges.firstName?.trim() || !victimChanges.lastName?.trim());
+
+  let btnCondition = "-bottom-20";
+  if (type === "edit" && isDifferent && !isEmpty && !isNameEmpty) {
+    btnCondition = "bottom-5";
+  } else if (type === "add" && !isEmpty && !isNameEmpty) {
+    btnCondition = "bottom-5";
+  }
 
   const handleFieldChange = (field, value) => {
     setVictimChanges((prev) => ({ ...prev, [field]: value }));
@@ -77,9 +82,7 @@ export default function ModifyTab({
             {!preview && victimData?.imageUrl && (
               <img
                 className="w-full h-full rounded-full object-cover absolute"
-                src={`${import.meta.env.VITE_SERVER_PORT}/${
-                  victimData.imageUrl
-                }`}
+                src={`${victimData.imageUrl}`}
                 alt="Chosen profile picture."
               />
             )}

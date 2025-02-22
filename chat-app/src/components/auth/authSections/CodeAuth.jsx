@@ -6,35 +6,34 @@ import Input from "../../misc/Input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { postData } from "../../../utility/async";
-import { verifyOTP } from "../../../utility/util";
+import { verifyOTP, uploadToCloudinary } from "../../../utility/util";
 
 export default function CodeAuth({ setActivePage }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState(null);
 
-  const {
-    email,
-    url,
-    phoneNumber,
-    firstName,
-    lastName,
-    isSigningIn,
-    staySignedIn,
-  } = useSelector((state) => state.auth);
+  const { email, phoneNumber, firstName, lastName, isSigningIn, staySignedIn } =
+    useSelector((state) => state.auth);
+  const { url } = useSelector((state) => state.image);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const handleChange = (value) => setCode(value);
 
   const signUpMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const formData = new FormData();
       formData.append("email", email);
       formData.append("phoneNumber", phoneNumber);
       formData.append("firstName", firstName);
       formData.append("lastName", lastName);
-      formData.append("imageUrl", url);
 
+      if (url) {
+        const uploadedImageUrl = await uploadToCloudinary(url);
+        if (uploadedImageUrl) {
+          formData.append("imageUrl", uploadedImageUrl);
+        }
+      }
       return postData("/user/create-user", formData);
     },
     onSuccess: ({ data }) => {
@@ -44,8 +43,6 @@ export default function CodeAuth({ setActivePage }) {
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
       localStorage.setItem("expires-in", String(Date.now() + expiryDate));
-
-      queryClient.invalidateQueries(["userData"]);
       navigate("/");
     },
     onError: (error) => setError(error),
@@ -60,8 +57,6 @@ export default function CodeAuth({ setActivePage }) {
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
       localStorage.setItem("expires-in", String(Date.now() + expiryDate));
-
-      queryClient.invalidateQueries(["userData"]);
       navigate("/");
     },
     onError: (error) => console.log(error),
@@ -71,6 +66,8 @@ export default function CodeAuth({ setActivePage }) {
     try {
       await verifyOTP(email, code);
       isSigningIn ? signInMutation.mutate() : signUpMutation.mutate();
+
+      queryClient.invalidateQueries(["userData"]);
     } catch (err) {
       console.error(err);
       setError(err);

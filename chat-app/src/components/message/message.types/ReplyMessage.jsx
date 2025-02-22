@@ -24,9 +24,7 @@ export default function ReplyMessage({ message, isMe }) {
           {message.referenceMessageId.imageUrl && (
             <img
               className="max-h-[16px]"
-              src={`${import.meta.env.VITE_SERVER_PORT}/${
-                message.referenceMessageId.imageUrl
-              }`}
+              src={`${message.referenceMessageId.imageUrl}`}
             />
           )}
           {message.referenceMessageId.message

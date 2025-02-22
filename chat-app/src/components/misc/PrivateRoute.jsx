@@ -35,6 +35,7 @@ const PrivateRoute = ({ children }) => {
     queryFn: () => {
       const userId = localStorage.getItem("userId");
       const token = localStorage.getItem("token");
+
       return protectedFetchData(`/user/get-user/${userId}`, token);
     },
     queryKey: ["userData"],

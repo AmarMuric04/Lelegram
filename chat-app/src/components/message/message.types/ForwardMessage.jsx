@@ -21,9 +21,7 @@ export default function ForwardMessage({ message }) {
         <div className="flex items-center gap-1">
           {message.referenceMessageId.chat?.imageUrl ? (
             <img
-              src={`${import.meta.env.VITE_SERVER_PORT}/${
-                message.referenceMessageId.chat.imageUrl
-              }`}
+              src={`${message.referenceMessageId.chat.imageUrl}`}
               alt={message.referenceMessageId.chat.name}
               className="min-h-6 max-h-6 min-w-6 max-w-6 rounded-full object-cover"
             />

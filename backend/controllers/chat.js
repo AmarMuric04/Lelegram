@@ -200,7 +200,7 @@ export const getSearchedChats = async (req, res, next) => {
 
 export const createChat = async (req, res, next) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, imageUrl } = req.body;
     const creator = await User.findById(req.userId);
 
     const gradients = [
@@ -212,11 +212,6 @@ export const createChat = async (req, res, next) => {
 
     const gradient = gradients[name.length % gradients.length];
 
-    let imageUrl;
-    if (req.files.imageUrl)
-      imageUrl = "images/" + req.files.imageUrl[0].filename;
-    else console.log("Image not found");
-
     const chat = new Chat({
       name,
       description,
@@ -224,7 +219,7 @@ export const createChat = async (req, res, next) => {
       admins: [creator],
       users: [creator],
       gradient,
-      imageUrl,
+      imageUrl: imageUrl || null,
       lastMessage: null,
       type: "group",
     });
@@ -250,7 +245,7 @@ export const createChat = async (req, res, next) => {
 
 export const editChat = async (req, res, next) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, imageUrl } = req.body;
 
     const { chatId } = req.params;
 
@@ -262,10 +257,6 @@ export const editChat = async (req, res, next) => {
     if (!chat.admins.includes(req.userId)) {
       return res.status(403).json({ message: "Not authorized" });
     }
-
-    let imageUrl = chat.imageUrl;
-    if (req.files.imageUrl)
-      imageUrl = "images/" + req.files.imageUrl[0].filename;
 
     const systemMessage = new Message({
       message: `modified the chat's look`,

@@ -2,10 +2,10 @@ import { useState, useRef } from "react";
 import ActionButton from "../button/ActionButton";
 import { MicrophoneSVG } from "../../../public/svgs";
 import { useSelector } from "react-redux";
+import { uploadToCloudinary } from "../../utility/util";
 
 export default function VoiceRecorder() {
   const [isListening, setIsListening] = useState(false);
-  const { user } = useSelector((state) => state.auth);
   const { activeChat } = useSelector((state) => state.chat);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -20,31 +20,34 @@ export default function VoiceRecorder() {
     };
 
     mediaRecorderRef.current.onstop = async () => {
-      const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
-      const audioFile = new File([audioBlob], "recording.wav", {
-        type: "audio/wav",
-      });
-
-      const formData = new FormData();
-      formData.append("audioUrl", audioFile);
-      formData.append("senderId", user._id);
-      formData.append("chatId", activeChat._id);
-
       try {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/wav",
+        });
+        const audioFile = new File([audioBlob], "recording.wav", {
+          type: "audio/wav",
+        });
+        const audioURL = await uploadToCloudinary(audioFile);
+        if (!audioURL) return;
+
         const response = await fetch(
-          `${import.meta.env.VITE_SERVER_PORT}/message/send-voice-message`,
+          `http://localhost:3000/message/send-voice-message`,
           {
             method: "POST",
             headers: {
+              "Content-Type": "application/json",
               Authorization: "Bearer " + token,
             },
-            body: formData,
+            body: JSON.stringify({
+              chatId: activeChat?._id,
+              audioUrl: audioURL,
+            }),
           }
         );
         const result = await response.json();
-        console.log("Upload Success:", result);
+        console.log("Message Sent:", result);
       } catch (error) {
-        console.error("Upload Error:", error);
+        console.error("Send Message Error:", error);
       }
 
       audioChunksRef.current = [];

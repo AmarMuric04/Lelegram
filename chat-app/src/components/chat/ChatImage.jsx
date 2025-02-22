@@ -27,7 +27,7 @@ export default function ChatImage({ dimensions = 12 }) {
       {activeChat?.type === "private" || activeChat?.imageUrl ? (
         <img
           className="rounded-full object-cover"
-          src={`${import.meta.env.VITE_SERVER_PORT}/${displayImageUrl}`}
+          src={`${displayImageUrl}`}
           alt={activeChat.name}
           style={{
             minHeight: `${sizeInPx}px`,

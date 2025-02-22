@@ -26,6 +26,7 @@ import {
   setTheme,
   setTimeFormat,
 } from "../../store/redux/userSettingsSlice";
+import { uploadToCloudinary } from "../../utility/util";
 
 export default function Aside() {
   const [activeSelect, setActiveSelect] = useState("chats");
@@ -46,11 +47,18 @@ export default function Aside() {
   const navigate = useNavigate();
 
   const { mutate: editUser } = useMutation({
-    mutationFn: ({ data }) => {
+    mutationFn: async ({ data }) => {
       const formData = new FormData();
       formData.append("firstName", data.firstName);
       formData.append("lastName", data.lastName);
-      formData.append("imageUrl", data.url);
+
+      if (data.url) {
+        const uploadedImageUrl = await uploadToCloudinary(data.url);
+        if (uploadedImageUrl) {
+          formData.append("imageUrl", uploadedImageUrl);
+        }
+      }
+
       return protectedPostData("/user/edit-user", formData, token);
     },
     onSuccess: () => {
@@ -60,11 +68,24 @@ export default function Aside() {
   });
 
   const { mutate: addChat } = useMutation({
-    mutationFn: ({ data }) => {
+    mutationFn: async ({ data } = {}) => {
       const formData = new FormData();
       formData.append("name", data.name);
       formData.append("description", data.description);
-      formData.append("imageUrl", data.url);
+
+      let uploadedFileUrl = null;
+
+      console.log(data.url);
+
+      if (data.url) {
+        console.log("123");
+        uploadedFileUrl = await uploadToCloudinary(data.url);
+        console.log(uploadedFileUrl);
+        if (uploadedFileUrl) {
+          formData.append("imageUrl", uploadedFileUrl);
+        }
+      }
+
       return protectedPostData("/chat/create-chat", formData, token);
     },
     onSuccess: () => {
@@ -139,7 +160,7 @@ export default function Aside() {
               <div className="flex flex-col items-center w-full my-8">
                 <img
                   className="object-cover w-[8rem] h-[8rem] rounded-full"
-                  src={`${import.meta.env.VITE_SERVER_PORT}/${user.imageUrl}`}
+                  src={`${user.imageUrl}`}
                 />
                 <p className="text-lg font-semibold mt-2">
                   {user.firstName}, {user.lastName}
@@ -319,7 +340,7 @@ export default function Aside() {
               title="Edit Profile"
               setIsModifying={setEditingUser}
               action={editUser}
-              type="edituser"
+              type="edit"
               victimData={{
                 imageUrl: user?.imageUrl,
                 firstName: user?.firstName,

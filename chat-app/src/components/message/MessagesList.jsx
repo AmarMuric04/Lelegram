@@ -323,7 +323,7 @@ const MessagesList = forwardRef(function MessagesList(
                         />
                       </div>
                     )}
-                    {message._id !== activeChat.lastMessage._id &&
+                    {message._id !== activeChat.lastMessage?._id &&
                       message._id === activeChat.lastReadMessageId && (
                         <p className="theme-bg font-semibold text-center">
                           Unread messages

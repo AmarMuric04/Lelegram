@@ -152,3 +152,44 @@ export const getRecentTime = (date, AMPM) => {
   //   return getFormattedTimeAMPM(date);
   // }
 };
+
+export const uploadToCloudinary = async (file) => {
+  try {
+    console.log(file, "asjdas");
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", import.meta.env.VITE_CLOUDINARY_PRESET);
+
+    const isImage = file.type.startsWith("image/");
+    const isAudio = file.type.startsWith("audio/");
+
+    if (!isImage && !isAudio) {
+      console.error("Unsupported file type");
+      return null;
+    }
+
+    const resourceType = "auto";
+
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${
+        import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+      }/${resourceType}/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const data = await response.json();
+    if (!response.ok) {
+      console.error("Cloudinary Upload Error:", data);
+      return null;
+    }
+
+    return data.secure_url;
+  } catch (error) {
+    console.error("Cloudinary Upload Error:", error);
+    return null;
+  }
+};

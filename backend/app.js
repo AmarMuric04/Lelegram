@@ -23,10 +23,7 @@ const port = process.env.PORT || 3000;
 const server = createServer(app);
 
 app.use((req, res, next) => {
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "https://telegram-xi-olive.vercel.app/"
-  );
+  res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, PATCH, DELETE"
@@ -156,10 +153,7 @@ app.use((error, req, res, next) => {
 });
 
 mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGODB_URI, {})
   .then(() => {
     console.log("MongoDB connected");
 
@@ -168,7 +162,7 @@ mongoose
     const typingUsers = {};
 
     io.on("connection", (socket) => {
-      console.log("User connected:", socket.id);
+      // console.log("User connected:", socket.id);
 
       socket.on("userTyping", ({ user, chatId }) => {
         if (!typingUsers[chatId]) {
@@ -201,7 +195,7 @@ mongoose
       });
 
       socket.on("disconnect", () => {
-        console.log("User disconnected:", socket.id);
+        // console.log("User disconnected:", socket.id);
       });
     });
   })

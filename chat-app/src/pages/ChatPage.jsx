@@ -72,6 +72,8 @@ export default function ChatPage() {
     }
   }, [error]);
 
+  if (!user) return <p>Please wait...</p>;
+
   return (
     <main
       className={`${theme} transition-all theme-bg w-screen h-screen flex justify-center`}

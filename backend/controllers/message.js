@@ -17,12 +17,8 @@ export const sendMessage = async (req, res, next) => {
       pollSettings,
       pollExplanation,
       pollCorrectAnswer,
+      imageUrl,
     } = req.body;
-
-
-    let imageUrl;
-    if (req.files.imageUrl)
-      imageUrl = "images/" + req.files.imageUrl[0].filename;
 
     if (type === "poll") {
       const poll = new Poll({
@@ -308,21 +304,17 @@ export const sendMessage = async (req, res, next) => {
 
 export const sendVoiceMessage = async (req, res, next) => {
   try {
-    if (!req.files || !req.files.audioUrl || !req.files.audioUrl[0]) {
-      return res.status(400).json({ error: "No audio file uploaded" });
-    }
-
-    const audioFile = req.files.audioUrl[0];
-    const { senderId, chatId } = req.body;
+    console.log("Hello");
+    const { chatId, audioUrl } = req.body;
 
     const chat = await Chat.findById(chatId);
 
     const newMessage = new Message({
       chat: chatId,
-      sender: senderId,
+      sender: req.userId,
       content: null,
       type: "voice",
-      audioUrl: `/voices/${audioFile.filename}`,
+      audioUrl: audioUrl || null,
       imageUrl: null,
       repliedTo: null,
       forwardedFrom: null,
@@ -340,8 +332,7 @@ export const sendVoiceMessage = async (req, res, next) => {
     });
     res.json({ success: true, message: savedMessage });
   } catch (error) {
-    console.error("Upload Error:", error);
-    res.status(500).json({ error: "Failed to upload file" });
+    next(error);
   }
 };
 

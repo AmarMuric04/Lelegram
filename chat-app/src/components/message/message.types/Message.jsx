@@ -232,9 +232,7 @@ export default function Message({
                 {message.type !== "forward" && message.imageUrl && (
                   <img
                     className="max-w-[25rem] max-h-[25rem] self-center mx-auto rounded-lg"
-                    src={`${import.meta.env.VITE_SERVER_PORT}/${
-                      message.imageUrl
-                    }`}
+                    src={`${message.imageUrl}`}
                     alt="Message"
                   />
                 )}
@@ -242,9 +240,7 @@ export default function Message({
                   message.referenceMessageId.imageUrl && (
                     <img
                       className="max-h-[25rem] max-w-[25rem]"
-                      src={`${import.meta.env.VITE_SERVER_PORT}/${
-                        message.referenceMessageId.imageUrl
-                      }`}
+                      src={`${message.referenceMessageId.imageUrl}`}
                     />
                   )}
                 {message.type === "poll" && <PollMessage message={message} />}
@@ -260,11 +256,9 @@ export default function Message({
                   )}
               </div>
             </div>
-            {showImage && !isMe && (
+            {showImage && !isMe && message.sender.imageUrl && (
               <img
-                src={`${import.meta.env.VITE_SERVER_PORT}/${
-                  message.sender.imageUrl
-                }`}
+                src={message.sender.imageUrl}
                 alt={`${message.sender.firstName} ${message.sender.lastName}`}
                 className="w-10 h-10 rounded-full mt-1"
               />

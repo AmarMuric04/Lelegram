@@ -54,9 +54,11 @@ export const checkInput = async (req, res, next) => {
 
 export const editUser = async (req, res, next) => {
   try {
-    const { firstName, lastName } = req.body;
+    const { firstName, lastName, imageUrl } = req.body;
 
-    await User.findByIdAndUpdate(req.userId, { $set: { firstName, lastName } });
+    await User.findByIdAndUpdate(req.userId, {
+      $set: { firstName, lastName, imageUrl },
+    });
 
     res.status(200).json({ message: "Succuessfully updated the user" });
   } catch (err) {
@@ -66,19 +68,15 @@ export const editUser = async (req, res, next) => {
 
 export const createUser = async (req, res, next) => {
   try {
-    const { phoneNumber, email, firstName, lastName, staySignedIn } = req.body;
-
-    let imageUrl;
-    if (req.files.imageUrl)
-      imageUrl = "images/" + req.files.imageUrl[0].filename;
-    else imageUrl = "images/pfp.jpg";
+    const { phoneNumber, email, firstName, lastName, staySignedIn, imageUrl } =
+      req.body;
 
     const user = new User({
       phoneNumber,
       email,
       firstName,
       lastName,
-      imageUrl,
+      imageUrl: imageUrl || null,
     });
 
     await user.save();

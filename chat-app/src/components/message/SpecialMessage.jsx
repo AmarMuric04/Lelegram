@@ -35,7 +35,7 @@ export default function SpecialMessage({ message, topMessage, icon }) {
           {message.imageUrl && (
             <img
               className="max-h-[16px]"
-              src={`${import.meta.env.VITE_SERVER_PORT}/${message.imageUrl}`}
+              src={`${message.imageUrl}`}
               alt="message visual"
             />
           )}
