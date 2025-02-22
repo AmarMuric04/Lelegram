@@ -26,13 +26,15 @@ A Telegram clone that includes:
 24. Chat notifications
 25. System chat messages
 26. Chat themes (Light & Dark)
+27. User status
 And more!
 
 Things in consideration of being implemented:
 
 1. Mentions (@...), 🔜
 2. Read Receipts,
-3. User status,
+3. Dedicated Websocket rooms
+4. Voice chat
 
 To use the app, change the .env.test file's name to just .env
 Phone Number checking is not implemented, in the Code just write whatever you want.
