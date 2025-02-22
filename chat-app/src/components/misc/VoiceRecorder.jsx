@@ -3,8 +3,9 @@ import ActionButton from "../button/ActionButton";
 import { MicrophoneSVG } from "../../../public/svgs";
 import { useSelector } from "react-redux";
 import { uploadToCloudinary } from "../../utility/util";
+import PropTypes from "prop-types";
 
-export default function VoiceRecorder() {
+export default function VoiceRecorder({ disabled }) {
   const [isListening, setIsListening] = useState(false);
   const { activeChat } = useSelector((state) => state.chat);
   const mediaRecorderRef = useRef(null);
@@ -65,12 +66,12 @@ export default function VoiceRecorder() {
   return (
     <>
       {!isListening && (
-        <ActionButton action={startRecording}>
+        <ActionButton disabled={disabled} action={startRecording}>
           <MicrophoneSVG />
         </ActionButton>
       )}
       {isListening && (
-        <ActionButton action={stopRecording}>
+        <ActionButton disabled={disabled} action={stopRecording}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -88,3 +89,7 @@ export default function VoiceRecorder() {
     </>
   );
 }
+
+VoiceRecorder.propTypes = {
+  disabled: PropTypes.bool,
+};

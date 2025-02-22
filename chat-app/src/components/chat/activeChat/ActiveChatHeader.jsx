@@ -8,6 +8,7 @@ import { setIsSelecting } from "../../../store/redux/messageSlice";
 import { openModal } from "../../../store/redux/modalSlice";
 import PropTypes from "prop-types";
 import VoiceChat from "../../misc/VoiceChat";
+import { getRecentTime } from "../../../utility/util";
 
 export default function ActiveChatHeader({ setViewChatInfo }) {
   const { activeChat } = useSelector((state) => state.chat);
@@ -25,13 +26,15 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
 
   let displayName = activeChat.name;
 
+  console.log(activeChat);
+
   if (
     activeChat.type === "private" &&
     Array.isArray(activeChat.users) &&
     user
   ) {
-    const otherUser = activeChat.users.find(
-      (u) => u.toString() !== user._id.toString()
+    const otherUser = activeChat?.users.find(
+      (u) => u?._id.toString() !== user._id.toString()
     );
     if (otherUser) {
       displayName = `${otherUser.firstName} ${otherUser.lastName}`;
@@ -48,7 +51,13 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
         <div>
           <p className="font-semibold">{displayName}</p>
           <p className="theme-text-2 text-sm -mt-1">
-            {activeChat?.type === "private" && "Last seen recently"}
+            {activeChat?.type === "private" && (
+              <p className="theme-text-2 text-sm">
+                {user.lastSeen
+                  ? `last seen ${getRecentTime(user.lastSeen)}`
+                  : "online"}
+              </p>
+            )}
             {activeChat?.type !== "private" &&
               `${activeChat.users.length} member${
                 activeChat.users.length > 1 ? "s" : ""
@@ -64,7 +73,7 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
           >
             <p className="text-[#8675DC]">Pinned Message</p>
             <div className="flex gap-2 line-clamp-1">
-              <p>{activeChat.pinnedMessage.sender.firstName}: </p>
+              <p>{activeChat.pinnedmessage.sender?.firstName}: </p>
               <p className="line-clamp-1 max-w-[10rem] truncate whitespace-nowrap overflow-hidden">
                 {activeChat.pinnedMessage.message
                   ? activeChat.pinnedMessage.message

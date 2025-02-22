@@ -25,8 +25,8 @@ export default function AsideChat({ chat, action }) {
   let displayImageUrl = chat.imageUrl;
 
   if (chat.type === "private" && Array.isArray(chat.users) && user) {
-    const otherUser = chat.users.find(
-      (u) => u.toString() !== user._id.toString()
+    const otherUser = activeChat?.users.find(
+      (u) => u?._id.toString() !== user._id.toString()
     );
     if (otherUser) {
       displayName = `${otherUser.firstName} ${otherUser.lastName}`;
@@ -97,7 +97,7 @@ export default function AsideChat({ chat, action }) {
           ) : chat.lastMessage ? (
             <p>
               <span className="font-semibold ">
-                {chat.lastMessage.sender.firstName}
+                {chat.lastMessage.sender?.firstName}
               </span>
               :{" "}
               {chat.lastMessage.referenceMessageId

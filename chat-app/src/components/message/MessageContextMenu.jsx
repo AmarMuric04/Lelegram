@@ -67,6 +67,8 @@ export default function MessageContextMenu({
     mutationFn: handlePinMessage,
   });
 
+  const canChat = activeChat?.type === "broadcast" && isAdmin;
+
   return (
     <>
       {open && contextMenuInfo.message._id === message._id && (
@@ -133,15 +135,17 @@ export default function MessageContextMenu({
           )}
           {!isSelecting && (
             <>
-              <ContextMenuItem
-                action={() => {
-                  dispatch(setMessage(message));
-                  dispatch(setMessageType("reply"));
-                }}
-                icon={<svg.ReplySVG dimension={20} />}
-              >
-                Reply
-              </ContextMenuItem>
+              {canChat && (
+                <ContextMenuItem
+                  action={() => {
+                    dispatch(setMessage(message));
+                    dispatch(setMessageType("reply"));
+                  }}
+                  icon={<svg.ReplySVG dimension={20} />}
+                >
+                  Reply
+                </ContextMenuItem>
+              )}
               <ContextMenuItem
                 action={() => copyToClipboard(message.message)}
                 icon={<svg.CopySelectedSVG />}
@@ -209,15 +213,17 @@ export default function MessageContextMenu({
                   Edit
                 </ContextMenuItem>
               )}
-              <ContextMenuItem
-                action={() => {
-                  dispatch(setIsSelecting(true));
-                  dispatch(setSelected([message]));
-                }}
-                icon={<svg.SelectSVG />}
-              >
-                Select
-              </ContextMenuItem>
+              {canChat && (
+                <ContextMenuItem
+                  action={() => {
+                    dispatch(setIsSelecting(true));
+                    dispatch(setSelected([message]));
+                  }}
+                  icon={<svg.SelectSVG />}
+                >
+                  Select
+                </ContextMenuItem>
+              )}
               {(isMe || isAdmin) && (
                 <ContextMenuItem
                   action={() => {

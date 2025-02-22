@@ -14,8 +14,8 @@ export default function ChatImage({ dimensions = 12 }) {
     Array.isArray(activeChat.users) &&
     user
   ) {
-    const otherUser = activeChat.users.find(
-      (u) => u.toString() !== user._id.toString()
+    const otherUser = activeChat?.users.find(
+      (u) => u?._id.toString() !== user._id.toString()
     );
     if (otherUser) {
       displayImageUrl = otherUser.imageUrl;

@@ -19,7 +19,11 @@ export default function DeleteMessageModal() {
         refIds = message.map((m) => m._id);
       }
 
-      return protectedDeleteData("/message/delete-message", { refIds }, token);
+      return protectedDeleteData(
+        "/message/delete-message",
+        { messageId: refIds },
+        token
+      );
     },
     onSuccess: () => dispatch(resetMessage),
   });

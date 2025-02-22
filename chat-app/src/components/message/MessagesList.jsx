@@ -229,14 +229,14 @@ const MessagesList = forwardRef(function MessagesList(
             </div>
             <ul className="flex flex-col px-2 gap-1 overflow-y-auto overflow-x-hidden">
               {groupedMessages[dateKey].map((message, index) => {
-                const isMe = user._id === message.sender._id;
+                const isMe = user._id === message.sender?._id;
 
                 let showSenderInfo = true;
                 if (index !== 0) {
                   const previousMessage = groupedMessages[dateKey][index - 1];
                   if (
                     previousMessage.type !== "system" &&
-                    previousMessage.sender._id === message.sender._id
+                    previousMessage.sender?._id === message.sender?._id
                   ) {
                     const prevTime = new Date(previousMessage.createdAt);
                     const currTime = new Date(message.createdAt);
@@ -250,7 +250,7 @@ const MessagesList = forwardRef(function MessagesList(
                 let showImage = true;
                 if (index !== groupedMessages[dateKey].length - 1) {
                   const nextMessage = groupedMessages[dateKey][index + 1];
-                  if (nextMessage.sender._id === message.sender._id) {
+                  if (nextMessage.sender?._id === message.sender?._id) {
                     const currTime = new Date(message.createdAt);
                     const nextTime = new Date(nextMessage.createdAt);
                     if (nextTime - currTime <= 2 * 60 * 1000) {

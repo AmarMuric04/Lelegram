@@ -224,8 +224,6 @@ export const createChat = async (req, res, next) => {
       type: "group",
     });
 
-    await chat.save();
-
     const systemMessage = new Message({
       message: `created the chat`,
       sender: req.userId,
@@ -234,6 +232,8 @@ export const createChat = async (req, res, next) => {
     });
 
     await systemMessage.save();
+    chat.lastMessage = systemMessage._id;
+    await chat.save();
 
     getSocket().emit("messageSent", { data: chat._id });
 
@@ -266,6 +266,8 @@ export const editChat = async (req, res, next) => {
     });
 
     await systemMessage.save();
+    chat.lastMessage = systemMessage._id;
+    await chat.save();
 
     getSocket().emit("messageSent", { data: chatId });
 
@@ -341,8 +343,6 @@ export const removeUserFromChat = async (req, res, next) => {
 
     chat.users.pull(userId);
 
-    await chat.save();
-
     const systemMessage = new Message({
       message: `left the chat`,
       sender: userId,
@@ -351,6 +351,8 @@ export const removeUserFromChat = async (req, res, next) => {
     });
 
     await systemMessage.save();
+    chat.lastMessage = systemMessage._id;
+    await chat.save();
 
     getSocket().emit("messageSent", { data: chatId });
 
@@ -391,8 +393,6 @@ export const addUserToChat = async (req, res, next) => {
 
     chat.users.push(new mongoose.Types.ObjectId(userId));
 
-    await chat.save();
-
     const systemMessage = new Message({
       message: `joined the chat`,
       sender: userId,
@@ -401,6 +401,8 @@ export const addUserToChat = async (req, res, next) => {
     });
 
     await systemMessage.save();
+    chat.lastMessage = systemMessage._id;
+    await chat.save();
 
     getSocket().emit("messageSent", { data: chatId });
 

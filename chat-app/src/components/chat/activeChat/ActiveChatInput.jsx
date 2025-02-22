@@ -55,6 +55,10 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
   const typingTimeout = useRef(null);
   const textareaRef = useRef(null);
 
+  const isAdmin = activeChat?.admins?.some(
+    (u) => u._id.toString() === user._id
+  );
+
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -87,6 +91,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
     }
 
     if (e.key === "Enter") {
+      if (activeChat._id === "broadcast" && !isAdmin) return;
       if (sendMessageBy === "Enter") {
         if (!e.shiftKey) {
           e.preventDefault();
@@ -198,8 +203,8 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
             <SpecialMessage
               icon={<ReplySVG />}
               message={message}
-              topMessage={`Reply to ${message.sender.firstName + " "} ${
-                message.sender.lastName
+              topMessage={`Reply to ${message.sender?.firstName + " "} ${
+                message.sender?.lastName
               }`}
             />
           )}
@@ -258,6 +263,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
             </svg>
           </button>
           <textarea
+            disabled={activeChat?.type === "broadcast" && !isAdmin}
             ref={textareaRef}
             value={value}
             onChange={(e) => {
@@ -313,9 +319,16 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
               </PopUpMenuItem>
             </PopUpMenu>
           </div>
-          {isInputInvalid && <VoiceRecorder />}
+          {isInputInvalid && (
+            <VoiceRecorder
+              disabled={activeChat?.type === "broadcast" && !isAdmin}
+            />
+          )}
           {isInputValid && (
-            <ActionButton action={handleSendMessage}>
+            <ActionButton
+              disabled={activeChat?.type === "broadcast" && !isAdmin}
+              action={handleSendMessage}
+            >
               {isInputValid && <SendSVG />}
               {isLoading && <ThrobberSVG />}
             </ActionButton>

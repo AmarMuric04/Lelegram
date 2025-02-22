@@ -343,7 +343,6 @@ export const deleteMessage = async (req, res, next) => {
     if (Array.isArray(messageId)) {
       for (const id of messageId) {
         const message = await Message.findById(id);
-        console.log(message, id);
         const chat = await Chat.findById(message.chat);
 
         if (!message) {
@@ -354,7 +353,7 @@ export const deleteMessage = async (req, res, next) => {
 
         if (
           !chat.admins.some((a) => a.toString() === req.userId) &&
-          message.sender.toString() !== req.userId
+          message.sender?.toString() !== req.userId
         ) {
           const error = new Error("You are not the creator of this message.");
           error.statusCode = 405;
@@ -387,7 +386,7 @@ export const deleteMessage = async (req, res, next) => {
 
     if (
       !chat.admins.some((a) => a.toString() === req.userId) &&
-      message.sender.toString() !== req.userId
+      message.sender?.toString() !== req.userId
     ) {
       const error = new Error("You are not the creator of this message.");
       error.statusCode = 405;

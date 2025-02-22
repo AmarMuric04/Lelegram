@@ -152,6 +152,8 @@ app.use((error, req, res, next) => {
   res.status(status).json({ message, data });
 });
 
+import User from "./models/user.js";
+
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
@@ -161,15 +163,20 @@ mongoose
     const io = initSocket(server);
     const typingUsers = {};
 
-    io.on("connection", (socket) => {
-      // console.log("User connected:", socket.id);
+    io.on("connection", async (socket) => {
+      const userId = socket.handshake.query.userId;
+      if (userId) {
+        await User.findByIdAndUpdate(userId, { lastSeen: null });
+        console.log("Giving the user lastSeen null");
+        io.emit("messageSent", { data: null });
+      }
 
       socket.on("userTyping", ({ user, chatId }) => {
         if (!typingUsers[chatId]) {
           typingUsers[chatId] = new Set();
         }
         typingUsers[chatId].add(user._id);
-        io.emit("userTyping", { chatId, user });
+        io.emit("messageSent", { data: chatId });
       });
 
       socket.on("stopTyping", ({ user, chatId }) => {
@@ -194,8 +201,10 @@ mongoose
         socket.broadcast.emit("ice-candidate", candidate);
       });
 
-      socket.on("disconnect", () => {
-        // console.log("User disconnected:", socket.id);
+      socket.on("disconnect", async () => {
+        await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
+        console.log("Giving the user lastSeen " + new Date());
+        io.emit("messageSent", { data: null });
       });
     });
   })

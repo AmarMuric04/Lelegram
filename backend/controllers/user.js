@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import { validationResult } from "express-validator";
 import { createJWT } from "../utility/jwt.js";
 import Chat from "../models/chat.js";
+import { getSocket } from "../socket.js";
 
 export const getUser = async (req, res, next) => {
   try {
@@ -122,7 +123,7 @@ export const signIn = async (req, res, next) => {
 
     const user = await User.findOne({ phoneNumber });
 
-    console.log(user, phoneNumber);
+    console.log(user);
 
     if (!user) {
       const error = new Error("User not found.");
@@ -136,10 +137,23 @@ export const signIn = async (req, res, next) => {
 
     const token = createJWT(user, time);
 
+    user.lastSeen = null;
+    await user.save();
+
+    console.log(user, user.lastSeen);
+
     res.status(200).json({
       message: "Successfully signed in.",
       data: { userId: user._id, token },
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const signOut = async (req, res, next) => {
+  try {
+    await User.findByIdAndUpdate(req.userId, { lastSeen: new Date() });
   } catch (err) {
     next(err);
   }
@@ -192,6 +206,8 @@ export const createDirectMessage = async (req, res, next) => {
 
       await chat.save();
     }
+
+    getSocket().emit("messageSent", { data: chat._id });
 
     res.status(201).json({ message: "Chat started.", chat });
   } catch (err) {

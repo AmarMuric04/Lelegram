@@ -84,10 +84,10 @@ export default function Message({
 
   return (
     <>
-      {message.type === "system" && (
+      {message.chat.type !== "broadcast" && message.type === "system" && (
         <div className="relative z-10 text-center my-1">
           <span className="bg-[#8675DC50] text-white px-4 text-sm font-semibold rounded-full p-1">
-            {message.sender.firstName}, {message.sender.lastName[0]}{" "}
+            {message.sender?.firstName}, {message.sender?.lastName[0]}{" "}
             {message.message}
           </span>
         </div>
@@ -194,7 +194,7 @@ export default function Message({
                 {showSenderInfo && !isMe && (
                   <div className="flex justify-between items-center gap-4 px-2">
                     <p className="text-sm font-semibold text-[#8675DC]">
-                      {message.sender.firstName}, {message.sender.lastName[0]}
+                      {message.sender?.firstName}, {message.sender?.lastName[0]}
                     </p>
                     {isAdmin && <p className="theme-text-2 text-xs">admin</p>}
                   </div>
@@ -256,10 +256,10 @@ export default function Message({
                   )}
               </div>
             </div>
-            {showImage && !isMe && message.sender.imageUrl && (
+            {showImage && !isMe && message.sender?.imageUrl && (
               <img
-                src={message.sender.imageUrl}
-                alt={`${message.sender.firstName} ${message.sender.lastName}`}
+                src={message.sender?.imageUrl}
+                alt={`${message.sender?.firstName} ${message.sender?.lastName}`}
                 className="w-10 h-10 rounded-full mt-1"
               />
             )}

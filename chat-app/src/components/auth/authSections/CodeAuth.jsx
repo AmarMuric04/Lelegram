@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { postData } from "../../../utility/async";
 import { verifyOTP, uploadToCloudinary } from "../../../utility/util";
+import { connectSocket } from "../../../socket";
 
 export default function CodeAuth({ setActivePage }) {
   const [code, setCode] = useState("");
@@ -37,12 +38,15 @@ export default function CodeAuth({ setActivePage }) {
       return postData("/user/create-user", formData);
     },
     onSuccess: ({ data }) => {
+      console.log("Signed up");
       let expiryDate = 1000 * 60 * 60 * 24;
 
       if (staySignedIn) expiryDate *= 7;
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
       localStorage.setItem("expires-in", String(Date.now() + expiryDate));
+      connectSocket();
+
       navigate("/");
     },
     onError: (error) => setError(error),
@@ -51,12 +55,15 @@ export default function CodeAuth({ setActivePage }) {
   const signInMutation = useMutation({
     mutationFn: () => postData("/user/signin", { phoneNumber }),
     onSuccess: async ({ data }) => {
+      console.log("Signed in");
       let expiryDate = 1000 * 60 * 60 * 24;
 
       if (staySignedIn) expiryDate *= 7;
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
       localStorage.setItem("expires-in", String(Date.now() + expiryDate));
+      connectSocket();
+
       navigate("/");
     },
     onError: (error) => console.log(error),
@@ -66,7 +73,6 @@ export default function CodeAuth({ setActivePage }) {
     try {
       await verifyOTP(email, code);
       isSigningIn ? signInMutation.mutate() : signUpMutation.mutate();
-
       queryClient.invalidateQueries(["userData"]);
     } catch (err) {
       console.error(err);

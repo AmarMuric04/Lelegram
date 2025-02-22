@@ -18,7 +18,7 @@ export default function ReplyMessage({ message, isMe }) {
         } ${isMe ? "border-l-4" : "border-r-4"} px-2 py-1 rounded-md`}
       >
         <p className="font-semibold px-2">
-          {message.referenceMessageId.sender.firstName}
+          {message.referenceMessageId.sender?.firstName}
         </p>
         <div className="flex items-center gap-2">
           {message.referenceMessageId.imageUrl && (

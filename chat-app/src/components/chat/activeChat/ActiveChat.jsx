@@ -20,7 +20,11 @@ import {
   protectedPostData,
 } from "../../../utility/async.js";
 import { io } from "socket.io-client";
-import { copyToClipboard, uploadToCloudinary } from "../../../utility/util.js";
+import {
+  copyToClipboard,
+  getRecentTime,
+  uploadToCloudinary,
+} from "../../../utility/util.js";
 import ModifyTab from "../ModifyTab.jsx";
 
 const socket = io(import.meta.env.VITE_SERVER_PORT);
@@ -151,8 +155,8 @@ export default function ActiveChat() {
     Array.isArray(activeChat.users) &&
     user
   ) {
-    otherUser = activeChat.users.find(
-      (u) => u.toString() !== user._id.toString()
+    otherUser = activeChat?.users.find(
+      (u) => u?._id.toString() !== user._id.toString()
     );
   }
   if (otherUser) {
@@ -385,7 +389,13 @@ export default function ActiveChat() {
             <ChatImage dimensions={30} />
             <p className="mt-4 font-semibold text-lg">{displayName}</p>
             <p className="theme-text-2">
-              {activeChat?.type === "private" && "Last seen recently"}
+              {activeChat?.type === "private" && (
+                <p className="theme-text-2 text-sm">
+                  {user.lastSeen
+                    ? `last seen ${getRecentTime(user.lastSeen)}`
+                    : "online"}
+                </p>
+              )}
               {activeChat?.type !== "private" &&
                 `${activeChat.users.length} member${
                   activeChat.users.length > 1 ? "s" : ""
@@ -417,7 +427,7 @@ export default function ActiveChat() {
                       <p>
                         {otherUser?.username
                           ? otherUser?.username
-                          : `${otherUser?.firstName}, ${otherUser.lastName[0]}`}
+                          : `${otherUser?.firstName}, ${otherUser?.lastName[0]}`}
                       </p>
                       <span className="theme-text-2 text-sm">Username</span>
                     </div>
@@ -554,7 +564,9 @@ export default function ActiveChat() {
                             )}
                           </div>
                           <p className="theme-text-2 text-sm">
-                            Last seen recently
+                            {user.lastSeen
+                              ? `last seen ${getRecentTime(user.lastSeen)}`
+                              : "online"}
                           </p>
                         </div>
                       </li>
