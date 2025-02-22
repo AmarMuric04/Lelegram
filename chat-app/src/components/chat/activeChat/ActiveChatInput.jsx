@@ -162,8 +162,6 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
     if (!messageToEdit) {
       if (messageType === "forward" || message !== "") {
         sendMessage({ value: value.trim() });
-      } else {
-        console.log("Voice message.");
       }
     } else {
       editMessage();

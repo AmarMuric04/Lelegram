@@ -20,7 +20,6 @@ export default function Search({ select }) {
       let url;
       if (select === "chats") url = "/chat/get-searched-chats";
       else if (select === "messages") url = "/message/get-searched-messages";
-      console.log(value);
 
       return protectedPostData(url, { input: value }, token);
     },

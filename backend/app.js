@@ -23,7 +23,10 @@ const port = process.env.PORT || 3000;
 const server = createServer(app);
 
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "https://telegram-xi-olive.vercel.app/"
+  );
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, PATCH, DELETE"

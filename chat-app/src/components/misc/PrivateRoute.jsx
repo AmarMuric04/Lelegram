@@ -44,7 +44,7 @@ const PrivateRoute = ({ children }) => {
   useEffect(() => {
     if (data) {
       if (data?.data) {
-        console.log(data.data, " User Data Successfully Fetched");
+        // console.log(data.data, " User Data Successfully Fetched");
         dispatch(setUser(data.data));
       }
     } else if (error) {

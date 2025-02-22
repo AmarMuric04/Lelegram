@@ -25,8 +25,6 @@ export default function ModifyTab({
       .replace(/\b\w/g, (char) => char.toUpperCase());
   }
 
-  if (type === "edituser") console.log(victimData);
-
   useEffect(() => {
     if (victimData.imageUrl) {
       dispatch(setImage({ url: victimData.imageUrl }));
