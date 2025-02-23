@@ -35,7 +35,6 @@ export const MessageProvider = ({ children }) => {
         formData.append("pollCorrectAnswer", poll.correctAnswer);
       }
 
-      console.log(msgImage);
       if (msgImage) {
         formData.append("message", msgImage.caption);
         if (msgImage.url) {
@@ -46,7 +45,7 @@ export const MessageProvider = ({ children }) => {
         }
       }
 
-      if (!msgImage) formData.append("message", value);
+      if (!msgImage && !poll) formData.append("message", value);
 
       formData.append("chatId", activeChat._id);
       formData.append("type", messageType);

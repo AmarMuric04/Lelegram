@@ -67,7 +67,7 @@ export default function MessageContextMenu({
     mutationFn: handlePinMessage,
   });
 
-  const canChat = activeChat?.type === "broadcast" && isAdmin;
+  const cantChat = activeChat?.type === "broadcast" && !isAdmin;
 
   return (
     <>
@@ -88,7 +88,9 @@ export default function MessageContextMenu({
                   const msg = selected
                     .reduce((acc, item) => {
                       if (!item.message) {
-                        acc.push(item.referenceMessageId.message);
+                        if (!item.referenceMessageId)
+                          acc.push("No message deteceted.");
+                        else acc.push(item.referenceMessageId.message);
                       } else acc.push(item.message);
 
                       return acc;
@@ -135,7 +137,7 @@ export default function MessageContextMenu({
           )}
           {!isSelecting && (
             <>
-              {canChat && (
+              {!cantChat && (
                 <ContextMenuItem
                   action={() => {
                     dispatch(setMessage(message));
@@ -147,7 +149,9 @@ export default function MessageContextMenu({
                 </ContextMenuItem>
               )}
               <ContextMenuItem
-                action={() => copyToClipboard(message.message)}
+                action={() =>
+                  copyToClipboard(message.message || "No message detected.")
+                }
                 icon={<svg.CopySelectedSVG />}
               >
                 Copy
@@ -193,7 +197,7 @@ export default function MessageContextMenu({
               <ContextMenuItem
                 action={() =>
                   copyToClipboard(
-                    "{import.meta.env.VITE_SERVER_PORT}" +
+                    `${import.meta.env.VITE_SERVER_PORT}` +
                       message.chat._id +
                       "#" +
                       message._id
@@ -203,17 +207,19 @@ export default function MessageContextMenu({
               >
                 Copy Message Link
               </ContextMenuItem>
-              {isMe && message.type !== "forward" && (
-                <ContextMenuItem
-                  action={() => {
-                    dispatch(setMessageToEdit(message));
-                  }}
-                  icon={<svg.EditSVG />}
-                >
-                  Edit
-                </ContextMenuItem>
-              )}
-              {canChat && (
+              {isMe &&
+                message.type !== "forward" &&
+                message.type !== "poll" && (
+                  <ContextMenuItem
+                    action={() => {
+                      dispatch(setMessageToEdit(message));
+                    }}
+                    icon={<svg.EditSVG />}
+                  >
+                    Edit
+                  </ContextMenuItem>
+                )}
+              {!cantChat && (
                 <ContextMenuItem
                   action={() => {
                     dispatch(setIsSelecting(true));

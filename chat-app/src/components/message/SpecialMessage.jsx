@@ -41,6 +41,8 @@ export default function SpecialMessage({ message, topMessage, icon }) {
     }
   }, [user, activeChat, cantChat, dispatch]);
 
+  if (message.type === "poll") console.log(message);
+
   return (
     <>
       {!cantChat && (
@@ -62,7 +64,10 @@ export default function SpecialMessage({ message, topMessage, icon }) {
                   )}
                   <p className="line-clamp-1">
                     {message.type === "poll" && "📊 " + message.poll.question}
-                    {message.referenceMessageId?.message || message.message}
+                    {message.type === "voice" && "🔊 " + "Audio"}
+                    {message.message && message.message}
+                    {message.referenceMessageId?.message &&
+                      message.referenceMessageId.message}
                   </p>
                 </>
               )}

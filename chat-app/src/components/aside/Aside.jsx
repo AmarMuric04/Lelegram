@@ -413,7 +413,7 @@ export default function Aside() {
                           (chat) => chat.type === "saved"
                         );
 
-                        navigate(`/${usersSavedChat._id}`);
+                        navigate(`/k/${usersSavedChat._id}`);
                       }}
                     >
                       <svg

@@ -8,7 +8,7 @@ export default function ReplyMessage({ message, isMe }) {
   return (
     <Link
       className={`${isSelecting && "pointer-events-none"}`}
-      to={`/${message.chat._id}#${message.referenceMessageId._id}`}
+      to={`/k/${message.chat._id}#${message.referenceMessageId._id}`}
     >
       <div
         className={`mx-2 text-sm cursor-pointer transition-all ${
@@ -28,9 +28,9 @@ export default function ReplyMessage({ message, isMe }) {
             />
           )}
           <p className="line-clamp-2">
-            {message.referenceMessageId.message
-              ? message.referenceMessageId.message
-              : "Photo"}
+            {message.referenceMessageId.message &&
+              message.referenceMessageId.message}
+            {message.referenceMessageId.type === "voice" && "🔊 " + "Audio"}
             {message.referenceMessageId.type === "poll" &&
               "📊 " + message.referenceMessageId.poll.question}
           </p>

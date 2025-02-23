@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { getRecentTime } from "../../../utility/util";
+import { getFormattedTimeAMPM } from "../../../utility/util";
 import { useSelector } from "react-redux";
 
 export default function NormalMessage({ message }) {
@@ -16,15 +16,29 @@ export default function NormalMessage({ message }) {
           <p className="flex-grow">{message.message}</p>
         )}
       {message.type === "forward" && (
-        <p className="flex-grow">
-          {message.referenceMessageId?.type === "poll" &&
-            "📊 " + message.referenceMessageId?.poll.question}
-          {message.referenceMessageId
-            ? message.referenceMessageId.message
-              ? message.referenceMessageId.message
-              : message.message
-            : message.message}
-        </p>
+        <div className="flex items-center gap-2">
+          {message.referenceMessageId.imageUrl && (
+            <img
+              className="max-h-[16px]"
+              src={`${message.referenceMessageId.imageUrl}`}
+            />
+          )}
+          <p className="line-clamp-2">
+            {message.referenceMessageId.message &&
+              message.referenceMessageId.message}
+            {message.referenceMessageId.type === "voice" && (
+              <audio controls>
+                <source
+                  src={message.referenceMessageId.audioUrl}
+                  type="audio/mp3"
+                />
+                Your browser does not support the audio element.
+              </audio>
+            )}
+            {message.referenceMessageId.type === "poll" &&
+              "📊 " + message.referenceMessageId.poll.question}
+          </p>
+        </div>
       )}
       {message.type === "voice" && (
         <audio controls>
@@ -38,7 +52,10 @@ export default function NormalMessage({ message }) {
           <p className="italic">edited</p>
         )}
         <p>
-          {getRecentTime(new Date(message.createdAt), timeFormat === "24hours")}
+          {getFormattedTimeAMPM(
+            new Date(message.createdAt),
+            timeFormat === "24hours"
+          )}
         </p>
       </div>
     </div>

@@ -3,7 +3,7 @@ import ChatImage from "../ChatImage";
 import PopUpMenu from "../../misc/PopUpMenu";
 import { SelectSVG, TrashSVG, VerticalDotsSVG } from "../../../../public/svgs";
 import PopUpMenuItem from "../../misc/PopUpMenuItem";
-import { setSelected } from "../../../store/redux/authSlice";
+import { setSelected } from "../../../store/redux/messageSlice";
 import { setIsSelecting } from "../../../store/redux/messageSlice";
 import { openModal } from "../../../store/redux/modalSlice";
 import PropTypes from "prop-types";

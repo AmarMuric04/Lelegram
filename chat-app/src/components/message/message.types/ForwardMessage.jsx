@@ -4,11 +4,31 @@ import { Link } from "react-router-dom";
 
 export default function ForwardMessage({ message }) {
   const { isSelecting } = useSelector((state) => state.message);
+  const { user } = useSelector((state) => state.auth);
+
+  let otherUser;
+  let displayName = message.referenceMessageId.chat?.name;
+
+  console.log(message);
+
+  if (
+    message.referenceMessageId.chat?.type === "private" &&
+    Array.isArray(message.referenceMessageId.chat?.users)
+  ) {
+    otherUser = message.referenceMessageId.chat?.users.find(
+      (u) => u.toString() !== user._id.toString()
+    );
+    console.log(otherUser);
+  }
+
+  if (otherUser) {
+    displayName = `${otherUser.firstName} ${otherUser.lastName}`;
+  }
 
   return (
     <Link
       className={`${isSelecting && "pointer-events-none"}`}
-      to={`/${
+      to={`/k/${
         message.referenceMessageId.chat?._id
           ? message.referenceMessageId.chat?._id
           : ""
@@ -19,10 +39,10 @@ export default function ForwardMessage({ message }) {
       >
         <p className="font-semibold">Forwarded from</p>
         <div className="flex items-center gap-1">
-          {message.referenceMessageId.chat?.imageUrl ? (
+          {otherUser?.imageUrl ? (
             <img
-              src={`${message.referenceMessageId.chat.imageUrl}`}
-              alt={message.referenceMessageId.chat.name}
+              src={`${otherUser.imageUrl}`}
+              alt={displayName}
               className="min-h-6 max-h-6 min-w-6 max-w-6 rounded-full object-cover"
             />
           ) : (
@@ -38,16 +58,13 @@ export default function ForwardMessage({ message }) {
                   : "darkred",
               }}
             >
-              {message.referenceMessageId.chat
-                ? message.referenceMessageId.chat?.name?.slice(0, 3)
+              {otherUser
+                ? otherUser.firstName?.slice(0, 1) +
+                  otherUser.lastName?.slice(0, 1)
                 : "x"}
             </div>
           )}
-          <p>
-            {message.referenceMessageId.chat?.name
-              ? message.referenceMessageId.chat?.name
-              : "Channel deleted"}
-          </p>
+          <p>{displayName}</p>
         </div>
       </div>
     </Link>

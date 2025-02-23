@@ -166,12 +166,9 @@ mongoose
     io.on("connection", async (socket) => {
       const userId = socket.handshake.query.userId;
       if (userId) {
-        try {
-          await User.findByIdAndUpdate(userId, { lastSeen: null });
-          console.log(`User connected: ${socket.id}`);
-        } catch (err) {
-          console.error(`Error updating lastSeen for user ${userId}:`, err);
-        }
+        await User.findByIdAndUpdate(userId, { lastSeen: null });
+        console.log("User connected: " + socket.id);
+        io.emit("messageSent", { data: null });
       }
 
       socket.on("joined-chat", ({ chatId, user }) => {
@@ -186,7 +183,6 @@ mongoose
           typingUsers[chatId] = new Set();
         }
         typingUsers[chatId].add(user._id);
-        console.log(`${user._id} is typing in chat ${chatId}`);
         io.to(chatId).emit("userTyping", { chatId, user });
       });
 
@@ -197,31 +193,17 @@ mongoose
             delete typingUsers[chatId];
           }
         }
-        console.log(`${user._id} stopped typing in chat ${chatId}`);
         io.to(chatId).emit("userStoppedTyping", { chatId, user });
-      });
-
-      socket.on("join", (id) => {
-        socket.broadcast.emit("user-connected", id);
       });
 
       socket.removeAllListeners("disconnect");
 
       socket.on("disconnect", async () => {
         if (userId) {
-          try {
-            await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
-            console.log(
-              `User disconnected, updated lastSeen for ${userId} at ${new Date()}`
-            );
-          } catch (err) {
-            console.error(
-              `Error updating lastSeen on disconnect for user ${userId}:`,
-              err
-            );
-          }
+          await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
+          console.log("User disconnected, updated lastSeen: " + new Date());
+          io.emit("messageSent", { data: null });
         }
-        // Optionally notify others in the room that this user has disconnected.
         if (socket.chatId) {
           socket.to(socket.chatId).emit("user-disconnected", { userId });
         }

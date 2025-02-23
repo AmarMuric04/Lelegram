@@ -119,7 +119,7 @@ export const isOnlyEmojis = (text) => {
   };
 };
 
-const getFormattedTimeAMPM = (date, AMPM) => {
+export const getFormattedTimeAMPM = (date, AMPM) => {
   return new Date(date).toLocaleString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
@@ -129,28 +129,27 @@ const getFormattedTimeAMPM = (date, AMPM) => {
 };
 
 export const getRecentTime = (date, AMPM) => {
-  // const messageDate = new Date(date);
-  // const currentDate = new Date();
-  // const diffInSeconds = Math.floor((currentDate - messageDate) / 1000);
-  // const diffInMinutes = Math.floor(diffInSeconds / 60);
-  // const diffInHours = Math.floor(diffInMinutes / 60);
-  // const diffInDays = Math.floor(diffInHours / 24);
+  const messageDate = new Date(date);
+  const currentDate = new Date();
+  const diffInSeconds = Math.floor((currentDate - messageDate) / 1000);
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  const diffInDays = Math.floor(diffInHours / 24);
 
-  return getFormattedTimeAMPM(date, AMPM);
+  // return getFormattedTimeAMPM(date, AMPM);
 
-  // if (diffInMinutes < 60) {
-  //   return `${diffInMinutes} mins ago`;
-  // } else if (diffInHours < 24) {
-  //   return getFormattedTimeAMPM(date, AMPM);
-  //   // return `${diffInHours} hrs ago`;
-  // } else if (diffInDays === 1) {
-  //   return "Yesterday";
-  // }
-  // } else if (diffInDays < 7) {
-  //   return `${diffInDays} days ago`;
-  // } else {
-  //   return getFormattedTimeAMPM(date);
-  // }
+  if (diffInMinutes === 0) {
+    return "now";
+  } else if (diffInMinutes < 60) {
+    return `${diffInMinutes} mins ago`;
+  } else if (diffInHours < 24) {
+    return getFormattedTimeAMPM(date, AMPM);
+    //   // return `${diffInHours} hrs ago`;
+  } else if (diffInDays === 1) {
+    return "Yesterday";
+  } else if (diffInDays < 7) {
+    return `${diffInDays} days ago`;
+  }
 };
 
 export const uploadToCloudinary = async (file) => {

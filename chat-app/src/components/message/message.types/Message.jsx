@@ -232,7 +232,7 @@ export default function Message({
                 )}
                 {message.type !== "forward" && message.imageUrl && (
                   <img
-                    className="max-w-[25rem] max-h-[25rem] self-center mx-auto rounded-lg"
+                    className="max-w-[20rem] max-h-[35rem] self-center mx-auto rounded-lg"
                     src={`${message.imageUrl}`}
                     alt="Message"
                   />

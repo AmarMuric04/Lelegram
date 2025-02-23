@@ -463,7 +463,11 @@ export const getMessages = async (req, res, next) => {
       .populate("chat")
       .populate({
         path: "referenceMessageId",
-        populate: [{ path: "sender" }, { path: "chat" }, { path: "poll" }],
+        populate: [
+          { path: "sender" },
+          { path: "chat", populate: { path: "users" } }, // Populate the `users` field inside `chat`
+          { path: "poll" },
+        ],
       })
       .populate("poll");
 
@@ -495,7 +499,9 @@ export const getSearchedMessages = async (req, res, next) => {
 
     let messages = await Message.find({
       message: { $regex: input, $options: "i" },
-    }).populate("chat");
+    })
+      .populate("chat")
+      .populate("sender");
 
     if (messages.length === 0) {
       return res.status(200).json({
@@ -513,7 +519,9 @@ export const getSearchedMessages = async (req, res, next) => {
     });
 
     res.status(200).json({
-      data: messages,
+      data: messages.filter(
+        (message) => message.type !== "saved" && message.type !== "private"
+      ),
     });
   } catch (err) {
     next(err);

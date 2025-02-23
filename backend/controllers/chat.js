@@ -190,7 +190,7 @@ export const getSearchedChats = async (req, res, next) => {
 
     res.status(200).json({
       data: {
-        chats: chats.filter((c) => c.type !== "saved"),
+        chats: chats.filter((c) => c.type !== "saved" && c.type !== "private"),
       },
     });
   } catch (err) {

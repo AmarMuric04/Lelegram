@@ -276,11 +276,21 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
               (activeChat.type === "broadcast" ? "Broadcast" : "Message")
             }
             rows={1}
-            className={`pr-24 min-h-[2.5rem] sidepanel max-h-[40rem] transition-all ease-in-out relative focus:outline-none p-4 rounded-2xl rounded-br-none px-4 resize-none overflow-hidden mx-auto ${
+            className={`pr-24 min-h-[2.5rem] theme-bg max-h-[40rem] transition-all ease-in-out relative focus:outline-none p-4 rounded-2xl rounded-br-none px-4 resize-none overflow-hidden mx-auto ${
               isSelecting ? "w-[70%]" : "w-[89%]"
             }`}
             style={{ height: "auto" }}
           />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 2048 2048"
+            className="absolute -bottom-0 right-16"
+          >
+            <rect width="2048" height="2048" fill="none" />
+            <path className="theme-fill-bg" d="m1024 0l1024 2048H0z" />
+          </svg>
           {showScrollButton && (
             <button
               onClick={() => messagesListRef.current?.scrollToBottom()}

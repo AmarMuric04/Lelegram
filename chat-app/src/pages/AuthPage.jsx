@@ -13,7 +13,7 @@ function AuthPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (token) navigate("/");
+    if (token) navigate("/k/");
   }, [user, navigate, token]);
 
   let move;

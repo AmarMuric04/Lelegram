@@ -38,14 +38,14 @@ export default function ActiveChat() {
   const messagesListRef = useRef(null);
   const { chatId } = useParams();
 
-  const { activeChat } = useSelector((state) => state.chat);
   const { selected, isSelecting } = useSelector((state) => state.message);
-  const { user } = useSelector((state) => state.auth);
-  const queryClient = useQueryClient();
-  const dispatch = useDispatch();
-  const token = localStorage.getItem("token");
+  const { activeChat } = useSelector((state) => state.chat);
   const [typeIndicator, setTypeIndicator] = useState({});
+  const { user } = useSelector((state) => state.auth);
+  const token = localStorage.getItem("token");
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     socket.on("userTyping", ({ chatId, user: typingUser }) => {

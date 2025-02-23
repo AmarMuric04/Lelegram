@@ -26,7 +26,7 @@ export default function AsideChat({ chat, action }) {
 
   if (chat.type === "private" && Array.isArray(chat.users) && user) {
     const otherUser = chat.users.find(
-      (u) => u?._id.toString() !== user._id.toString()
+      (u) => u?._id?.toString() !== user._id.toString()
     );
     if (otherUser) {
       displayName = `${otherUser.firstName} ${otherUser.lastName}`;
@@ -34,6 +34,7 @@ export default function AsideChat({ chat, action }) {
     }
   }
 
+  if (chat.more) console.log(chat);
   return (
     <Link
       onClick={action}
@@ -92,18 +93,39 @@ export default function AsideChat({ chat, action }) {
             activeChat?._id === chat._id ? "text-white" : "theme-text-2"
           }`}
         >
-          {chat.message ? (
-            <p>{chat.message}</p>
-          ) : chat.lastMessage ? (
-            <p>
-              <span className="font-semibold ">
+          {chat.lastMessage || chat.more ? (
+            <div className="flex gap-2">
+              <span className="font-semibold flex-shrink-0">
+                {chat.more.sender?.firstName}
+                {chat.more.sender?.lastName[0] &&
+                  ` ${chat.more.sender.lastName[0]}: `}
                 {chat.lastMessage.sender?.firstName}
+                {chat.lastMessage.sender?.lastName[0] &&
+                  ` ${chat.lastMessage.sender.lastName[0]}: `}
               </span>
-              :{" "}
-              {chat.lastMessage.referenceMessageId
-                ? chat.lastMessage.referenceMessageId.message
-                : chat.lastMessage.message}
-            </p>
+
+              <div className="flex items-center gap-2">
+                {chat.message && <p>{chat.message}</p>}
+                {chat.lastMessage.imageUrl && (
+                  <img
+                    className="max-h-[16px]"
+                    src={`${chat.lastMessage.imageUrl}`}
+                  />
+                )}
+                <p className="line-clamp-1">
+                  {chat.lastMessage.type === "forward" &&
+                    !chat.lastMessage.referenceMessageId.message &&
+                    "Forwarded a message"}
+                  {chat.lastMessage.referenceMessageId?.message &&
+                    !chat.lastMessage.message &&
+                    chat.lastMessage.referenceMessageId.message}
+                  {chat.lastMessage.message && chat.lastMessage.message}
+                  {chat.lastMessage.type === "voice" && "🔊 " + "Audio"}
+                  {chat.lastMessage.type === "poll" &&
+                    "📊 " + chat.lastMessage.poll.question}
+                </p>
+              </div>
+            </div>
           ) : (
             "Channel created!"
           )}

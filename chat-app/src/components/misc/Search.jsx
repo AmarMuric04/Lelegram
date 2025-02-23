@@ -8,13 +8,18 @@ import PropTypes from "prop-types";
 import { useQuery } from "@tanstack/react-query";
 import { protectedPostData } from "../../utility/async";
 import { useEffect } from "react";
+import { ThrobberSVG } from "../../../public/svgs";
 
 export default function Search({ select }) {
   const token = localStorage.getItem("token");
   const dispatch = useDispatch();
   const { value } = useSelector((state) => state.search);
 
-  const { data, refetch } = useQuery({
+  const {
+    data,
+    refetch,
+    isLoading: isSearching,
+  } = useQuery({
     queryFn: () => {
       if (value === "") return;
       let url;
@@ -75,18 +80,21 @@ export default function Search({ select }) {
           CONDITION ? "-right-[200px]" : "-right-0"
         }`}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          className="text-white"
-        >
-          <path
-            fill="currentColor"
-            d="m14 18l-1.4-1.45L16.15 13H4v-2h12.15L12.6 7.45L14 6l6 6z"
-          />
-        </svg>
+        {isSearching && <ThrobberSVG />}
+        {!isSearching && (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            className="text-white"
+          >
+            <path
+              fill="currentColor"
+              d="m14 18l-1.4-1.45L16.15 13H4v-2h12.15L12.6 7.45L14 6l6 6z"
+            />
+          </svg>
+        )}
       </button>
     </div>
   );
