@@ -7,7 +7,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { postData } from "../../../utility/async";
 import { verifyOTP, uploadToCloudinary } from "../../../utility/util";
-import { connectSocket } from "../../../socket";
 
 export default function CodeAuth({ setActivePage }) {
   const [code, setCode] = useState("");
@@ -44,7 +43,6 @@ export default function CodeAuth({ setActivePage }) {
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
       localStorage.setItem("expires-in", String(Date.now() + expiryDate));
-      connectSocket();
 
       navigate("/k/");
     },
@@ -60,7 +58,6 @@ export default function CodeAuth({ setActivePage }) {
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
       localStorage.setItem("expires-in", String(Date.now() + expiryDate));
-      connectSocket();
 
       navigate("/k/");
     },

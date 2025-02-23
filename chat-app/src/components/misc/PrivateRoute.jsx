@@ -13,13 +13,8 @@ const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    connectSocket();
-    socket.on("connect", () => {
-      // console.log("Connected to Socket.IO with ID:", socket.id);
-    });
-
     socket.on("disconnect", () => {
-      // console.log("Disconnected from Socket.IO");
+      console.log("Disconnected from Socket.IO");
     });
 
     return () => {
@@ -47,6 +42,7 @@ const PrivateRoute = ({ children }) => {
       if (data?.data) {
         // console.log(data.data, " User Data Successfully Fetched");
         dispatch(setUser(data.data));
+        connectSocket();
       }
     } else if (error) {
       console.error("Error fetching user data:", error);

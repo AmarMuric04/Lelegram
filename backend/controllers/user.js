@@ -123,8 +123,6 @@ export const signIn = async (req, res, next) => {
 
     const user = await User.findOne({ phoneNumber });
 
-    console.log(user);
-
     if (!user) {
       const error = new Error("User not found.");
       error.statusCode = 404;

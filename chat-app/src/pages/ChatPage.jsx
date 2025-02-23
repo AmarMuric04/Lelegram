@@ -72,7 +72,7 @@ export default function ChatPage() {
     }
   }, [error]);
 
-  if (!user) return <p>Please wait...</p>;
+  if (!user || !user._id) return <p>Please wait...</p>;
 
   return (
     <main

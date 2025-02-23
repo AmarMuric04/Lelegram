@@ -24,8 +24,6 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
     (u) => u._id.toString() === user._id
   );
 
-  console.log(activeChat);
-
   let displayName = activeChat.name;
   let otherUser;
 
@@ -84,7 +82,9 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
           </div>
         )}
         <div className="flex items-center gap-8">
-          {activeChat.type !== "broadcast" && <VoiceChat />}
+          {activeChat.type !== "broadcast" && (
+            <VoiceChat userId={user._id} chatId={activeChat._id} />
+          )}
           {activeChat.type !== "saved" && (
             <PopUpMenu
               bl={true}

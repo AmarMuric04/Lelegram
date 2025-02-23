@@ -22,6 +22,7 @@
     "cloudinary": "^2.5.1",
     "dotenv": "^16.4.7",
     "emoji-regex": "^10.4.0",
+    "peer": "^1.0.2",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -29,6 +30,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.1.5",
     "socket.io-client": "^4.8.1",
+    "styled-components": "^6.1.15",
     "tailwindcss": "^4.0.0"
   },
   "devDependencies": {

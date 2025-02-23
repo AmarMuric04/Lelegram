@@ -166,17 +166,28 @@ mongoose
     io.on("connection", async (socket) => {
       const userId = socket.handshake.query.userId;
       if (userId) {
-        await User.findByIdAndUpdate(userId, { lastSeen: null });
-        console.log("Giving the user lastSeen null");
-        io.emit("messageSent", { data: null });
+        try {
+          await User.findByIdAndUpdate(userId, { lastSeen: null });
+          console.log(`User connected: ${socket.id}`);
+        } catch (err) {
+          console.error(`Error updating lastSeen for user ${userId}:`, err);
+        }
       }
+
+      socket.on("joined-chat", ({ chatId, user }) => {
+        socket.join(chatId);
+        socket.chatId = chatId;
+        console.log(`${user.username || user._id} joined chat ${chatId}`);
+        socket.to(chatId).emit("user-joined", { chatId, user });
+      });
 
       socket.on("userTyping", ({ user, chatId }) => {
         if (!typingUsers[chatId]) {
           typingUsers[chatId] = new Set();
         }
         typingUsers[chatId].add(user._id);
-        io.emit("messageSent", { data: chatId });
+        console.log(`${user._id} is typing in chat ${chatId}`);
+        io.to(chatId).emit("userTyping", { chatId, user });
       });
 
       socket.on("stopTyping", ({ user, chatId }) => {
@@ -186,25 +197,34 @@ mongoose
             delete typingUsers[chatId];
           }
         }
-        io.emit("userStoppedTyping", { chatId, user });
+        console.log(`${user._id} stopped typing in chat ${chatId}`);
+        io.to(chatId).emit("userStoppedTyping", { chatId, user });
       });
 
-      socket.on("offer", (offer) => {
-        socket.broadcast.emit("offer", offer);
+      socket.on("join", (id) => {
+        socket.broadcast.emit("user-connected", id);
       });
 
-      socket.on("answer", (answer) => {
-        socket.broadcast.emit("answer", answer);
-      });
-
-      socket.on("ice-candidate", (candidate) => {
-        socket.broadcast.emit("ice-candidate", candidate);
-      });
+      socket.removeAllListeners("disconnect");
 
       socket.on("disconnect", async () => {
-        await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
-        console.log("Giving the user lastSeen " + new Date());
-        io.emit("messageSent", { data: null });
+        if (userId) {
+          try {
+            await User.findByIdAndUpdate(userId, { lastSeen: new Date() });
+            console.log(
+              `User disconnected, updated lastSeen for ${userId} at ${new Date()}`
+            );
+          } catch (err) {
+            console.error(
+              `Error updating lastSeen on disconnect for user ${userId}:`,
+              err
+            );
+          }
+        }
+        // Optionally notify others in the room that this user has disconnected.
+        if (socket.chatId) {
+          socket.to(socket.chatId).emit("user-disconnected", { userId });
+        }
       });
     });
   })

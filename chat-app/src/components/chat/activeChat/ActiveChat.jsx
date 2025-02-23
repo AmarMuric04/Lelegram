@@ -81,6 +81,10 @@ export default function ActiveChat() {
     };
   }, [activeChat, user]);
 
+  useEffect(() => {
+    socket.emit("joined-chat", { chatId, user });
+  }, [chatId, user]);
+
   const { mutate: editChannel } = useMutation({
     mutationFn: async ({ data }) => {
       const formData = new FormData();
@@ -158,7 +162,7 @@ export default function ActiveChat() {
     user
   ) {
     otherUser = activeChat?.users.find(
-      (u) => u?._id.toString() !== user._id.toString()
+      (u) => u?._id.toString() !== user?._id?.toString()
     );
   }
   if (otherUser) {
@@ -178,9 +182,9 @@ export default function ActiveChat() {
           <div
             className={`flex flex-col justify-end gap-2 transition-all h-[92%] w-full`}
           >
-            <div className="flex flex-col w-full items-center justify-end max-h-[100%]">
+            <div className="flex flex-col w-full items-center justify-end min-h-[100%] max-h-[100%]">
               <div
-                className={`transition-all flex h-full overflow-y-auto ${
+                className={`transition-all flex justify-end h-full overflow-y-auto ${
                   viewChatInfo ? "w-[80%]" : "w-[55%]"
                 } flex-col gap-2`}
               >
@@ -212,12 +216,11 @@ export default function ActiveChat() {
                     viewChatInfo={viewChatInfo}
                     ref={messagesListRef}
                     messages={messages}
+                    viewInfo={viewChatInfo}
                     setShowScrollButton={setShowScrollButton}
                   />
                 )}
-                <div
-                  className={`relative min-h-[3.5rem] z-10 flex justify-between items-end gap-2 w-full`}
-                >
+                <div className="relative min-h-[3.5rem] z-10 flex justify-between items-end gap-2 w-full">
                   {isSelecting && (
                     <div
                       className={`${
