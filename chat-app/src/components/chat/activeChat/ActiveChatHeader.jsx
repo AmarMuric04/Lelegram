@@ -24,6 +24,8 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
     (u) => u._id.toString() === user._id
   );
 
+  console.log(activeChat);
+
   let displayName = activeChat.name;
   let otherUser;
 
@@ -58,8 +60,8 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
               </p>
             )}
             {activeChat?.type !== "private" &&
-              `${activeChat.users.length} member${
-                activeChat.users.length > 1 ? "s" : ""
+              `${activeChat.users?.length} member${
+                activeChat.users?.length > 1 ? "s" : ""
               }`}
           </p>
         </div>

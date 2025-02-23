@@ -8,7 +8,7 @@ import {
   setMessage,
   setMessageType,
 } from "../../../store/redux/messageSlice";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { setSelected } from "../../../store/redux/authSlice";
 import { openModal } from "../../../store/redux/modalSlice";
 
@@ -45,6 +45,7 @@ export default function ActiveChat() {
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
   const [typeIndicator, setTypeIndicator] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     socket.on("userTyping", ({ chatId, user: typingUser }) => {
@@ -133,6 +134,7 @@ export default function ActiveChat() {
   const { mutate: createDirectMessage } = useMutation({
     mutationFn: ({ userId }) =>
       protectedPostData("/user/create-direct-message", { userId }, token),
+    onSuccess: (data) => navigate("/k/" + data.chat._id),
   });
 
   if (!user || !activeChat) return;
@@ -397,8 +399,8 @@ export default function ActiveChat() {
                 </p>
               )}
               {activeChat?.type !== "private" &&
-                `${activeChat.users.length} member${
-                  activeChat.users.length > 1 ? "s" : ""
+                `${activeChat.users?.length} member${
+                  activeChat.users?.length > 1 ? "s" : ""
                 }`}
             </p>
             <div className="flex flex-col w-full mt-8">

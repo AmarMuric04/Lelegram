@@ -5,7 +5,7 @@ import AuthPage from "./pages/AuthPage.jsx";
 
 export const router = createBrowserRouter([
   {
-    path: "/",
+    path: "/k",
     element: (
       <PrivateRoute>
         <ChatPage />
@@ -13,7 +13,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       {
-        path: "/:chatId",
+        path: "/k/:chatId",
         element: (
           <PrivateRoute>
             <ChatPage />
@@ -23,7 +23,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: "/auth",
+    path: "/",
     element: (
       <PrivateRoute isAuthPage={true}>
         <AuthPage />

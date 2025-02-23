@@ -31,6 +31,7 @@ export default function Message({
   messageId,
   isAdmin,
   onOpenPicker,
+  addReaction,
 }) {
   const dispatch = useDispatch();
   const { activeChat } = useSelector((state) => state.chat);
@@ -251,7 +252,8 @@ export default function Message({
                   ) && (
                     <MessageReactions
                       message={message}
-                      onReact={handleReactionClick}
+                      isInChat={isInChat}
+                      onReact={addReaction}
                     />
                   )}
               </div>
@@ -287,4 +289,5 @@ Message.propTypes = {
   onContextMenu: PropTypes.func.isRequired,
   onClearContextMenu: PropTypes.func.isRequired,
   onOpenPicker: PropTypes.func.isRequired,
+  addReaction: PropTypes.func.isRequired,
 };

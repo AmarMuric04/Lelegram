@@ -19,7 +19,7 @@ export default function AsideChat({ chat, action }) {
     link += "#" + chat.more._id;
   }
 
-  if (!user) return;
+  if (!user || !user._id) return;
 
   let displayName = chat.name;
   let displayImageUrl = chat.imageUrl;
@@ -37,7 +37,7 @@ export default function AsideChat({ chat, action }) {
   return (
     <Link
       onClick={action}
-      to={`/${link}`}
+      to={`/k/${link}`}
       className={`flex theme-text relative items-center gap-5 p-2 rounded-xl transition-all cursor-pointer ${
         condition ? "bg-[#8675DC] hover:bg-[#8765DC]" : "theme-hover-bg-2"
       }`}

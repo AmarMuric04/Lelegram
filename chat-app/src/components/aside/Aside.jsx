@@ -7,7 +7,7 @@ import AsideChatWrapper from "./AsideChatWrapper";
 import { useDispatch, useSelector } from "react-redux";
 import { setIsFocused, setSearch } from "../../store/redux/searchSlice";
 import AsideChat from "./AsideChat";
-import { signOut } from "../../utility/util";
+import { getRecentTime, signOut } from "../../utility/util";
 import ModifyTab from "../chat/ModifyTab";
 import {
   CrossSVG,
@@ -40,7 +40,6 @@ export default function Aside() {
   );
   const { userChats } = useSelector((state) => state.chat);
   const { user } = useSelector((state) => state.auth);
-  const { activeChat } = useSelector((state) => state.chat);
   const token = localStorage.getItem("token");
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
@@ -161,7 +160,11 @@ export default function Aside() {
                 <p className="text-lg font-semibold mt-2">
                   {user.firstName}, {user.lastName}
                 </p>
-                <p className="theme-text-2 text-sm -mt-1">Last seen just now</p>
+                <p className="theme-text-2 text-sm -mt-1">
+                  {user.lastSeen
+                    ? `last seen ${getRecentTime(user.lastSeen)}`
+                    : "online"}
+                </p>
               </div>
               <div className="flex theme-hover-bg-2 p-2 rounded-lg transition-all cursor-pointer gap-4 items-center w-full px-4">
                 <svg
@@ -497,7 +500,7 @@ export default function Aside() {
                       </div>
                     </PopUpMenuItem>
                     <PopUpMenuItem
-                      action={() => navigate("/67b8a3ae47301a0c6685fb58")}
+                      action={() => navigate("/k/67ba4079b70c6de929aa180a")}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"

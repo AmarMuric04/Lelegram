@@ -8,12 +8,16 @@ const initialState = {
   messageToEdit: null,
   isSelecting: false,
   selected: [],
+  messageToView: null,
 };
 
 const messageSlice = createSlice({
   name: "message",
   initialState,
   reducers: {
+    setMessageToView: (state, action) => {
+      state.messageToView = action.payload;
+    },
     setValue: (state, action) => {
       state.value = action.payload;
     },
@@ -54,5 +58,6 @@ export const {
   resetMessage,
   setValue,
   startForwarding,
+  setMessageToView,
 } = messageSlice.actions;
 export default messageSlice.reducer;
