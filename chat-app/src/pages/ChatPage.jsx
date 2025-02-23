@@ -30,7 +30,7 @@ export default function ChatPage() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!token) navigate("/auth");
+    if (!token) navigate("/");
   }, [user, navigate, token]);
 
   useEffect(() => {

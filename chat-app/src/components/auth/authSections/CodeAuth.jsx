@@ -46,7 +46,7 @@ export default function CodeAuth({ setActivePage }) {
       localStorage.setItem("expires-in", String(Date.now() + expiryDate));
       connectSocket();
 
-      navigate("/");
+      navigate("/k/");
     },
     onError: (error) => setError(error),
   });
@@ -62,7 +62,7 @@ export default function CodeAuth({ setActivePage }) {
       localStorage.setItem("expires-in", String(Date.now() + expiryDate));
       connectSocket();
 
-      navigate("/");
+      navigate("/k/");
     },
     onError: (error) => console.log(error),
   });
