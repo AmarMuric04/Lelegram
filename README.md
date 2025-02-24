@@ -27,13 +27,14 @@ A Telegram clone that includes:
 25. System chat messages
 26. Chat themes (Light & Dark)
 27. User status
+28. Dedicated Websocket rooms
+29. Voice chat (Live chat, Screen-sharing, Camera...)
+    
 And more!
 
 Things in consideration of being implemented:
 
 1. Mentions (@...), 🔜
 2. Read Receipts,
-3. Dedicated Websocket rooms
-4. Voice chat
 
 To use the app, change the .env.test file's name to just .env
