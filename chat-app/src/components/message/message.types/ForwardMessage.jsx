@@ -16,7 +16,7 @@ export default function ForwardMessage({ message }) {
     Array.isArray(message.referenceMessageId.chat?.users)
   ) {
     otherUser = message.referenceMessageId.chat?.users.find(
-      (u) => u._id.toString() !== message.sender._id.toString()
+      (u) => u?._id?.toString() !== message?.sender?._id?.toString()
     );
   }
 
@@ -30,7 +30,7 @@ export default function ForwardMessage({ message }) {
     <div
       className={`${isSelecting && "pointer-events-none"}`}
       onClick={() => {
-        if (!otherUser) navigate("/k/" + message.referenceMessageId.chat._id);
+        if (!otherUser) navigate("/k/" + message.referenceMessageId.chat?._id);
         else createDirectMessage({ userId: otherUser._id });
       }}
     >
