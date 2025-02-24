@@ -58,4 +58,4 @@ const chatSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Chat", chatSchema);
+export default mongoose.model("Chat", chatSchema, "chats");

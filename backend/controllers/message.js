@@ -456,31 +456,29 @@ export const getMessages = async (req, res, next) => {
   try {
     const { chatId } = req.params;
 
-    const messages = await Message.find({
-      chat: new mongoose.Types.ObjectId(chatId),
-    })
+    const messages = await Message.find({ chat: chatId })
       .populate("sender")
-      .populate("chat")
+      .populate("chat", "users")
       .populate({
         path: "referenceMessageId",
         populate: [
           { path: "sender" },
-          { path: "chat", populate: { path: "users" } }, // Populate the `users` field inside `chat`
+          { path: "chat", populate: { path: "users" } },
           { path: "poll" },
         ],
       })
       .populate("poll");
 
-    if (!messages) {
-      const error = new Error("Something went wrong.");
+    if (!messages.length) {
+      const error = new Error("No messages found.");
       error.statusCode = 404;
-
       throw error;
     }
 
-    res
-      .status(200)
-      .json({ message: "Successfully fetched messages.", data: messages });
+    res.status(200).json({
+      message: "Successfully fetched messages.",
+      data: messages,
+    });
   } catch (err) {
     next(err);
   }
