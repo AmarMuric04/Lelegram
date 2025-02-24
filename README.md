@@ -36,5 +36,4 @@ Things in consideration of being implemented:
 3. Dedicated Websocket rooms
 4. Voice chat
 
-To use the app, change the .env.test file's name to just .env
-Phone Number checking is not implemented, in the Code just write whatever you want.
+To use the app, change the .env.test file's name to just.
