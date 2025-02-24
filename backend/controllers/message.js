@@ -456,31 +456,35 @@ export const getMessages = async (req, res, next) => {
   try {
     const { chatId } = req.params;
 
-    // Fetch messages with optimized population for ForwardMessage component
     const messages = await Message.find({ chat: chatId })
       .populate("sender", "firstName lastName username imageUrl _id")
       .populate("chat")
       .populate("poll")
       .populate({
         path: "referenceMessageId",
-        select: "sender chat poll message type imageUrl", // Only fetch necessary fields
+        select: "sender chat poll message type imageUrl",
         populate: [
           {
             path: "sender",
             select: "firstName lastName username imageUrl _id",
-          }, // Populate sender with necessary fields
+          },
           {
             path: "chat",
-            select: "users name type imageUrl gradient", // Only fetch necessary fields
+            select: "users name type imageUrl gradient",
             populate: {
               path: "users",
-              select: "firstName lastName imageUrl _id", // Only fetch necessary fields for users
+              select: "firstName lastName imageUrl _id",
             },
           },
-          { path: "poll", select: "question options" }, // Only fetch necessary fields
+          { path: "poll", select: "question options" },
         ],
       })
-      .lean(); // Convert Mongoose documents to plain JavaScript objects for faster processing
+      .lean();
+
+    console.log(
+      "Messages after population:",
+      JSON.stringify(messages, null, 2)
+    );
 
     res.status(200).json({
       message: "Successfully fetched messages.",
