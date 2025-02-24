@@ -1,51 +1,59 @@
 import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import useCreateDirectMessage from "../../../hooks/useCreateDirectMessage";
 
 export default function ForwardMessage({ message }) {
   const { isSelecting } = useSelector((state) => state.message);
-  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const { createDirectMessage } = useCreateDirectMessage();
 
   let otherUser;
   let displayName = message.referenceMessageId.chat?.name;
-
-  console.log(message);
 
   if (
     message.referenceMessageId.chat?.type === "private" &&
     Array.isArray(message.referenceMessageId.chat?.users)
   ) {
     otherUser = message.referenceMessageId.chat?.users.find(
-      (u) => u.toString() !== user._id.toString()
+      (u) => u._id.toString() !== message.sender._id.toString()
     );
-    console.log(otherUser);
   }
 
   if (otherUser) {
     displayName = `${otherUser.firstName} ${otherUser.lastName}`;
   }
 
+  console.log(otherUser);
+
   return (
-    <Link
+    <div
       className={`${isSelecting && "pointer-events-none"}`}
-      to={`/k/${
-        message.referenceMessageId.chat?._id
-          ? message.referenceMessageId.chat?._id
-          : ""
-      }`}
+      onClick={() => {
+        if (!otherUser) navigate("/k/" + message.referenceMessageId.chat._id);
+        else createDirectMessage({ userId: otherUser._id });
+      }}
     >
       <div
         className={`text-sm cursor-pointer transition-all px-2 py-1 rounded-md`}
       >
         <p className="font-semibold">Forwarded from</p>
         <div className="flex items-center gap-1">
-          {otherUser?.imageUrl ? (
+          {otherUser?.imageUrl && (
             <img
               src={`${otherUser.imageUrl}`}
               alt={displayName}
               className="min-h-6 max-h-6 min-w-6 max-w-6 rounded-full object-cover"
             />
-          ) : (
+          )}
+          {!otherUser && message.referenceMessageId.chat?.imageUrl && (
+            <img
+              src={`${message.referenceMessageId.chat.imageUrl}`}
+              alt={displayName}
+              className="min-h-6 max-h-6 min-w-6 max-w-6 rounded-full object-cover"
+            />
+          )}
+          {!otherUser && !message.referenceMessageId.chat?.imageUrl && (
             <div
               className="h-6 w-6 rounded-full text-[0.5rem] grid place-items-center font-semibold text-white"
               style={{
@@ -67,7 +75,7 @@ export default function ForwardMessage({ message }) {
           <p>{displayName}</p>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

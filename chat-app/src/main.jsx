@@ -8,7 +8,7 @@ import { router } from "./router.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MessageProvider } from "./store/context/MessageProvider.jsx";
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

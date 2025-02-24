@@ -67,11 +67,17 @@ export const checkIfSignedIn = (dispatch) => {
   return true;
 };
 
+import { queryClient } from "../main";
+
 export const signOut = (dispatch) => {
-  dispatch(setUser(null));
   localStorage.removeItem("token");
   localStorage.removeItem("userId");
   localStorage.removeItem("expires-in");
+  dispatch(setUser(null));
+
+  queryClient.removeQueries(["userData"]);
+
+  console.log("Removed user's info");
 };
 
 export const sendOTP = async (email) => {

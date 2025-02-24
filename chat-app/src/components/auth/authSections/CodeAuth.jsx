@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import Image from "../../../assets/mnky.png";
 import { useSelector } from "react-redux";
 import Input from "../../misc/Input";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { postData } from "../../../utility/async";
 import { verifyOTP, uploadToCloudinary } from "../../../utility/util";
+import useGetUser from "../../../hooks/useGetUser"; // Import the hook
 
 export default function CodeAuth({ setActivePage }) {
   const [code, setCode] = useState("");
@@ -15,65 +16,74 @@ export default function CodeAuth({ setActivePage }) {
   const { email, phoneNumber, firstName, lastName, isSigningIn, staySignedIn } =
     useSelector((state) => state.auth);
   const { url } = useSelector((state) => state.image);
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const handleChange = (value) => setCode(value);
+  const { user, isLoading } = useGetUser({
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+  });
+
+  const handleChange = (value) => setCode(value.trim());
 
   const signUpMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (uploadedImageUrl) => {
       const formData = new FormData();
       formData.append("email", email);
       formData.append("phoneNumber", phoneNumber);
       formData.append("firstName", firstName);
       formData.append("lastName", lastName);
 
-      if (url) {
-        const uploadedImageUrl = await uploadToCloudinary(url);
-        if (uploadedImageUrl) {
-          formData.append("imageUrl", uploadedImageUrl);
-        }
+      if (uploadedImageUrl) {
+        formData.append("imageUrl", uploadedImageUrl);
       }
+
       return postData("/user/create-user", formData);
     },
     onSuccess: ({ data }) => {
       let expiryDate = 1000 * 60 * 60 * 24;
-
       if (staySignedIn) expiryDate *= 7;
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
       localStorage.setItem("expires-in", String(Date.now() + expiryDate));
-
-      navigate("/k/");
     },
     onError: (error) => setError(error),
   });
 
   const signInMutation = useMutation({
     mutationFn: () => postData("/user/signin", { phoneNumber }),
-    onSuccess: async ({ data }) => {
+    onSuccess: ({ data }) => {
       let expiryDate = 1000 * 60 * 60 * 24;
-
       if (staySignedIn) expiryDate *= 7;
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
       localStorage.setItem("expires-in", String(Date.now() + expiryDate));
-
-      navigate("/k/");
     },
-    onError: (error) => console.log(error),
+    onError: (error) => setError(error),
   });
 
   const handleSubmit = async () => {
     try {
       await verifyOTP(email, code);
-      isSigningIn ? signInMutation.mutate() : signUpMutation.mutate();
-      queryClient.invalidateQueries(["userData"]);
+
+      let uploadedImageUrl = "";
+      if (!isSigningIn && url) {
+        uploadedImageUrl = await uploadToCloudinary(url);
+      }
+
+      isSigningIn
+        ? await signInMutation.mutateAsync()
+        : await signUpMutation.mutateAsync(uploadedImageUrl);
     } catch (err) {
       console.error(err);
       setError(err);
     }
   };
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      navigate("/k/");
+    }
+  }, [user, isLoading, navigate]);
 
   return (
     <div className="min-w-[500px] flex justify-center mt-28 h-screen">
@@ -100,7 +110,7 @@ export default function CodeAuth({ setActivePage }) {
         </p>
         <div className="flex gap-4 my-4 flex-col w-full">
           <Input
-            error={error}
+            error={error || signUpMutation.error || signInMutation.error}
             value={code}
             inputValue={code}
             setError={setError}
