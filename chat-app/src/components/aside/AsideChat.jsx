@@ -41,7 +41,6 @@ export default function AsideChat({ chat, action }) {
     return `${firstName}${lastInitial}`;
   };
 
-  if (chat.more) console.log(chat);
   return (
     <Link
       onClick={action}
@@ -124,8 +123,7 @@ export default function AsideChat({ chat, action }) {
                     chat.lastMessage.referenceMessageId.message}
                   {chat.lastMessage.message && chat.lastMessage.message}
                   {chat.lastMessage.type === "voice" && "🔊 " + "Audio"}
-                  {chat.lastMessage.type === "poll" &&
-                    "📊 " + chat.lastMessage.poll.question}
+                  {chat.lastMessage.type === "poll" && "📊 " + "Poll"}
                 </p>
               </div>
             </div>
