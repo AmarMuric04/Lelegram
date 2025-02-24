@@ -16,15 +16,21 @@ export default function ForwardMessage({ message }) {
     Array.isArray(message.referenceMessageId.chat?.users)
   ) {
     otherUser = message.referenceMessageId.chat?.users.find(
-      (u) => u?._id?.toString() !== message?.sender?._id?.toString()
+      (u) => String(u?._id) !== String(message?.sender?._id)
     );
   }
 
-  if (otherUser) {
+  if (otherUser && otherUser.firstName && otherUser.lastName) {
     displayName = `${otherUser.firstName} ${otherUser.lastName}`;
+  } else if (message.referenceMessageId.chat?.name) {
+    displayName = message.referenceMessageId.chat.name;
+  } else {
+    displayName = "Unknown";
   }
 
-  console.log(otherUser);
+  console.log("Chat Users:", message.referenceMessageId.chat?.users);
+  console.log("Sender ID:", message?.sender?._id);
+  console.log("Other User:", otherUser);
 
   return (
     <div
