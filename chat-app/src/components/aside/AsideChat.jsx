@@ -34,6 +34,13 @@ export default function AsideChat({ chat, action }) {
     }
   }
 
+  const formatSender = (sender) => {
+    if (!sender) return "";
+    const firstName = sender.firstName || "";
+    const lastInitial = sender.lastName ? ` ${sender.lastName[0]}:` : "";
+    return `${firstName}${lastInitial}`;
+  };
+
   if (chat.more) console.log(chat);
   return (
     <Link
@@ -96,12 +103,8 @@ export default function AsideChat({ chat, action }) {
           {chat.lastMessage || chat.more ? (
             <div className="flex gap-2">
               <span className="font-semibold flex-shrink-0">
-                {chat.more.sender?.firstName}
-                {chat.more.sender?.lastName[0] &&
-                  ` ${chat.more.sender.lastName[0]}: `}
-                {chat.lastMessage.sender?.firstName}
-                {chat.lastMessage.sender?.lastName[0] &&
-                  ` ${chat.lastMessage.sender.lastName[0]}: `}
+                {chat.more && formatSender(chat.more.sender)}
+                {!chat.more && formatSender(chat.lastMessage.sender)}
               </span>
 
               <div className="flex items-center gap-2">
