@@ -36,4 +36,4 @@ Things in consideration of being implemented:
 3. Dedicated Websocket rooms
 4. Voice chat
 
-To use the app, change the .env.test file's name to just.
+To use the app, change the .env.test file's name to just .env
