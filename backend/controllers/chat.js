@@ -9,8 +9,8 @@ export const getChat = async (req, res, next) => {
     const { chatId } = req.params;
 
     const chat = await Chat.findById(chatId)
-      .populate("users")
-      .populate("admins")
+      .populate({ path: "users", model: "User" })
+      .populate({ path: "admins", model: "User" })
       .populate({
         path: "lastMessage",
         populate: [{ path: "sender" }, { path: "referenceMessageId" }],
