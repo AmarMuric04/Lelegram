@@ -462,7 +462,7 @@ export const getMessages = async (req, res, next) => {
       .populate("poll")
       .populate({
         path: "referenceMessageId",
-        select: "sender chat poll message type imageUrl",
+        select: "sender chat poll message type imageUrl audioUrl",
         populate: [
           {
             path: "sender",

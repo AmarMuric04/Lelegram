@@ -5,6 +5,8 @@ import { useSelector } from "react-redux";
 export default function NormalMessage({ message }) {
   const { timeFormat } = useSelector((state) => state.userSettings);
 
+  console.log(message);
+
   return (
     <div
       style={{ whiteSpace: "pre-wrap" }}
