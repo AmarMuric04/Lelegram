@@ -28,7 +28,6 @@ const PrivateRoute = ({ children }) => {
 
   const { data, error } = useQuery({
     queryFn: () => {
-      console.log("Grabbing the user's information...");
       const userId = localStorage.getItem("userId");
       const token = localStorage.getItem("token");
 
@@ -41,9 +40,7 @@ const PrivateRoute = ({ children }) => {
   useEffect(() => {
     if (data) {
       if (data?.data) {
-        console.log(data.data, " User Data Successfully Fetched");
         dispatch(setUser(data.data));
-        console.log("You are: ", data.data);
         connectSocket();
       }
     } else if (error) {

@@ -76,8 +76,6 @@ export const signOut = (dispatch) => {
   dispatch(setUser(null));
 
   queryClient.removeQueries(["userData"]);
-
-  console.log("Removed user's info");
 };
 
 export const sendOTP = async (email) => {
@@ -160,8 +158,6 @@ export const getRecentTime = (date, AMPM) => {
 
 export const uploadToCloudinary = async (file) => {
   try {
-    console.log(file, "asjdas");
-
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", import.meta.env.VITE_CLOUDINARY_PRESET);

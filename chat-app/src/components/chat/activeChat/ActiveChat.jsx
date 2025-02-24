@@ -176,11 +176,11 @@ export default function ActiveChat() {
           viewChatInfo ? "min-w-[42vw]" : "min-w-[63.5vw]"
         }`}
       >
-        <div className="relative h-screen w-full  flex flex-col items-center">
+        <div className="relative h-screen w-full flex flex-col items-center">
           <ActiveChatHeader setViewChatInfo={setViewChatInfo} />
 
           <div
-            className={`flex flex-col justify-end gap-2 transition-all h-[92%] w-full`}
+            className={`flex mt-16 flex-col justify-end gap-2 transition-all h-[92%] w-full`}
           >
             <div className="flex flex-col w-full items-center justify-end min-h-[100%] max-h-[100%]">
               <div

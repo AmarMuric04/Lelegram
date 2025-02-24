@@ -13,6 +13,7 @@ import { fileURLToPath } from "url";
 import { initSocket } from "./socket.js";
 import { createServer } from "http";
 import nodemailer from "nodemailer";
+import { AccessToken } from "livekit-server-sdk";
 
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -137,6 +138,33 @@ app.post("/verify-otp", (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+app.get("/api/livekit", async (req, res) => {
+  const { chatId, id } = req.query;
+
+  if (!chatId || !id) {
+    return res.status(400).json({ error: "Missing room or username" });
+  }
+
+  const apiKey = process.env.LIVEKIT_API_KEY;
+  const apiSecret = process.env.LIVEKIT_API_SECRET;
+
+  if (!apiKey || !apiSecret) {
+    return res.status(500).json({ error: "Server misconfigured" });
+  }
+
+  const at = new AccessToken(apiKey, apiSecret, { identity: id });
+  at.addGrant({
+    room: chatId,
+    roomJoin: true,
+    canPublish: true,
+    canSubscribe: true,
+  });
+
+  const token = await at.toJwt();
+
+  res.json({ token });
 });
 
 app.use("/chat", ChatRoutes);

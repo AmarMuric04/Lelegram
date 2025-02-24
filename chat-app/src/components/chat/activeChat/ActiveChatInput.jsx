@@ -329,6 +329,7 @@ export default function ActiveChatInput({ showScrollButton, viewChatInfo }) {
               </PopUpMenuItem>
             </PopUpMenu>
           </div>
+
           {isInputInvalid && (
             <VoiceRecorder
               disabled={activeChat?.type === "broadcast" && !isAdmin}

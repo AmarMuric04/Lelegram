@@ -481,11 +481,6 @@ export const getMessages = async (req, res, next) => {
       })
       .lean();
 
-    console.log(
-      "Messages after population:",
-      JSON.stringify(messages, null, 2)
-    );
-
     res.status(200).json({
       message: "Successfully fetched messages.",
       data: messages,

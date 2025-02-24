@@ -28,8 +28,6 @@ export default function ForwardMessage({ message }) {
     displayName = "Unknown";
   }
 
-  console.log(message);
-
   return (
     <div
       className={`${isSelecting && "pointer-events-none"}`}
