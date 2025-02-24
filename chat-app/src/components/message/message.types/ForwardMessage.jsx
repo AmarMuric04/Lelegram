@@ -28,9 +28,7 @@ export default function ForwardMessage({ message }) {
     displayName = "Unknown";
   }
 
-  console.log("Chat Users:", message.referenceMessageId.chat?.users);
-  console.log("Sender ID:", message?.sender?._id);
-  console.log("Other User:", otherUser);
+  console.log(message);
 
   return (
     <div

@@ -195,7 +195,7 @@ export default function Message({
                 {showSenderInfo && !isMe && (
                   <div className="flex justify-between items-center gap-4 px-2">
                     <p className="text-sm font-semibold text-[#8675DC]">
-                      {message.sender?.firstName}, {message.sender?.lastName[0]}
+                      {message.sender?.firstName} {message.sender?.lastName[0]}{" "}
                     </p>
                     {isAdmin && <p className="theme-text-2 text-xs">admin</p>}
                   </div>

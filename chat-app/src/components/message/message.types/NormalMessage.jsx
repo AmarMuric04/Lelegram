@@ -8,7 +8,7 @@ export default function NormalMessage({ message }) {
   return (
     <div
       style={{ whiteSpace: "pre-wrap" }}
-      className="flex flex-wrap  justify-end items-baseline px-2 py-1"
+      className="flex justify-end flex-wrap items-baseline px-2 py-1"
     >
       {message.message &&
         message.type !== "forward" &&
