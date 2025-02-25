@@ -587,3 +587,35 @@ export const addReaction = async (req, res, next) => {
     next(err);
   }
 };
+
+export const addSeen = async (req, res, next) => {
+  try {
+    const { messageId } = req.params;
+    const userId = req.userId;
+
+    const message = await Message.findById(messageId);
+    if (!message) {
+      const error = new Error("Message not found");
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    const chat = await Chat.findById(message.chat);
+    if (!chat) {
+      const error = new Error("Chat not found");
+      error.statusCode = 404;
+
+      throw error;
+    }
+
+    if (!message.seenBy.includes(userId)) {
+      message.seenBy.push(userId);
+      await message.save();
+    }
+
+    res.status(200).json({ success: true, message: "Message marked as seen" });
+  } catch (err) {
+    next(err);
+  }
+};

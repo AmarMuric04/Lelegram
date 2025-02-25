@@ -518,7 +518,9 @@ export default function Aside() {
                         Telegram Features
                       </p>
                     </PopUpMenuItem>
-                    <PopUpMenuItem>
+                    <PopUpMenuItem
+                      action={() => navigate("/k/67be5492348808df2fee05b7")}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"

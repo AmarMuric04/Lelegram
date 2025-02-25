@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { postData } from "../../../utility/async";
 import { verifyOTP, uploadToCloudinary } from "../../../utility/util";
 import useGetUser from "../../../hooks/useGetUser";
+import { connectSocket } from "../../../socket";
 
 export default function CodeAuth({ setActivePage }) {
   const [code, setCode] = useState("");
@@ -74,6 +75,7 @@ export default function CodeAuth({ setActivePage }) {
       }
 
       await fetchUser();
+      connectSocket();
     } catch (err) {
       console.error(err);
       setError(err);
@@ -130,7 +132,7 @@ export default function CodeAuth({ setActivePage }) {
             onClick={handleSubmit}
             className="bg-[#8675DC] w-full rounded-lg cursor-pointer hover:bg-[#8765DC] py-4"
           >
-            NEXT
+            {isLoading ? "CHECKING..." : "NEXT"}
           </button>
         )}
       </div>

@@ -3,7 +3,11 @@ import Modal from "../modal/Modal";
 import { closeModal } from "../../store/redux/modalSlice";
 import { Button } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
-import { resetMessage } from "../../store/redux/messageSlice";
+import {
+  resetMessage,
+  setIsSelecting,
+  setSelected,
+} from "../../store/redux/messageSlice";
 import { protectedDeleteData } from "../../utility/async";
 
 export default function DeleteMessageModal() {
@@ -25,7 +29,11 @@ export default function DeleteMessageModal() {
         token
       );
     },
-    onSuccess: () => dispatch(resetMessage),
+    onSuccess: () => {
+      dispatch(resetMessage);
+      dispatch(setIsSelecting(false));
+      dispatch(setSelected([]));
+    },
   });
 
   return (

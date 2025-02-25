@@ -7,7 +7,7 @@ import {
   setSelected,
 } from "../../../store/redux/messageSlice";
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { openModal } from "../../../store/redux/modalSlice";
 import {
   closeContextMenu,
@@ -21,6 +21,9 @@ import ReplyMessage from "./ReplyMessage";
 import ForwardMessage from "./ForwardMessage";
 import NormalMessage from "./NormalMessage";
 import MessageReactions from "../MessageReactions";
+import useIntersectionObserver from "../../../hooks/useIntersectionObserver";
+import { useMutation } from "@tanstack/react-query";
+import { protectedPostData } from "../../../utility/async";
 // import { isOnlyEmojis } from "../../utility/util";
 
 export default function Message({
@@ -39,10 +42,30 @@ export default function Message({
   const [isHovering, setIsHovering] = useState(false);
   const { isSelecting, selected } = useSelector((state) => state.message);
   const { open } = useSelector((state) => state.contextMenu);
+  const { targetRef, isIntersecting } = useIntersectionObserver();
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     if (!isSelecting) dispatch(setSelected([]));
   }, [isSelecting, dispatch]);
+
+  const seenRef = useRef(false);
+
+  useEffect(() => {
+    if (!isSelecting) dispatch(setSelected([]));
+  }, [isSelecting, dispatch]);
+
+  const { mutate: addSeen } = useMutation({
+    mutationFn: () =>
+      protectedPostData(`/message/add-seen/${message._id}`, null, token),
+  });
+
+  useEffect(() => {
+    if (isIntersecting && !seenRef.current) {
+      seenRef.current = true;
+      addSeen();
+    }
+  }, [isIntersecting, addSeen]);
 
   const handleReactionClick = (event) => {
     event.preventDefault();
@@ -95,6 +118,7 @@ export default function Message({
       )}
       {message.type !== "system" && (
         <div
+          ref={targetRef}
           onDoubleClick={() => {
             dispatch(setMessage(message));
             dispatch(setMessageType("reply"));
@@ -245,7 +269,7 @@ export default function Message({
                     />
                   )}
                 {message.type === "poll" && <PollMessage message={message} />}
-                <NormalMessage message={message} />
+                <NormalMessage message={message} isMe={isMe} />
                 {message.reactions &&
                   Object.keys(message.reactions).some(
                     (emoji) => message.reactions[emoji].length > 0

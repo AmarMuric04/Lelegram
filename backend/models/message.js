@@ -38,6 +38,12 @@ const messageSchema = new mongoose.Schema(
     audioUrl: {
       type: String,
     },
+    seenBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Chat",
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -16,6 +16,8 @@ router.delete("/delete-message", isAuth, MessageController.deleteMessage);
 
 router.post("/edit-message", isAuth, MessageController.editMessage);
 
+router.post("/add-seen/:messageId", isAuth, MessageController.addSeen);
+
 router.post(
   "/get-searched-messages",
   isAuth,
