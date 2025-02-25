@@ -1,41 +1,27 @@
-import { useDispatch } from "react-redux";
-import { setUser } from "../../store/redux/authSlice";
 import { useEffect } from "react";
 import { connectSocket, socket, disconnectSocket } from "../../socket";
 import { checkIfSignedIn } from "../../utility/util";
 import PropTypes from "prop-types";
+import useGetUser from "../../hooks/useGetUser";
 
 const PrivateRoute = ({ children }) => {
-  const dispatch = useDispatch();
+  const { fetchUser } = useGetUser();
 
   useEffect(() => {
-    const initializeSocket = async () => {
+    const initializeApp = async () => {
       try {
-        const userId = localStorage.getItem("userId");
-        const token = localStorage.getItem("token");
-
-        const response = await fetch(
-          import.meta.env.VITE_SERVER_PORT + "/user/get-user/" + userId,
-          {
-            method: "GET",
-            headers: {
-              Authorization: "Bearer " + token,
-            },
-          }
-        );
-
-        const data = await response.json();
-
-        dispatch(setUser(data?.data));
-
-        connectSocket();
-        checkIfSignedIn(dispatch);
+        const user = await fetchUser();
+        if (user) {
+          connectSocket();
+          checkIfSignedIn();
+        }
       } catch (error) {
-        console.log("Couldn't get the user", error);
+        console.error("Couldn't get the user", error);
       }
     };
 
-    initializeSocket();
+    initializeApp();
+
     socket.on("disconnect", () => {
       console.log("Disconnected from Socket.IO");
     });
@@ -43,7 +29,7 @@ const PrivateRoute = ({ children }) => {
     return () => {
       disconnectSocket();
     };
-  }, [dispatch]);
+  }, [fetchUser]);
 
   return children;
 };

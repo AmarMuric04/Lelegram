@@ -18,7 +18,6 @@ export default function CodeAuth({ setActivePage }) {
   const { url } = useSelector((state) => state.image);
   const navigate = useNavigate();
 
-  // Use our on-demand hook
   const { user, isLoading, fetchUser, error: userError } = useGetUser();
 
   const handleChange = (value) => setCode(value.trim());
