@@ -46,7 +46,9 @@ const VoiceChat = ({ chatId, user, onUserLeft }) => {
       connect={true}
       onDisconnected={handleDisconnected}
     >
-      <CustomVideoConference />
+      <div className="h-full w-full" onClick={(e) => e.stopPropagation()}>
+        <CustomVideoConference />
+      </div>
     </LiveKitRoom>
   );
 };

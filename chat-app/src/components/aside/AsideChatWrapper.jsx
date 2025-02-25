@@ -21,11 +21,13 @@ export default function AsideChatWrapper() {
       if (activeSelect === "all") url += "/get-all-chats";
       return protectedFetchData(url, token);
     },
+
     queryKey: ["chats", activeSelect],
   });
 
   useEffect(() => {
     if (chats) {
+      console.log(chats);
       dispatch(setUserChats(chats.data.chats));
     }
   }, [chats, dispatch]);

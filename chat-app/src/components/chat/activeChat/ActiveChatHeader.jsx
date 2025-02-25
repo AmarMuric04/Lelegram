@@ -8,8 +8,8 @@ import { setIsSelecting } from "../../../store/redux/messageSlice";
 import { openModal } from "../../../store/redux/modalSlice";
 import PropTypes from "prop-types";
 import { getRecentTime } from "../../../utility/util";
-import MediaRoom from "../../misc/voice/VoiceChat";
 import { useState } from "react";
+import VoiceChat from "../../misc/voice/VoiceChat";
 
 export default function ActiveChatHeader({ setViewChatInfo }) {
   const { activeChat } = useSelector((state) => state.chat);
@@ -45,7 +45,6 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
   return (
     <header
       onClick={() => {
-        if (openVoiceChat) return;
         setViewChatInfo(true);
       }}
       className={`absolute z-20 border-x-2 sidepanel w-full px-5 py-2 flex flex-col justify-between cursor-pointer theme-text transition-all ${
@@ -178,8 +177,8 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
         </div>
       </div>
       {activeChat.type !== "broadcast" && openVoiceChat && (
-        <div className="h-[90vh]" onClick={(e) => e.stopPropagation()}>
-          <MediaRoom
+        <div className="h-[90vh]">
+          <VoiceChat
             chatId={activeChat._id}
             video={false}
             audio={true}

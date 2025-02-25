@@ -12,6 +12,7 @@ import ConditionalModals from "../components/modal/ConditionalModals.jsx";
 import ChatBackground from "../components/chat/ChatBackground.jsx";
 import ActiveChat from "../components/chat/activeChat/ActiveChat.jsx";
 import { protectedFetchData } from "../utility/async.js";
+import { Helmet } from "react-helmet-async";
 
 const socket = io(import.meta.env.VITE_SERVER_PORT || "http://localhost:3000");
 
@@ -75,17 +76,26 @@ export default function ChatPage() {
   if (!user || !user._id) return <p>Please wait...</p>;
 
   return (
-    <main
-      className={`${theme} transition-all theme-bg w-screen h-screen flex justify-center`}
-    >
-      <ConditionalModals />
-      <div className="w-[85vw] flex justify-between overflow-hidden">
-        <Aside theme={theme} />
-        <div className="relative w-[63.5vw] transition-all">
-          <ChatBackground />
-          <ActiveChat />
+    <>
+      <Helmet>
+        <title>Lelegram | Chat</title>
+        <meta
+          name="description"
+          content="The place where you can express your thoughts."
+        />
+      </Helmet>
+      <main
+        className={`${theme} transition-all theme-bg w-screen h-screen flex justify-center`}
+      >
+        <ConditionalModals />
+        <div className="w-[85vw] flex justify-between overflow-hidden">
+          <Aside theme={theme} />
+          <div className="relative w-[63.5vw] transition-all">
+            <ChatBackground />
+            <ActiveChat />
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }

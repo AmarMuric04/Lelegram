@@ -3,7 +3,6 @@ import { setUser } from "../../store/redux/authSlice";
 import { useEffect } from "react";
 import { connectSocket, socket, disconnectSocket } from "../../socket";
 import { checkIfSignedIn } from "../../utility/util";
-import { protectedFetchData } from "../../utility/async";
 import PropTypes from "prop-types";
 
 const PrivateRoute = ({ children }) => {

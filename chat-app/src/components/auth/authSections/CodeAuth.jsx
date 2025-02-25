@@ -7,7 +7,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { postData } from "../../../utility/async";
 import { verifyOTP, uploadToCloudinary } from "../../../utility/util";
-import useGetUser from "../../../hooks/useGetUser"; // Import the hook
+import useGetUser from "../../../hooks/useGetUser";
 
 export default function CodeAuth({ setActivePage }) {
   const [code, setCode] = useState("");
@@ -18,10 +18,8 @@ export default function CodeAuth({ setActivePage }) {
   const { url } = useSelector((state) => state.image);
   const navigate = useNavigate();
 
-  const { user, isLoading } = useGetUser({
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-  });
+  // Use our on-demand hook
+  const { user, isLoading, fetchUser, error: userError } = useGetUser();
 
   const handleChange = (value) => setCode(value.trim());
 
@@ -70,9 +68,13 @@ export default function CodeAuth({ setActivePage }) {
         uploadedImageUrl = await uploadToCloudinary(url);
       }
 
-      isSigningIn
-        ? await signInMutation.mutateAsync()
-        : await signUpMutation.mutateAsync(uploadedImageUrl);
+      if (isSigningIn) {
+        await signInMutation.mutateAsync();
+      } else {
+        await signUpMutation.mutateAsync(uploadedImageUrl);
+      }
+
+      await fetchUser();
     } catch (err) {
       console.error(err);
       setError(err);
@@ -110,7 +112,9 @@ export default function CodeAuth({ setActivePage }) {
         </p>
         <div className="flex gap-4 my-4 flex-col w-full">
           <Input
-            error={error || signUpMutation.error || signInMutation.error}
+            error={
+              error || signUpMutation.error || signInMutation.error || userError
+            }
             value={code}
             inputValue={code}
             setError={setError}

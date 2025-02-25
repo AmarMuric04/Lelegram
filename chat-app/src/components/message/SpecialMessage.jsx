@@ -62,11 +62,24 @@ export default function SpecialMessage({ message, topMessage, icon }) {
                       alt="message visual"
                     />
                   )}
+                  {message.referenceMessageId?.imageUrl && (
+                    <img
+                      className="max-h-[16px]"
+                      src={message.referenceMessageId?.imageUrl}
+                      alt="message visual"
+                    />
+                  )}
                   <p className="line-clamp-1">
                     {message.type === "poll" && "📊 " + message.poll.question}
+                    {message.referenceMessageId?.type === "poll" &&
+                      "📊 " + message.referenceMessageId?.poll.question}
+
                     {message.type === "voice" && "🔊 " + "Audio"}
+                    {message.referenceMessageId?.type === "voice" &&
+                      "🔊 " + "Audio"}
                     {message.message && message.message}
                     {message.referenceMessageId?.message &&
+                      !message.message &&
                       message.referenceMessageId.message}
                   </p>
                 </>

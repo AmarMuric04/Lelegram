@@ -5,6 +5,7 @@ import CodeAuth from "../components/auth/authSections/CodeAuth";
 import AddInfoAuth from "../components/auth/authSections/AddInfoAuth";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 function AuthPage() {
   const [activePage, setActivePage] = useState("landing");
@@ -24,18 +25,27 @@ function AuthPage() {
   if (activePage === "codeSent") move = "right-[1400px]";
 
   return (
-    <main className="monsterrat bg-[#202021] min-h-screen max-h-screen w-screen flex flex-col items-center text-white">
-      <div className={`transition-all w-[500px] overflow-hidden`}>
-        <div
-          className={`flex relative gap-[200px] justify-between transition-all duration-400 ${move}`}
-        >
-          {/* <QRAuth setActivePage={setActivePage} /> */}
-          <LandingAuth setActivePage={setActivePage} />
-          <AddInfoAuth setActivePage={setActivePage} />
-          <CodeAuth setActivePage={setActivePage} />
+    <>
+      <Helmet>
+        <title>Lelegram | Authentication</title>
+        <meta
+          name="description"
+          content="This is where you create an account."
+        />
+      </Helmet>
+      <main className="monsterrat bg-[#202021] min-h-screen max-h-screen w-screen flex flex-col items-center text-white">
+        <div className={`transition-all w-[500px] overflow-hidden`}>
+          <div
+            className={`flex relative gap-[200px] justify-between transition-all duration-400 ${move}`}
+          >
+            {/* <QRAuth setActivePage={setActivePage} /> */}
+            <LandingAuth setActivePage={setActivePage} />
+            <AddInfoAuth setActivePage={setActivePage} />
+            <CodeAuth setActivePage={setActivePage} />
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }
 

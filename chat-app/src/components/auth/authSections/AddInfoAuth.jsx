@@ -11,7 +11,7 @@ import {
   setFirstName,
   setLastName,
 } from "../../../store/redux/authSlice";
-import { Telegram } from "../../../assets/icons";
+import Logo from "/logo.png";
 
 export default function AddInfoAuth({ setActivePage }) {
   const [error, setError] = useState({});
@@ -77,12 +77,13 @@ export default function AddInfoAuth({ setActivePage }) {
           </div>
         ) : (
           <div className="flex flex-col items-center mb-10">
-            <Telegram
-              height="160px"
-              width="160px"
-              color="#202021"
-              bgColor="#8675DC"
-            />
+            <div className="overflow-hidden h-[13rem] -mb-12 w-[13rem] flex items-center justify-center">
+              <img
+                className="w-full h-full object-cover"
+                src={Logo}
+                alt="Logo"
+              />
+            </div>
           </div>
         )}
         <div className="text-3xl font-semibold flex items-center gap-2">

@@ -13,8 +13,7 @@ export default function Avatar({ image }) {
 
   return (
     <img
-      src={image || "/default-avatar.png"}
-      alt="User Avatar"
+      src={image}
       style={{
         width: `${calculatedSize}px`,
         height: `${calculatedSize}px`,

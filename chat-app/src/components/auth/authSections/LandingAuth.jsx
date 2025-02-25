@@ -1,4 +1,3 @@
-import { Telegram } from "../../../assets/icons";
 import PhoneCountryWrapper from "../PhoneCountryWrapper";
 import { Button } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
@@ -10,6 +9,7 @@ import {
   setStaySignedIn,
 } from "../../../store/redux/authSlice";
 import { postData } from "../../../utility/async";
+import Logo from "/logo.png";
 
 export default function LandingAuth({ setActivePage }) {
   const { phoneNumber, staySignedIn } = useSelector((state) => state.auth);
@@ -31,13 +31,10 @@ export default function LandingAuth({ setActivePage }) {
     <div className="min-w-[500px] mt-28 flex justify-center">
       <div className="w-[360px] flex flex-col items-center text-center">
         <div className="flex flex-col items-center mb-10">
-          <Telegram
-            height="160px"
-            width="160px"
-            color="#202021"
-            bgColor="#8675DC"
-          />
-          <h1 className="font-semibold text-3xl mt-8">Sign in to Telegram</h1>
+          <div className="overflow-hidden h-[13rem] -mb-12 w-[13rem] flex items-center justify-center">
+            <img className="w-full h-full object-cover" src={Logo} alt="Logo" />
+          </div>
+          <h1 className="font-semibold text-3xl mt-8">Sign in to Lelegram</h1>
           <p className="theme-text-2 w-[70%] mt-4">
             Please confirm your coutry code and enter your phone number.
           </p>

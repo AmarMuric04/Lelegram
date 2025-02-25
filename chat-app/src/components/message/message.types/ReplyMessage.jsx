@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 export default function ReplyMessage({ message, isMe }) {
   const { isSelecting } = useSelector((state) => state.message);
 
+  console.log(message);
+
   return (
     <Link
       className={`${isSelecting && "pointer-events-none"}`}
@@ -24,6 +26,7 @@ export default function ReplyMessage({ message, isMe }) {
           {message.referenceMessageId.imageUrl && (
             <img
               className="max-h-[16px]"
+              alt="image"
               src={`${message.referenceMessageId.imageUrl}`}
             />
           )}
