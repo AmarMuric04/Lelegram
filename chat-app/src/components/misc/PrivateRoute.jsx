@@ -1,6 +1,5 @@
 import { useDispatch } from "react-redux";
 import { setUser } from "../../store/redux/authSlice";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { connectSocket, socket, disconnectSocket } from "../../socket";
 import { checkIfSignedIn } from "../../utility/util";
@@ -10,9 +9,34 @@ import PropTypes from "prop-types";
 const PrivateRoute = ({ children }) => {
   const dispatch = useDispatch();
 
-  const token = localStorage.getItem("token");
-
   useEffect(() => {
+    const initializeSocket = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(
+          import.meta.env.VITE_SERVER_PORT + "/user/get-user/" + userId,
+          {
+            method: "GET",
+            headers: {
+              Authorization: "Bearer " + token,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        dispatch(setUser(data?.data));
+
+        connectSocket();
+        checkIfSignedIn(dispatch);
+      } catch (error) {
+        console.log("Couldn't get the user", error);
+      }
+    };
+
+    initializeSocket();
     socket.on("disconnect", () => {
       console.log("Disconnected from Socket.IO");
     });
@@ -20,33 +44,7 @@ const PrivateRoute = ({ children }) => {
     return () => {
       disconnectSocket();
     };
-  }, []);
-
-  useEffect(() => {
-    checkIfSignedIn(dispatch);
   }, [dispatch]);
-
-  const { data, error } = useQuery({
-    queryFn: () => {
-      const userId = localStorage.getItem("userId");
-      const token = localStorage.getItem("token");
-
-      return protectedFetchData(`/user/get-user/${userId}`, token);
-    },
-    queryKey: ["userData"],
-    enabled: !!token,
-  });
-
-  useEffect(() => {
-    if (data) {
-      if (data?.data) {
-        dispatch(setUser(data.data));
-        connectSocket();
-      }
-    } else if (error) {
-      console.error("Error fetching user data:", error);
-    }
-  }, [data, error, dispatch]);
 
   return children;
 };

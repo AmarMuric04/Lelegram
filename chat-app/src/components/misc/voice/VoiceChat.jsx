@@ -3,21 +3,23 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import "@livekit/components-styles";
-import { LiveKitRoom, VideoConference } from "@livekit/components-react";
+import { LiveKitRoom } from "@livekit/components-react";
+import CustomVideoConference from "./CustomVideoConference";
 
 const VoiceChat = ({ chatId, user, onUserLeft }) => {
   const [token, setToken] = useState("");
 
   useEffect(() => {
     if (!user) return;
-    const id = `${user.firstName}, ${user.lastName[0]} (${user._id})`;
 
     (async () => {
       try {
         const response = await fetch(
           `${
             import.meta.env.VITE_SERVER_PORT
-          }/api/livekit?chatId=${chatId}&id=${id}`
+          }/api/livekit?chatId=${chatId}&name=${user.firstName}&profileImage=${
+            user.imageUrl
+          }&id=${user._id}`
         );
 
         const data = await response.json();
@@ -44,7 +46,7 @@ const VoiceChat = ({ chatId, user, onUserLeft }) => {
       connect={true}
       onDisconnected={handleDisconnected}
     >
-      <VideoConference />
+      <CustomVideoConference />
     </LiveKitRoom>
   );
 };

@@ -1,40 +1,29 @@
-import { useQuery } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { setUser } from "../store/redux/authSlice";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { protectedFetchData } from "../utility/async";
-import { useQueryClient } from "@tanstack/react-query";
 
 const useGetUser = () => {
+  const [user, setUser] = useState(null);
   const dispatch = useDispatch();
-  const token = localStorage.getItem("token");
-  const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (!token) {
-      queryClient.removeQueries(["userData"]);
-    }
-  }, [token, queryClient]);
+    (async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        const token = localStorage.getItem("token");
+        const data = await protectedFetchData(
+          `/user/get-user/${userId}`,
+          token
+        );
 
-  const { data, error, isLoading } = useQuery({
-    queryFn: () => {
-      const userId = localStorage.getItem("userId");
-      return protectedFetchData(`/user/get-user/${userId}`, token);
-    },
-    queryKey: ["userData"],
-    enabled: !!token,
-  });
+        dispatch(setUser(data.data));
+      } catch (error) {
+        console.log("Coudln't get the user", error);
+      }
+    })();
+  }, [dispatch]);
 
-  useEffect(() => {
-    if (data?.data) {
-      dispatch(setUser(data.data));
-    } else if (error) {
-      dispatch(setUser(null));
-      console.error("Error fetching user data:", error);
-    }
-  }, [data, error, dispatch]);
-
-  return { user: data?.data, isLoading, error };
+  return { user };
 };
 
 export default useGetUser;

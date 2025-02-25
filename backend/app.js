@@ -141,9 +141,9 @@ app.post("/verify-otp", (req, res, next) => {
 });
 
 app.get("/api/livekit", async (req, res) => {
-  const { chatId, id } = req.query;
+  const { chatId, name, profileImage, id } = req.query;
 
-  if (!chatId || !id) {
+  if (!chatId || !name) {
     return res.status(400).json({ error: "Missing room or username" });
   }
 
@@ -154,7 +154,12 @@ app.get("/api/livekit", async (req, res) => {
     return res.status(500).json({ error: "Server misconfigured" });
   }
 
-  const at = new AccessToken(apiKey, apiSecret, { identity: id });
+  const metadata = JSON.stringify({
+    displayName: name,
+    profileImage,
+  });
+
+  const at = new AccessToken(apiKey, apiSecret, { identity: id, metadata });
   at.addGrant({
     room: chatId,
     roomJoin: true,

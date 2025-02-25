@@ -5,7 +5,7 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use((config) => {
-  // console.log("Request made with config:", config);
+  console.log("Request made with config:", config);
   return config;
 });
 
@@ -17,6 +17,7 @@ const baseFetchData = async (URL, options = {}) => {
       },
     });
 
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error(error);
@@ -25,12 +26,13 @@ const baseFetchData = async (URL, options = {}) => {
 
 export const fetchData = async (URL) => baseFetchData(URL);
 
-export const protectedFetchData = async (URL, token) =>
+export const protectedFetchData = async (URL, token) => {
   baseFetchData(URL, {
     headers: {
       Authorization: "Bearer " + token,
     },
   });
+};
 
 const basePostData = async (URL, body, options = {}) => {
   try {

@@ -14,7 +14,9 @@
   --text-color: #ffffff;
   --text-color-2: #ccc;
   --border-color: #151515;
-  --opacified-bg: #00000090
+  --opacified-bg: #00000090;
+  --lk-disconnect-button-bg: #8675dc;
+
   background-color: var(--bg-color);
   color: var(--text-color);
 }
@@ -27,17 +29,51 @@
   --text-color-2: #666;
   --border-color: #cccccc;
   --opacified-bg: #ffffff99;
+  --lk-disconnect-button-bg: #8675dc;
 
   background-color: var(--bg-color);
   color: var(--text-color);
 }
 
+.lk-button {
+  background-color: var(--bg-color) !important;
+  border-radius: 200rem !important;
+  width: 3.5rem;
+  height: 3.5rem;
+  display: grid;
+  place-items: center;
+}
+
+.lk-participant-media-audio video {
+  position: absolute !important;
+  top: 0px !important;
+  left: 0px !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 9999 !important;
+}
+
+.lk-button:hover {
+  background-color: var(--card-color) !important;
+}
+
+.lk-disconnect-button {
+  background-color: #8675dc !important;
+  border-color: #8675dc !important;
+  color: #fff !important;
+  transition: all 0.3s !important;
+}
+
+.lk-disconnect-button:hover {
+  background-color: #8765dc !important;
+}
+
 .theme-fill-bg {
-  fill: var(--bg-color)
+  fill: var(--bg-color);
 }
 
 .theme-hover-bg-2:hover {
-  background-color: var(--card-color)
+  background-color: var(--card-color);
 }
 
 .theme-bg {
@@ -45,15 +81,15 @@
 }
 
 .theme-bg-2 {
-  background-color: var(--card-color)
+  background-color: var(--card-color);
 }
 
 .theme-text {
-  color: var(--text-color)
+  color: var(--text-color);
 }
 
 .theme-text-2 {
-  color:var(--text-color-2)
+  color: var(--text-color-2);
 }
 
 .opacified-bg {
