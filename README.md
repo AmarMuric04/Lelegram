@@ -31,6 +31,9 @@ A Telegram clone that includes:
 29. Voice chat (Live chat, Screen-sharing, Camera...)
 30. Mentions (@...),
 31. Read Receipts
+    
 And more!
+
+Project started 4th of February 2025, finished 25th of Februrary 2025.
 
 To use the app, change the .env.test file's name to just .env
