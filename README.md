@@ -132,33 +132,33 @@ Users have praised Lelegram for its seamless real-time communication and clean, 
 ### Installation
 
 1. **Clone the repository:**
-   \`\`\`bash
+   ```bash
    git clone https://github.com/AmarMuric04/Lelegram.git
-   \`\`\`
+   ```
 2. **Navigate to the backend directory:**
-   \`\`\`bash
+   ```bash
    cd backend
-   \`\`\`
+   ```
 3. **Install backend dependencies:**
-   \`\`\`bash
+   ```bash
    npm install
-   \`\`\`
+   ```
 4. **Start the backend server:**
-   \`\`\`bash
+   ```bash
    npm start
-   \`\`\`
+   ```
 5. **Open a new terminal and navigate to the frontend directory:**
-   \`\`\`bash
+   ```bash
    cd chat-app
-   \`\`\`
+   ```
 6. **Install frontend dependencies:**
-   \`\`\`bash
+   ```bash
    npm install
-   \`\`\`
+   ```
 7. **Start the frontend:**
-   \`\`\`bash
+   ```bash
    npm run dev
-   \`\`\`
+   ```
 8. **Access the app:**  
    Open [http://localhost:5173](http://localhost:5173) in your browser.
 
