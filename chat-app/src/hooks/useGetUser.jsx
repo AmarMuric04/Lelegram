@@ -10,6 +10,8 @@ const useGetUser = () => {
   const dispatch = useDispatch();
 
   const fetchUser = useCallback(async () => {
+    if (typeof window === "undefined") return null;
+
     setIsLoading(true);
     setError(null);
 

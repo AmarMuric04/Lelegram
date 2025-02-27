@@ -318,10 +318,17 @@ export default function ActiveChat() {
                       </div>
                     </div>
                   )}
-                  <ActiveChatInput
-                    setTypeIndicator={setTypeIndicator}
-                    showScrollButton={showScrollButton}
-                  />
+                  {(activeChat?.type === "broadcast" && isAdmin) ||
+                  activeChat?.type !== "broadcast" ? (
+                    <ActiveChatInput
+                      setTypeIndicator={setTypeIndicator}
+                      showScrollButton={showScrollButton}
+                    />
+                  ) : (
+                    <p className="text-center w-full font-semibold">
+                      Only admins can send messages
+                    </p>
+                  )}
                 </div>
                 {typeIndicator[activeChat?._id] &&
                   typeIndicator[activeChat._id].length > 0 && (

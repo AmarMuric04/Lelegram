@@ -95,31 +95,33 @@ export default function ActiveChatHeader({ setViewChatInfo }) {
               onClick={(e) => e.stopPropagation()}
               className="flex items-center gap-8"
             >
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setOpenVoiceChat(true);
-                }}
-                className="theme-hover-bg-2 cursor-pointer transition-all p-2  rounded-full"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  className="theme-text-2"
+              {activeChat.type !== "broadcast" && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenVoiceChat(true);
+                  }}
+                  className="theme-hover-bg-2 cursor-pointer transition-all p-2  rounded-full"
                 >
-                  <rect width="24" height="24" fill="none" />
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.5"
-                    d="M18.118 14.702L14 15.5c-2.782-1.396-4.5-3-5.5-5.5l.77-4.13L7.815 2H4.064c-1.128 0-2.016.932-1.847 2.047c.42 2.783 1.66 7.83 5.283 11.453c3.805 3.805 9.286 5.456 12.302 6.113c1.165.253 2.198-.655 2.198-1.848v-3.584z"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    className="theme-text-2"
+                  >
+                    <rect width="24" height="24" fill="none" />
+                    <path
+                      fill="none"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.5"
+                      d="M18.118 14.702L14 15.5c-2.782-1.396-4.5-3-5.5-5.5l.77-4.13L7.815 2H4.064c-1.128 0-2.016.932-1.847 2.047c.42 2.783 1.66 7.83 5.283 11.453c3.805 3.805 9.286 5.456 12.302 6.113c1.165.253 2.198-.655 2.198-1.848v-3.584z"
+                    />
+                  </svg>
+                </button>
+              )}
 
               {activeChat.type !== "saved" && (
                 <PopUpMenu
