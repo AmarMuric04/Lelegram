@@ -29,12 +29,11 @@ A Telegram clone that includes:
 27. User status
 28. Dedicated Websocket rooms
 29. Voice chat (Live chat, Screen-sharing, Camera...)
+30. Mentions (@...),
+31. Read Receipts
     
 And more!
 
-Things in consideration of being implemented:
-
-1. Mentions (@...), 🔜
-2. Read Receipts,
+Project started 4th of February 2025, finished 25th of Februrary 2025.
 
 To use the app, change the .env.test file's name to just .env
