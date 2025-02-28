@@ -13,6 +13,7 @@ import ChatBackground from "../components/chat/ChatBackground.jsx";
 import ActiveChat from "../components/chat/activeChat/ActiveChat.jsx";
 import { protectedFetchData } from "../utility/async.js";
 import { Helmet } from "react-helmet-async";
+import { ThrobberSVG } from "../../public/svgs.jsx";
 
 const socket = io(import.meta.env.VITE_SERVER_PORT || "http://localhost:3000");
 
@@ -73,7 +74,12 @@ export default function ChatPage() {
     }
   }, [error]);
 
-  if (!user || !user._id) return <p>Please wait...</p>;
+  if (!user || !user._id)
+    return (
+      <div className="w-screen h-screen bg-[#202021] grid place-items-center text-[#8675DC]">
+        <ThrobberSVG />
+      </div>
+    );
 
   return (
     <>
