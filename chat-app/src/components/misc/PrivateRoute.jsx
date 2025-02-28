@@ -3,6 +3,7 @@ import { connectSocket, socket, disconnectSocket } from "../../socket";
 import { checkIfSignedIn } from "../../utility/util";
 import PropTypes from "prop-types";
 import useGetUser from "../../hooks/useGetUser";
+import { ThrobberSVG } from "../../../public/svgs";
 
 const PrivateRoute = ({ children }) => {
   const { isLoading, fetchUser } = useGetUser();
@@ -33,8 +34,12 @@ const PrivateRoute = ({ children }) => {
     };
   }, [fetchUser]);
 
-  // Only render once we are mounted and not loading
-  if (!mounted || isLoading) return <p>Please Wait</p>;
+  if (!mounted || isLoading)
+    return (
+      <div className="w-screen h-screen bg-[#202021] grid place-items-center text-[#8675DC]">
+        <ThrobberSVG />
+      </div>
+    );
 
   return children;
 };

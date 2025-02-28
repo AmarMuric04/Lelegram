@@ -11,6 +11,8 @@ axiosInstance.interceptors.request.use((config) => {
 
 const baseFetchData = async (URL, options = {}) => {
   try {
+    console.log(options);
+
     const response = await axiosInstance.get(URL, {
       headers: {
         ...options.headers,
