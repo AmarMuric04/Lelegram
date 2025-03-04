@@ -335,7 +335,7 @@ export const sendVoiceMessage = async (req, res, next) => {
     next(error);
   }
 };
-
+// to-do: refactor this function ↑
 export const deleteMessage = async (req, res, next) => {
   try {
     const { messageId } = req.body;
